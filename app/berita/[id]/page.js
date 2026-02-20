@@ -1,0 +1,306 @@
+"use client";
+import { useEffect, useState, use } from 'react';
+import { doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import Link from 'next/link';
+
+export default function BeritaDetail({ params }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
+  
+  // State Utama
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // State Sidebar
+  const [latestPosts, setLatestPosts] = useState([]);
+  const [popularPosts, setPopularPosts] = useState([]);
+  
+  // State Komentar
+  const [name, setName] = useState('');
+  const [text, setText] = useState('');
+  const [loadingComment, setLoadingComment] = useState(false);
+
+  useEffect(() => {
+    // 1. Fetch Berita Utama & Tambah View Count
+    const fetchPost = async () => {
+        const docRef = doc(db, "posts", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            setPost(docSnap.data());
+            
+            // Tambahkan jumlah views otomatis +1 setiap kali halaman dibuka
+            try {
+                await updateDoc(docRef, { views: increment(1) });
+            } catch (error) {
+                console.log("View counter init");
+            }
+        }
+        setLoading(false);
+    };
+    fetchPost();
+
+    // 2. Fetch Komentar Real-time
+    const qComments = query(collection(db, "posts", id, "comments"), orderBy("createdAt", "desc"));
+    const unsubComments = onSnapshot(qComments, (snap) => {
+        setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // 3. Fetch Berita Terbaru (Sidebar) - Batasi 5
+    const qLatest = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(5));
+    const unsubLatest = onSnapshot(qLatest, (snap) => {
+        setLatestPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // 4. Fetch Berita Terpopuler (Sidebar) - Sortir berdasarkan Views Tertinggi, Batasi 5
+    const qPopular = query(collection(db, "posts"), orderBy("views", "desc"), limit(5));
+    const unsubPopular = onSnapshot(qPopular, (snap) => {
+        setPopularPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => { unsubComments(); unsubLatest(); unsubPopular(); };
+  }, [id]);
+
+  const submitComment = async (e) => {
+      e.preventDefault();
+      setLoadingComment(true);
+      try {
+          await addDoc(collection(db, "posts", id, "comments"), {
+              name: name, text: text, createdAt: serverTimestamp()
+          });
+          setName(''); setText('');
+      } catch (err) { alert("Gagal kirim komentar."); }
+      setLoadingComment(false);
+  };
+
+  // Tampilan Loading
+  if (loading) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 font-bold text-slate-500">Memuat Berita...</p>
+    </div>
+  );
+  
+  // Tampilan Error
+  if (!post) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <h1 className="text-4xl font-bold text-slate-800 mb-2">404</h1>
+        <p className="text-slate-500 mb-6">Berita tidak ditemukan.</p>
+        <Link href="/" className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold">Kembali ke Beranda</Link>
+    </div>
+  );
+
+  let publishDate = "Baru saja";
+  if (post.createdAt) {
+      const dateObj = post.createdAt.toDate();
+      publishDate = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // PEMBERSIH SPASI KAKU DARI COPY PASTE & DATELINE
+  let finalContent = post.content || '';
+  finalContent = finalContent.replace(/&nbsp;/g, ' '); 
+
+  if (post.dateline) {
+      const datelineHtml = `<strong class="text-slate-900 font-black mr-2">${post.dateline} &mdash;</strong>`;
+      if (finalContent.startsWith('<p>')) finalContent = finalContent.replace('<p>', `<p>${datelineHtml}`);
+      else finalContent = `<p>${datelineHtml} ${finalContent}</p>`;
+  }
+
+  // Helper untuk format tanggal di Sidebar
+  const formatDateSidebar = (timestamp) => {
+      if(!timestamp) return "Baru saja";
+      return timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  return (
+    <div className="bg-slate-50 min-h-screen font-sans text-slate-800 pb-20 overflow-x-hidden">
+      
+      {/* CSS KHUSUS EDITOR TEKS - SUDAH DIPERBAIKI TOTAL */}
+      <style jsx global>{`
+        .article-content { 
+            text-align: left; 
+            color: #374151; 
+            width: 100%; 
+        }
+        
+        .article-content p { 
+            margin-bottom: 1.5rem; 
+            line-height: 1.8; 
+            font-size: 1.125rem; 
+            word-break: normal; /* PERBAIKAN: Teks dilarang memotong di tengah kata */
+            overflow-wrap: break-word; /* Hanya potong jika ada URL kepanjangan */
+        }
+
+        .article-content strong, .article-content b { font-weight: 800; color: #111827; }
+        .article-content h2, .article-content h3 { font-weight: 800; color: #111827; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.4; }
+        .article-content h2 { font-size: 1.875rem; } 
+        .article-content h3 { font-size: 1.5rem; }
+        .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; }
+        .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; }
+        .article-content li { margin-bottom: 0.5rem; }
+        .article-content a { color: #4f46e5; text-decoration: underline; }
+        .article-content img { border-radius: 0.5rem; margin-top: 2rem; margin-bottom: 2rem; width: 100%; height: auto; }
+        .article-content blockquote { border-left: 4px solid #4f46e5; padding-left: 1.5rem; font-style: italic; background: #f8fafc; padding: 1.5rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 2rem; }
+      `}</style>
+
+      {/* Navbar Atas */}
+      <header className="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center justify-between max-w-7xl">
+            <Link href="/" className="font-extrabold text-2xl tracking-tight text-slate-900">Mahatma<span className="text-orange-600">.id</span></Link>
+            <Link href="/" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition flex items-center gap-2 uppercase tracking-widest">&larr; Kembali</Link>
+        </div>
+      </header>
+
+      {/* GRID UTAMA (KIRI ARTIKEL, KANAN SIDEBAR) */}
+      <main className="container mx-auto px-4 md:px-8 mt-6 md:mt-10 max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        
+        {/* =========================================
+            KOLOM KIRI: ARTIKEL UTAMA (8 Kolom)
+            ========================================= */}
+        <article className="lg:col-span-8 bg-white p-6 md:p-10 lg:p-12 rounded-[2rem] shadow-sm border border-slate-100 h-fit">
+            
+            {/* Header Berita */}
+            <div className="mb-8">
+                <span className="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
+                    {post.category || 'Berita'}
+                </span>
+                
+                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-[1.25] mb-6">
+                    {post.title}
+                </h1>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-b border-slate-100 py-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-lg">
+                            {(post.author || 'R')[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm text-slate-900">{post.author || 'Tim Redaksi'}</p>
+                            <p className="text-[11px] text-slate-500 font-semibold tracking-wider uppercase">{publishDate} • {post.views || 0} DIBACA</p>
+                        </div>
+                    </div>
+
+                    {/* Tombol Share */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Share:</span>
+                        <button onClick={() => {navigator.clipboard.writeText(window.location.href); alert('Link Tersalin!')}} className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition">🔗</button>
+                        <a href={`https://api.whatsapp.com/send?text=${post.title} - ${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition font-bold text-xs">WA</a>
+                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition font-bold text-xs">FB</a>
+                    </div>
+                </div>
+            </div>
+
+            {/* Gambar Sampul */}
+            {post.coverUrl && (
+                <div className="w-full aspect-[16/9] md:aspect-[2/1] bg-slate-200 rounded-2xl overflow-hidden mb-10 shadow-sm">
+                    <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover" />
+                </div>
+            )}
+
+            {/* Isi Berita (Sudah aman dari pemotongan huruf) */}
+            <div className="article-content w-full" dangerouslySetInnerHTML={{ __html: finalContent }}></div>
+
+            {/* Tags */}
+            {post.tags && (
+                <div className="mt-12 pt-6 border-t border-slate-100 flex flex-wrap gap-2">
+                    {post.tags.split(',').map((tag, index) => (
+                        <span key={index} className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            #{tag.trim()}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {/* Komentar */}
+            <div className="mt-16 bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100">
+                <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Komentar Pembaca ({comments.length})</h3>
+                
+                <form onSubmit={submitComment} className="mb-10 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <input type="text" required placeholder="Nama Anda" className="w-full mb-4 border border-slate-300 p-3 rounded-lg outline-none focus:border-indigo-500 font-medium text-sm" value={name} onChange={e => setName(e.target.value)} />
+                    <textarea required rows="3" placeholder="Tulis pendapat Anda tentang berita ini..." className="w-full mb-4 border border-slate-300 p-3 rounded-lg outline-none focus:border-indigo-500 text-sm" value={text} onChange={e => setText(e.target.value)}></textarea>
+                    <button disabled={loadingComment} type="submit" className="bg-slate-900 text-white font-bold py-3 px-8 rounded-lg hover:bg-slate-800 transition disabled:opacity-50 text-sm">
+                        {loadingComment ? 'Mengirim...' : 'Kirim Komentar'}
+                    </button>
+                </form>
+
+                <div className="space-y-4">
+                    {comments.length === 0 ? (
+                        <p className="text-slate-400 italic text-sm">Belum ada komentar jadilah yang pertama.</p>
+                    ) : (
+                        comments.map(c => {
+                            let cDate = 'Baru saja';
+                            if(c.createdAt) cDate = c.createdAt.toDate().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
+                            return (
+                                <div key={c.id} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xs">{c.name.charAt(0).toUpperCase()}</div>
+                                            <span className="font-bold text-slate-800 text-sm">{c.name}</span>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{cDate}</span>
+                                    </div>
+                                    <p className="text-slate-600 text-sm leading-relaxed">{c.text}</p>
+                                </div>
+                            )
+                        })
+                    )}
+                </div>
+            </div>
+        </article>
+
+        {/* =========================================
+            KOLOM KANAN: SIDEBAR (4 Kolom)
+            ========================================= */}
+        <aside className="lg:col-span-4 space-y-8">
+            
+            {/* Widget: Berita Terbaru */}
+            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                <h3 className="font-extrabold text-lg text-slate-900 mb-6 border-b border-slate-100 pb-3 flex items-center">
+                    <span className="w-2 h-6 bg-orange-500 rounded-full mr-3"></span> Berita Terbaru
+                </h3>
+                <div className="flex flex-col gap-5">
+                    {latestPosts.filter(p => p.id !== id).slice(0,4).map(p => (
+                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-4 group items-center">
+                            <div className="w-24 h-20 flex-shrink-0 bg-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                <img src={p.coverUrl || 'https://placehold.co/600x400'} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                            </div>
+                            <div className="flex-1">
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-orange-600 mb-1 block">{p.category}</span>
+                                <h4 className="font-bold text-sm text-slate-800 group-hover:text-orange-600 transition line-clamp-2 leading-snug">{p.title}</h4>
+                                <span className="text-[10px] text-slate-400 mt-1.5 font-medium block">{formatDateSidebar(p.createdAt)}</span>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+            {/* Widget: Berita Terpopuler */}
+            <div className="bg-slate-900 p-6 rounded-[2rem] shadow-lg">
+                <h3 className="font-extrabold text-lg text-white mb-6 border-b border-slate-800 pb-3 flex items-center">
+                    <span className="w-2 h-6 bg-indigo-500 rounded-full mr-3"></span> Terpopuler
+                </h3>
+                <div className="flex flex-col gap-5">
+                    {popularPosts.map((p, index) => (
+                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-4 group items-center">
+                            <div className="w-8 flex-shrink-0 flex items-center justify-center font-black text-3xl text-slate-700 group-hover:text-indigo-500 transition italic">
+                                {index + 1}
+                            </div>
+                            <div className="flex-1 border-b border-slate-800 pb-4 group-last:border-0 group-last:pb-0">
+                                <h4 className="font-bold text-sm text-gray-200 group-hover:text-white transition line-clamp-2 leading-snug">{p.title}</h4>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{p.category}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">👀 {p.views || 0} x dibaca</span>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+
+        </aside>
+
+      </main>
+    </div>
+  );
+}
