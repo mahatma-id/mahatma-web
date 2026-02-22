@@ -111,7 +111,7 @@ export default function LayananDetail({ params }) {
                 <h3 className="text-xl font-bold text-slate-900 mb-3">Tertarik dengan {service.name}?</h3>
                 <p className="text-slate-500 text-sm mb-6">Tim pakar kami siap mendiskusikan kebutuhan spesifik organisasi Anda.</p>
                 <a 
-                    href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20untuk%20berdiskusi%20lebih%20lanjut%20mengenai%20layanan%20*${service.name}*.`} 
+                    href={`https://wa.me/6285185639375?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20untuk%20berdiskusi%20lebih%20lanjut%20mengenai%20layanan%20*${service.name}*.`} 
                     target="_blank" 
                     className="inline-block px-10 py-4 bg-orange-600 text-white font-bold tracking-widest uppercase rounded-full text-xs hover:bg-orange-500 hover:-translate-y-1 transition duration-300 shadow-md"
                 >
