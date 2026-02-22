@@ -52,12 +52,13 @@ export default function Home() {
                 <img src={settings.logoUrl} alt="Logo" className="h-10 object-contain group-hover:scale-105 transition-transform" />
             ) : (
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors">
-                    Mahatma<span className="text-orange-600">.id</span>
+                    MAHATMA <span className="text-orange-600">ACADEMY</span>
                 </span>
             )}
           </Link>
           <nav className="hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase text-slate-600">
             <a href="#layanan" className="hover:text-orange-600 hover:-translate-y-1 transition-all">Service</a>
+            <Link href="/tentang-kami" className="hover:text-orange-600 hover:-translate-y-1 transition-all">About Us</Link>
             <a href="#tim" className="hover:text-orange-600 hover:-translate-y-1 transition-all">Our Team</a>
             <a href="#insight" className="hover:text-orange-600 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
@@ -70,9 +71,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ============================================== */}
-      {/* 1. HERO SECTION (DIUBAH MENJADI RATA TENGAH) */}
-      {/* ============================================== */}
+      {/* 1. HERO SECTION */}
       <section className="relative min-h-[90vh] bg-slate-900 overflow-hidden flex items-center justify-center">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
@@ -80,30 +79,19 @@ export default function Home() {
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                     <img src={slide.imageUrl} className="w-full h-full object-cover transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
-                    
-                    {/* Overlay hitam merata seluruh gambar agar teks putih terbaca jelas */}
                     <div className="absolute inset-0 bg-black/60"></div>
                     
-                    {/* Teks diposisikan Rata Tengah (Center) persis seperti gambar 2 */}
                     <div className="relative z-20 flex flex-col justify-center items-center text-center h-full px-6 md:px-12 lg:px-16 max-w-5xl mx-auto">
                         <div className="transform transition-all duration-1000 translate-y-0 opacity-100 flex flex-col items-center">
-                            
-                            {/* Teks Oranye Kecil di atas Judul */}
                             <span className="text-orange-500 font-bold tracking-widest uppercase text-sm mb-4 block drop-shadow-md">
                                 Reach The Future
                             </span>
-
-                            {/* Judul Besar (Ada Fallback jika Admin kosong) */}
                             <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-[1.2] mb-6 drop-shadow-2xl">
                                 {slide.title || "Driving Change, Navigating Sustainable Future"}
                             </h1>
-                            
-                            {/* Deskripsi (Ada Fallback jika Admin kosong) */}
                             <p className="text-base md:text-xl text-gray-200 mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl">
                                 {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
                             </p>
-                            
-                            {/* Tombol Learn More */}
                             <a href={slide.btnLink || '#layanan'} className="inline-block px-10 py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-sm shadow-[0_10px_40px_rgba(234,88,12,0.4)]">
                                 {slide.btnText || "Learn More"}
                             </a>
@@ -112,8 +100,6 @@ export default function Home() {
                 </div>
             ))
         )}
-        
-        {/* Indikator Slider di bawah */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-3">
             {sliders.map((_, idx) => (
                 <button key={idx} onClick={() => setCurrentSlide(idx)} className={`h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-8 bg-orange-500' : 'w-2 bg-white/50 hover:bg-white'}`}></button>
@@ -300,7 +286,7 @@ export default function Home() {
                             <img src={settings.logoUrl} alt="Logo" className="h-14 object-contain" />
                         ) : (
                             <span className="font-extrabold text-3xl tracking-tight text-slate-900">
-                                Mahatma<span className="text-orange-600">.id</span>
+                                MAHATMA <span className="text-orange-600">ACADEMY</span>
                             </span>
                         )}
                     </Link>
@@ -334,7 +320,8 @@ export default function Home() {
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-sm">Pages</h4>
                     <ul className="space-y-4 text-sm md:text-base text-slate-500">
-                        <li><a href="#" className="hover:text-orange-600 transition">Homepage</a></li>
+                        <li><Link href="/" className="hover:text-orange-600 transition">Homepage</Link></li>
+                        <li><Link href="/tentang-kami" className="hover:text-orange-600 transition">About Us</Link></li>
                         <li><a href="#insight" className="hover:text-orange-600 transition">Our Insight</a></li>
                         <li><a href="#tim" className="hover:text-orange-600 transition">Our Team</a></li>
                         <li><a href="#kontak" className="hover:text-orange-600 transition">Contact Us</a></li>
@@ -385,7 +372,7 @@ export default function Home() {
             </div>
 
             <div className="border-t border-slate-200 pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[11px] font-bold tracking-widest uppercase text-slate-400">
-                <p>&copy; 2026 Mahatma.id. All rights reserved.</p>
+                <p>&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex gap-6 mt-4 md:mt-0">
                     <a href="#" className="hover:text-orange-600 transition">Privacy Policy</a>
                     <a href="#" className="hover:text-orange-600 transition">Terms of Service</a>
