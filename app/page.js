@@ -119,40 +119,43 @@ export default function Home() {
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
             sliders.map((slide, index) => (
-                <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none -z-10'}`}>
+                <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
-                    <img src={slide.imageUrl} className="absolute inset-0 w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite] z-0" alt="Hero Background"/>
-                    <div className="absolute inset-0 bg-black/60 md:bg-black/50 z-10"></div>
+                    <div className="absolute inset-0 z-0">
+                        <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
+                        <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
+                    </div>
                     
-                    <div className="absolute inset-0 z-20 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16">
+                    <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-10 md:pt-0">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
-                            
-                            <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">
-                                {slide.tagline || "Reach The Future"}
-                            </span>
-                            
+                            {slide.tagline && (
+                                <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-3 block drop-shadow-md">
+                                    {slide.tagline}
+                                </span>
+                            )}
                             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-xl">
                                 {slide.title || "Driving Change, Navigating Sustainable Future"}
                             </h1>
-                            
-                            <p className="text-sm sm:text-base md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
-                                {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
-                            </p>
-                            
+                            {slide.subtitle && (
+                                <p className="text-sm sm:text-base md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
+                                    {slide.subtitle}
+                                </p>
+                            )}
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
                                 {(slide.btn1Text || slide.btnText) && (
-                                    <a href={slide.btn1Link || slide.btnLink || '#'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                        {slide.btn1Text || slide.btnText || "Preview"}
+                                    <a href={slide.btn1Link || slide.btnLink || '#'} className="w-full sm:w-auto px-8 py-3.5 md:px-10 md:py-4 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-xs shadow-lg">
+                                        {slide.btn1Text || slide.btnText}
                                     </a>
                                 )}
                                 {slide.btn2Text && (
-                                    <a href={slide.btn2Link || '#'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 border-2 border-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:border-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                        {slide.btn2Text || "Buy"}
+                                    <a href={slide.btn2Link || '#'} className="w-full sm:w-auto px-8 py-3.5 md:px-10 md:py-4 bg-orange-600 border-2 border-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:border-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-xs shadow-lg">
+                                        {slide.btn2Text}
                                     </a>
                                 )}
                             </div>
                         </div>
                     </div>
+
                 </div>
             ))
         )}
@@ -164,41 +167,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION (KARTU DI KIRI, TEKS DI KANAN) */}
+      {/* 2. OUR MISSION (GAMBAR BESAR DI KIRI, KARTU-KARTU TEKS DI KANAN) */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
-            {/* flex-col-reverse untuk HP agar judul teks muncul duluan, lalu kartu misi di bawahnya */}
-            <div className="flex flex-col-reverse lg:flex-row items-center gap-10 md:gap-16">
+            <div className="flex flex-col lg:flex-row gap-10 md:gap-16">
                 
-                {/* BAGIAN KIRI: KARTU MISI RATA KANAN SEPERTI DI GAMBAR */}
-                <div className="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                    {[1, 2, 3, 4].map(num => {
-                        const title = settings[`mission${num}Title`];
-                        const img = settings[`mission${num}Img`];
-                        if (!title && !img) return null; 
-                        
-                        return (
-                            <div key={num} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center text-center cursor-pointer">
-                                {img ? (
-                                    <img src={img} className="w-16 h-16 md:w-20 md:h-20 mb-6 object-contain group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500" alt={title} />
-                                ) : (
-                                    <div className="w-16 h-16 md:w-20 md:h-20 mb-6 bg-orange-50 dark:bg-slate-700 rounded-full flex items-center justify-center text-orange-500 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-sm border border-orange-100 dark:border-slate-600">
-                                        <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                    </div>
-                                )}
-                                <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors leading-relaxed">
-                                    {title || `Misi ${num}`}
-                                </h3>
-                            </div>
-                        )
-                    })}
+                {/* BAGIAN KIRI: GAMBAR UTAMA MISI */}
+                <div className="w-full lg:w-1/2 relative group rounded-3xl overflow-hidden shadow-xl sticky top-24 h-fit">
+                    {settings.missionMainImg ? (
+                        <img src={settings.missionMainImg} alt="Our Mission" className="w-full h-auto max-h-[80vh] object-cover group-hover:scale-105 transition-transform duration-700" />
+                    ) : (
+                        <div className="w-full aspect-square bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                            <span className="text-slate-400 dark:text-slate-500 font-bold tracking-widest text-xs uppercase">Gambar Misi Belum Diunggah</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* BAGIAN KANAN: TEKS UTAMA (RATA KANAN) */}
-                <div className="w-full lg:w-1/2 text-center lg:text-right">
+                {/* BAGIAN KANAN: TEKS JUDUL & KARTU PARAGRAF */}
+                <div className="w-full lg:w-1/2 flex flex-col text-right">
+                    
+                    {/* Judul Utama Misi (Rata Kanan) */}
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Mission</span>
-                    <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4 md:mb-8 leading-tight">{settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light">{settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}</p>
+                    <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
+                        {settings.missionTitle || "Integrated Solution for Your Needs"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light mb-10">
+                        {settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}
+                    </p>
+                    
+                    {/* Kartu-Kartu Poin Misi (Disusun Rapi ke Bawah) */}
+                    <div className="flex flex-col gap-4 md:gap-5 w-full">
+                        {[1, 2, 3, 4].map(num => {
+                            const desc = settings[`mission${num}Desc`];
+                            if (!desc) return null; 
+                            
+                            return (
+                                <div key={num} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md hover:-translate-x-2 transition-all duration-300 group text-left relative overflow-hidden cursor-default">
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-orange-100 dark:bg-slate-700 group-hover:bg-orange-500 transition-colors"></div>
+                                    <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed font-light group-hover:text-slate-900 dark:group-hover:text-white transition-colors pl-4">
+                                        {desc}
+                                    </p>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    
                 </div>
 
             </div>
@@ -211,9 +224,8 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Service</span>
-                    {/* Ukuran font sudah diperkecil */}
                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
                 {settings.serviceImageUrl && (
                     <div className="lg:w-1/2 w-full mt-2 lg:mt-0">
@@ -226,7 +238,6 @@ export default function Home() {
                 {services.map(svc => (
                     <div key={svc.id} className="relative overflow-hidden p-6 md:p-10 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col h-full cursor-pointer">
                         
-                        {/* BACKGROUND IMAGE DENGAN OVERLAY GELAP */}
                         {svc.imgUrl ? (
                             <>
                                 <img src={svc.imgUrl} alt={svc.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 z-0" />
@@ -236,7 +247,6 @@ export default function Home() {
                             <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 z-0 transition-colors"></div>
                         )}
 
-                        {/* KONTEN KARTU */}
                         <div className="relative z-20 flex flex-col h-full">
                             <div className={`w-10 h-10 md:w-14 md:h-14 shadow-sm rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:rotate-12 transition-all duration-500 ${svc.imgUrl ? 'bg-white/20 backdrop-blur-md text-white group-hover:bg-orange-600' : 'bg-white dark:bg-slate-800 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
                                 <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -267,7 +277,7 @@ export default function Home() {
             <div className="container mx-auto max-w-7xl">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Meet The Experts</span>
-                    <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Orang-Orang Hebat di Balik Mahatma</h2>
+                    <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4"></h2>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     {teams.map(member => (
@@ -290,7 +300,7 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
                 <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Insight</span>
-                <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight">Wawasan & Perspektif Terbaru</h2>
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight"></h2>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
@@ -350,7 +360,7 @@ export default function Home() {
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">F.A.Q</span>
-                    <h2 className="text-2xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4">Pertanyaan Paling Sering Diajukan</h2>
+                    <h2 className="text-2xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
                     {faqs.map((faq, idx) => (
