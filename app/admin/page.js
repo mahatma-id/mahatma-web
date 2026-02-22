@@ -70,19 +70,14 @@ export default function AdminPage() {
 
   // STATE UMUM & FOOTER
   const [settings, setSettings] = useState({ 
-      logoUrl: '', missionTitle: '', missionDesc: '', 
+      logoUrl: '', missionTitle: '', missionDesc: '', missionMainImg: '', // <-- Tambahan Main Img
       mission1Title: '', mission1Img: '', mission2Title: '', mission2Img: '', mission3Title: '', mission3Img: '', mission4Title: '', mission4Img: '',
       serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
       footerDesc: '', phone: '', linkedin: '', youtube: '', instagram: ''
   });
   
-  // STATE SLIDER
-  const [sliders, setSliders] = useState([]);
-  const [editSliderId, setEditSliderId] = useState(null);
-  const [slideTagline, setSlideTagline] = useState(''); const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtn1Text, setSlideBtn1Text] = useState(''); const [slideBtn1Link, setSlideBtn1Link] = useState(''); const [slideBtn2Text, setSlideBtn2Text] = useState(''); const [slideBtn2Link, setSlideBtn2Link] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
-
-  // STATE LAINNYA
+  const [sliders, setSliders] = useState([]); const [editSliderId, setEditSliderId] = useState(null); const [slideTagline, setSlideTagline] = useState(''); const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtn1Text, setSlideBtn1Text] = useState(''); const [slideBtn1Link, setSlideBtn1Link] = useState(''); const [slideBtn2Text, setSlideBtn2Text] = useState(''); const [slideBtn2Link, setSlideBtn2Link] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
   const [partners, setPartners] = useState([]); const [editPartnerId, setEditPartnerId] = useState(null); const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
   const [services, setServices] = useState([]); const [editServiceId, setEditServiceId] = useState(null); const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState(''); const [serviceImgFile, setServiceImgFile] = useState(null); const [serviceImgUrl, setServiceImgUrl] = useState('');
   const [teams, setTeams] = useState([]); const [editTeamId, setEditTeamId] = useState(null); const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null); const [teamImgUrl, setTeamImgUrl] = useState('');
@@ -160,23 +155,42 @@ export default function AdminPage() {
                 
                 <div className="p-4 bg-slate-50 rounded-xl border">
                     <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Mission</h3>
+                    
+                    {/* INPUT GAMBAR UTAMA MISI */}
+                    <div className="mb-4">
+                        <label className="text-xs font-bold block mb-1 text-slate-600">Upload Gambar Utama Misi (Sebelah Kiri)</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, missionMainImg: url});
+                                    alert(`Gambar Utama Misi Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-[10px] border p-1 rounded w-full bg-white" />
+                        {settings.missionMainImg && <img src={settings.missionMainImg} className="h-24 mt-2 object-cover rounded border p-1 bg-white" alt="main preview"/>}
+                    </div>
+
                     <input type="text" value={settings.missionTitle || ''} onChange={e=>setSettings({...settings, missionTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Judul Mission" />
                     <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-4" rows="3" placeholder="Deskripsi Mission"></textarea>
                     
-                    {/* INPUT KARTU MISI MAX 4 */}
-                    <h4 className="font-bold text-slate-700 mb-2 text-sm border-t pt-4">Poin Misi (Maksimal 4 Kartu)</h4>
+                    {/* INPUT KARTU MISI MAX 4 (Gambar Kecil/Icon) */}
+                    <h4 className="font-bold text-slate-700 mb-2 text-sm border-t pt-4">Poin Misi (Kartu Landscape - Max 4)</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[1, 2, 3, 4].map(num => (
                             <div key={num} className="border border-slate-200 p-3 rounded-lg bg-white">
                                 <label className="text-xs font-bold block mb-1 text-slate-600">Kartu Misi {num}</label>
                                 <input type="text" placeholder={`Judul Misi ${num} (Cth: People)`} value={settings[`mission${num}Title`] || ''} onChange={e=>setSettings({...settings, [`mission${num}Title`]: e.target.value})} className="w-full border p-2 rounded text-xs mb-2" />
+                                <label className="text-[10px] block mb-1 text-slate-500">Ikon/Gambar Kecil</label>
                                 <input type="file" accept="image/*" onChange={async (e) => {
                                     if(e.target.files[0]) {
                                         setLoading(true);
                                         try {
                                             const url = await uploadToCloudinary(e.target.files[0]);
                                             setSettings({...settings, [`mission${num}Img`]: url});
-                                            alert(`Gambar Misi ${num} Berhasil Diunggah!`);
+                                            alert(`Gambar Kartu Misi ${num} Berhasil Diunggah!`);
                                         } catch(err) { alert(err.message); }
                                         setLoading(false);
                                     }
