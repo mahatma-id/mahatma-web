@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, orderBy, onSnapshot, limit, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
-import ThemeToggle from '@/components/ThemeToggle'; // <-- IMPORT TOMBOL TEMA
+import ThemeToggle from '@/components/ThemeToggle'; 
 
 export default function Home() {
   const [settings, setSettings] = useState({});
@@ -56,7 +56,6 @@ export default function Home() {
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-orange-500 selection:text-white relative transition-colors duration-300">
 
-      {/* NAVBAR */}
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
@@ -82,7 +81,7 @@ export default function Home() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
-            <ThemeToggle /> {/* <-- TOMBOL TEMA DESKTOP */}
+            <ThemeToggle />
             <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
             <a href="#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-orange-600 dark:hover:bg-orange-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
               Join Us
@@ -90,7 +89,7 @@ export default function Home() {
           </div>
 
           <div className="lg:hidden flex items-center gap-3 z-50">
-            <ThemeToggle /> {/* <-- TOMBOL TEMA HP */}
+            <ThemeToggle />
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-900 dark:text-white focus:outline-none p-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}
@@ -99,13 +98,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* MOBILE MENU */}
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Our Team</a>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
+                
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
                     <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
@@ -125,7 +124,6 @@ export default function Home() {
                     <img src={slide.imageUrl} className="absolute inset-0 w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite] z-0" alt="Hero Background"/>
                     <div className="absolute inset-0 bg-black/60 md:bg-black/50 z-10"></div>
                     
-                    {/* KONTEN TEKS WAJIB ABSOLUT, FULL HEIGHT & WIDTH, FLEX CENTER */}
                     <div className="absolute inset-0 z-20 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             
@@ -206,15 +204,37 @@ export default function Home() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 {services.map(svc => (
-                    <div key={svc.id} className="bg-slate-50 dark:bg-slate-900 p-6 md:p-10 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl dark:hover:shadow-slate-900/50 hover:-translate-y-2 transition-all duration-500 group flex flex-col h-full cursor-pointer">
-                        <div className="w-10 h-10 md:w-14 md:h-14 bg-white dark:bg-slate-800 shadow-sm text-orange-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-orange-600 group-hover:text-white group-hover:rotate-12 transition-all duration-500">
-                            <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div key={svc.id} className="relative overflow-hidden p-6 md:p-10 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col h-full cursor-pointer">
+                        
+                        {/* BACKGROUND IMAGE DENGAN OVERLAY GELAP */}
+                        {svc.imgUrl ? (
+                            <>
+                                <img src={svc.imgUrl} alt={svc.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 z-0" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/50 z-10 transition-opacity group-hover:opacity-90"></div>
+                            </>
+                        ) : (
+                            <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 z-0 transition-colors"></div>
+                        )}
+
+                        {/* KONTEN KARTU */}
+                        <div className="relative z-20 flex flex-col h-full">
+                            <div className={`w-10 h-10 md:w-14 md:h-14 shadow-sm rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:rotate-12 transition-all duration-500 ${svc.imgUrl ? 'bg-white/20 backdrop-blur-md text-white group-hover:bg-orange-600' : 'bg-white dark:bg-slate-800 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
+                                <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            
+                            <h3 className={`text-base md:text-2xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                                {svc.name}
+                            </h3>
+                            
+                            <p className={`text-xs md:text-base mb-4 md:mb-8 line-clamp-3 md:line-clamp-4 leading-relaxed flex-grow font-light ${svc.imgUrl ? 'text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
+                                {svc.desc}
+                            </p>
+                            
+                            <Link href={`/layanan/${svc.id}`} className={`inline-flex items-center font-bold uppercase tracking-widest text-[9px] md:text-xs transition mt-auto ${svc.imgUrl ? 'text-white hover:text-orange-400' : 'text-slate-900 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                                Eksplorasi <span className="ml-2 text-sm md:text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
+                            </Link>
                         </div>
-                        <h3 className="text-base md:text-2xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4 group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">{svc.name}</h3>
-                        <p className="text-slate-600 dark:text-slate-400 text-xs md:text-base mb-4 md:mb-8 line-clamp-3 md:line-clamp-4 leading-relaxed flex-grow font-light">{svc.desc}</p>
-                        <Link href={`/layanan/${svc.id}`} className="inline-flex items-center font-bold text-slate-900 dark:text-slate-200 uppercase tracking-widest text-[9px] md:text-xs group-hover:text-orange-600 dark:group-hover:text-orange-500 transition mt-auto">
-                            Eksplorasi <span className="ml-2 text-sm md:text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
-                        </Link>
+
                     </div>
                 ))}
             </div>
