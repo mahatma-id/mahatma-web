@@ -10,8 +10,8 @@ const merriweather = Merriweather({
 });
 
 export const metadata = {
-  title: "Mahatma.id - Driving Change Sustainability",
-  description: "Solusi Terintegrasi Untuk Bisnis Anda.",
+  title: "MAHATMA ACADEMY",
+  description: "Mahatma Academy for Sustainable Education",
 };
 
 export default function RootLayout({ children }) {
