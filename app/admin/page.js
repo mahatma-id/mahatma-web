@@ -81,7 +81,15 @@ export default function AdminPage() {
   // STATE SLIDER
   const [sliders, setSliders] = useState([]);
   const [editSliderId, setEditSliderId] = useState(null);
-  const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtnText, setSlideBtnText] = useState(''); const [slideBtnLink, setSlideBtnLink] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
+  const [slideTagline, setSlideTagline] = useState(''); 
+  const [slideTitle, setSlideTitle] = useState(''); 
+  const [slideSubtitle, setSlideSubtitle] = useState(''); 
+  const [slideBtn1Text, setSlideBtn1Text] = useState(''); 
+  const [slideBtn1Link, setSlideBtn1Link] = useState(''); 
+  const [slideBtn2Text, setSlideBtn2Text] = useState(''); 
+  const [slideBtn2Link, setSlideBtn2Link] = useState(''); 
+  const [slideImageFile, setSlideImageFile] = useState(null); 
+  const [slideImageUrl, setSlideImageUrl] = useState('');
 
   // STATE MITRA
   const [partners, setPartners] = useState([]);
@@ -137,15 +145,27 @@ export default function AdminPage() {
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
   // ====================== CRUD SLIDER ======================
-  const cancelEditSlider = () => { setEditSliderId(null); setSlideTitle(''); setSlideSubtitle(''); setSlideBtnText(''); setSlideBtnLink(''); setSlideImageUrl(''); setSlideImageFile(null); };
-  const handleEditSlider = (s) => { setEditSliderId(s.id); setSlideTitle(s.title||''); setSlideSubtitle(s.subtitle||''); setSlideBtnText(s.btnText||s.btn1Text||''); setSlideBtnLink(s.btnLink||s.btn1Link||''); setSlideImageUrl(s.imageUrl||''); setSlideImageFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const cancelEditSlider = () => { setEditSliderId(null); setSlideTagline(''); setSlideTitle(''); setSlideSubtitle(''); setSlideBtn1Text(''); setSlideBtn1Link(''); setSlideBtn2Text(''); setSlideBtn2Link(''); setSlideImageUrl(''); setSlideImageFile(null); };
+  const handleEditSlider = (s) => { 
+      setEditSliderId(s.id); 
+      setSlideTagline(s.tagline || ''); 
+      setSlideTitle(s.title || ''); 
+      setSlideSubtitle(s.subtitle || ''); 
+      setSlideBtn1Text(s.btn1Text || s.btnText || ''); 
+      setSlideBtn1Link(s.btn1Link || s.btnLink || ''); 
+      setSlideBtn2Text(s.btn2Text || ''); 
+      setSlideBtn2Link(s.btn2Link || ''); 
+      setSlideImageUrl(s.imageUrl || ''); 
+      setSlideImageFile(null); 
+      window.scrollTo({top:0, behavior:'smooth'}); 
+  };
   const saveSlider = async (e) => {
       e.preventDefault(); setLoading(true);
       try {
           let finalImg = slideImageUrl;
           if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile);
           if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; }
-          const data = { title: slideTitle, subtitle: slideSubtitle, btnText: slideBtnText, btnLink: slideBtnLink, imageUrl: finalImg };
+          const data = { tagline: slideTagline, title: slideTitle, subtitle: slideSubtitle, btn1Text: slideBtn1Text, btn1Link: slideBtn1Link, btn2Text: slideBtn2Text, btn2Link: slideBtn2Link, imageUrl: finalImg };
           if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() });
           alert("Berhasil!"); cancelEditSlider();
       } catch(err) { alert(err.message); } setLoading(false);
@@ -312,7 +332,7 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
         <div className="mb-6 border-b border-slate-200 pb-4">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
-                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'tim' ? 'Kelola Tim Pakar' : activeTab === 'faq' ? 'Kelola F.A.Q' : activeTab === 'umum' ? 'Pengaturan Teks & Logo' : `Kelola ${activeTab}`}
+                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : `Kelola ${activeTab}`}
             </h2>
         </div>
         
@@ -380,7 +400,7 @@ export default function AdminPage() {
             </form>
         )}
 
-        {/* TAB SLIDER (DENGAN EDIT) */}
+        {/* TAB SLIDER (DENGAN EDIT + TAGLINE + 2 TOMBOL) */}
         {activeTab === 'slider' && (
             <div className="max-w-4xl">
                 <form onSubmit={saveSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -388,9 +408,24 @@ export default function AdminPage() {
                     <p className="text-xs md:text-sm text-slate-500 mb-2">Upload gambar (Kosongkan jika tidak ingin mengganti gambar lama).</p>
                     <input type="file" onChange={e=>setSlideImageFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
                     {slideImageUrl && !slideImageFile && <img src={slideImageUrl} className="h-20 rounded object-cover border" alt="Current" />}
+                    
+                    <input type="text" placeholder="Tagline Kecil (Cth: REACH THE FUTURE)" value={slideTagline} onChange={e=>setSlideTagline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm text-orange-600" />
                     <input type="text" placeholder="Judul Slider Utama" value={slideTitle} onChange={e=>setSlideTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
                     <input type="text" placeholder="Deskripsi Pendek" value={slideSubtitle} onChange={e=>setSlideSubtitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
-                    <div className="flex flex-col md:flex-row gap-3 md:gap-4"><input type="text" placeholder="Teks Tombol" value={slideBtnText} onChange={e=>setSlideBtnText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><input type="text" placeholder="Link Tombol" value={slideBtnLink} onChange={e=>setSlideBtnLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-4 border rounded bg-slate-50">
+                        <div>
+                            <label className="text-xs font-bold block mb-1">Tombol 1 (Outline / Kiri)</label>
+                            <input type="text" placeholder="Teks Tombol 1 (Cth: Preview)" value={slideBtn1Text} onChange={e=>setSlideBtn1Text(e.target.value)} className="w-full border p-2 rounded text-sm mb-2" />
+                            <input type="text" placeholder="Link Tombol 1" value={slideBtn1Link} onChange={e=>setSlideBtn1Link(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold block mb-1">Tombol 2 (Solid / Kanan)</label>
+                            <input type="text" placeholder="Teks Tombol 2 (Cth: Buy)" value={slideBtn2Text} onChange={e=>setSlideBtn2Text(e.target.value)} className="w-full border p-2 rounded text-sm mb-2" />
+                            <input type="text" placeholder="Link Tombol 2" value={slideBtn2Link} onChange={e=>setSlideBtn2Link(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                        </div>
+                    </div>
+
                     <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editSliderId ? 'Perbarui Slider' : 'Tambah Slider'}</button>
                 </form>
                 <div className="grid gap-4">{sliders.map(s => (<div key={s.id} className={`flex flex-col md:flex-row bg-white p-4 rounded-xl border md:items-center gap-4 ${editSliderId === s.id ? 'ring-2 ring-indigo-500' : ''}`}><img src={s.imageUrl} className="w-full md:w-24 h-32 md:h-16 object-cover rounded-lg" /><div className="flex-1 text-center md:text-left"><h4 className="font-bold text-sm">{s.title}</h4></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditSlider(s)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('sliders', s.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>

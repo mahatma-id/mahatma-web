@@ -63,7 +63,7 @@ export default function Home() {
                 <img src={settings.logoUrl} alt="Logo" className="h-8 md:h-10 object-contain group-hover:scale-105 transition-transform" />
             ) : (
                 <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors">
-                    MAHATMA <span className="text-orange-600">ACADEMY</span>
+                    Mahatma <span className="text-orange-600">Academy</span>
                 </span>
             )}
           </Link>
@@ -104,52 +104,55 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION (DIPERBAIKI POSISI TEKSNYA) */}
-      <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden flex items-center justify-center">
+      {/* 1. HERO SECTION (DIPERBAIKI SECARA KESELURUHAN) */}
+      <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none -z-10'}`}>
                     
-                    {/* Gambar dikunci posisinya sebagai background */}
+                    {/* Gambar wajib absolut */}
                     <img src={slide.imageUrl} className="absolute inset-0 w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite] z-0" alt="Hero Background"/>
                     
-                    {/* Overlay hitam agar teks terbaca */}
+                    {/* Overlay hitam */}
                     <div className="absolute inset-0 bg-black/60 md:bg-black/50 z-10"></div>
                     
-                    {/* Teks dikunci posisinya di atas segalanya (z-20) dan ditaruh di tengah layar */}
-                    <div className="absolute inset-0 z-20 flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 max-w-5xl mx-auto">
-                        <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">
-                            Reach The Future
-                        </span>
-                        
-                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-3 md:mb-6 drop-shadow-xl">
-                            {slide.title || "Driving Change, Navigating Sustainable Future"}
-                        </h1>
-                        
-                        <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
-                            {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
-                        </p>
-                        
-                        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
-                            {(slide.btnText || slide.btn1Text) && (
-                                <a href={slide.btnLink || slide.btn1Link || '#layanan'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                    {slide.btnText || slide.btn1Text || "Learn More"}
-                                </a>
-                            )}
-                            {slide.btn2Text && (
-                                <a href={slide.btn2Link || '#kontak'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-white/10 text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 backdrop-blur-sm border border-white/20 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                    {slide.btn2Text}
-                                </a>
-                            )}
+                    {/* KONTEN TEKS WAJIB ABSOLUT, FULL HEIGHT & WIDTH, FLEX CENTER */}
+                    <div className="absolute inset-0 z-20 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16">
+                        <div className="max-w-5xl mx-auto flex flex-col items-center">
+                            
+                            <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">
+                                {slide.tagline || "Reach The Future"}
+                            </span>
+                            
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-xl">
+                                {slide.title || "Driving Change, Navigating Sustainable Future"}
+                            </h1>
+                            
+                            <p className="text-sm sm:text-base md:text-xl text-gray-200 mb-8 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
+                                {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
+                            </p>
+                            
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
+                                {(slide.btn1Text || slide.btnText) && (
+                                    <a href={slide.btn1Link || slide.btnLink || '#'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-transparent border-2 border-white text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                        {slide.btn1Text || slide.btnText || "Preview"}
+                                    </a>
+                                )}
+                                {slide.btn2Text && (
+                                    <a href={slide.btn2Link || '#'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 border-2 border-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:border-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                        {slide.btn2Text || "Buy"}
+                                    </a>
+                                )}
+                            </div>
+
                         </div>
                     </div>
                 </div>
             ))
         )}
         
-        {/* Navigasi Titik-Titik di bagian paling bawah layar */}
         <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-2 md:gap-3">
             {sliders.map((_, idx) => (
                 <button key={idx} onClick={() => setCurrentSlide(idx)} className={`h-1 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-6 md:w-8 bg-orange-500' : 'w-2 bg-white/50 hover:bg-white'}`}></button>
@@ -347,7 +350,7 @@ export default function Home() {
                             <img src={settings.logoUrl} alt="Logo" className="h-8 md:h-14 object-contain" />
                         ) : (
                             <span className="font-extrabold text-xl md:text-3xl tracking-tight text-slate-900">
-                                MAHATMA <span className="text-orange-600">ACADEMY</span>
+                                Mahatma <span className="text-orange-600">Academy</span>
                             </span>
                         )}
                     </Link>

@@ -12,8 +12,8 @@ const merriweather = Merriweather({
 });
 
 export const metadata = {
-  title: "MAHATMA ACADEMY",
-  description: "Mahatma Academy for Sustainable Education",
+  title: "Mahatma Academy - Driving Transformation for Sustainable Education",
+  description: "Driving Transformation for Sustainable Education",
   verification: {
     google: '-A5vyw3KREyo809TVLGK0L15oFsGtZ055M1hIB99L8Q',
   },
