@@ -231,7 +231,7 @@ export default function Home() {
                             </p>
                             
                             <Link href={`/layanan/${svc.id}`} className={`inline-flex items-center font-bold uppercase tracking-widest text-[9px] md:text-xs transition mt-auto ${svc.imgUrl ? 'text-white hover:text-orange-400' : 'text-slate-900 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
-                                Eksplorasi <span className="ml-2 text-sm md:text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
+                                Read more <span className="ml-2 text-sm md:text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
                             </Link>
                         </div>
 
