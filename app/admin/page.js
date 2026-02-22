@@ -106,6 +106,9 @@ export default function AdminPage() {
 
   const [posts, setPosts] = useState([]);
   const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState('');
+  
+  // STATE BARU UNTUK DRAF
+  const [isDraft, setIsDraft] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -153,20 +156,22 @@ export default function AdminPage() {
           const docSnap = await getDoc(doc(db, "posts", slug));
           if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000);
           
+          // PENAMBAHAN STATUS DRAF KE FIREBASE
           await setDoc(doc(db, "posts", slug), { 
               title: postTitle, 
               category: postCategory, 
-              content: postContent, // Konten dari Quill (Bisa memuat tag <img src="...">)
+              content: postContent,
               coverUrl: postCoverUrl, 
               dateline: postDateline, 
               author: postAuthor || 'Tim Redaksi', 
               tags: postTags, 
               views: 0, 
-              createdAt: serverTimestamp() 
+              createdAt: serverTimestamp(),
+              isDraft: isDraft // Status Draf
           });
           
-          alert('Berita Diterbitkan!'); 
-          setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags('');
+          alert(isDraft ? 'Draf Berhasil Disimpan!' : 'Berita Diterbitkan!'); 
+          setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false);
       } catch(err) { alert(err.message); } setLoading(false);
   };
 
@@ -336,7 +341,7 @@ export default function AdminPage() {
             <div className="max-w-4xl"><form onSubmit={addFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Pertanyaan" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Jawaban..." value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah F.A.Q</button></form><div className="space-y-3">{faqs.map(f => (<div key={f.id} className="bg-white p-4 rounded-xl border flex flex-col md:flex-row justify-between md:items-start gap-4"><div className="pr-4"><h4 className="font-bold text-xs md:text-sm mb-1">{f.q}</h4><p className="text-[10px] md:text-xs text-slate-500">{f.a}</p></div><button onClick={()=>deleteItem('faqs', f.id)} className="text-red-500 text-xs font-bold w-full md:w-fit bg-red-50 px-3 py-2 rounded">Hapus</button></div>))}</div></div>
         )}
 
-        {/* TAB BLOG / WAWASAN DENGAN EDITOR GAMBAR */}
+        {/* TAB BLOG / WAWASAN DENGAN SISTEM DRAF */}
         {activeTab === 'blog' && (
             <div className="max-w-4xl">
                 <form onSubmit={addPost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -365,7 +370,6 @@ export default function AdminPage() {
                         }} accept="image/*" className="text-xs md:text-sm w-full" />
                     </div>
 
-                    {/* QUILL EDITOR DENGAN KONFIGURASI GAMBAR */}
                     <div className="h-64 mb-14 md:mb-10 mt-2">
                         <ReactQuill 
                             ref={quillRef}
@@ -383,16 +387,33 @@ export default function AdminPage() {
                         <input type="text" placeholder="Tags (Pisahkan koma)" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                     </div>
                     
-                    <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold mt-4 w-full text-sm">
-                        {loading ? 'Mengunggah...' : 'Terbitkan Berita'}
-                    </button>
+                    {/* BAGIAN PILIHAN STATUS (DRAF VS PUBLISH) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 border-t pt-4 border-slate-100">
+                        <select 
+                            value={isDraft} 
+                            onChange={e => setIsDraft(e.target.value === 'true')} 
+                            className="w-full border p-3 rounded-lg font-bold text-sm bg-slate-50 outline-none focus:border-indigo-500 cursor-pointer"
+                        >
+                            <option value="false">🌍 Terbitkan ke Publik</option>
+                            <option value="true">🔒 Simpan sebagai Draf (Sembunyikan)</option>
+                        </select>
+                        <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:bg-indigo-700 transition shadow-sm">
+                            {loading ? 'Menyimpan...' : (isDraft ? 'Simpan Draf' : 'Terbitkan Sekarang')}
+                        </button>
+                    </div>
+
                 </form>
                 
                 <div className="space-y-3">
                     {posts.map(p => (
-                        <div key={p.id} className="flex flex-col md:flex-row bg-white p-4 rounded-xl border justify-between gap-3">
-                            <div className="flex-1"><h4 className="font-bold text-sm line-clamp-2">{p.title}</h4></div>
-                            <button onClick={()=>deleteItem('posts', p.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 rounded-lg w-full md:w-auto">Hapus</button>
+                        <div key={p.id} className={`flex flex-col md:flex-row p-4 rounded-xl border justify-between gap-3 ${p.isDraft ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'}`}>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    {p.isDraft && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">DRAF</span>}
+                                    <h4 className="font-bold text-sm line-clamp-1">{p.title}</h4>
+                                </div>
+                            </div>
+                            <button onClick={()=>deleteItem('posts', p.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg w-full md:w-auto transition">Hapus</button>
                         </div>
                     ))}
                 </div>

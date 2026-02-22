@@ -1,29 +1,38 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { collection, query, orderBy, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
-export default function SemuaBerita() {
+// Komponen Isi Berita (Dibungkus agar useSearchParams aman dari error server Next.js)
+function BeritaContent() {
   const [posts, setPosts] = useState([]);
-  const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
-  
-  // State Baru untuk Filter, Pencarian & Load More
   const [filter, setFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState(''); 
-  const [visibleCount, setVisibleCount] = useState(6); // Awalnya tampilkan 6 berita
+  const [visibleCount, setVisibleCount] = useState(6); 
+  
+  const searchParams = useSearchParams();
+  const tagFromUrl = searchParams.get('tag');
+
+  // Menangkap jika ada yang klik hashtag dari halaman lain
+  useEffect(() => {
+    if (tagFromUrl) {
+        setSearchQuery(tagFromUrl);
+    }
+  }, [tagFromUrl]);
 
   useEffect(() => {
-    const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => {
-        setPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const allFetched = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // HANYA MENAMPILKAN BERITA YANG STATUSNYA BUKAN DRAF
+        setPosts(allFetched.filter(p => !p.isDraft)); 
         setLoading(false);
     });
-    return () => { unsubSettings(); unsubPosts(); };
+    return () => unsubPosts();
   }, []);
 
-  // LOGIKA PENCARIAN & KATEGORI
   const filteredPosts = posts.filter(post => {
       const matchCategory = filter === 'Semua' ? true : post.category === filter;
       const matchSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -31,33 +40,13 @@ export default function SemuaBerita() {
       return matchCategory && matchSearch;
   });
 
-  // LOGIKA PAGINASI (Memotong jumlah array yang ditampilkan sesuai visibleCount)
   const visiblePosts = filteredPosts.slice(0, visibleCount);
 
-  if (loading) return <div className="min-h-screen flex justify-center items-center"><div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  if (loading) return <div className="py-20 flex justify-center items-center"><div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>;
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-800 selection:bg-orange-500 selection:text-white">
-      {/* NAVBAR */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
-        <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
-          <Link href="/" className="font-extrabold text-lg md:text-xl tracking-tight text-slate-900 hover:text-orange-600 transition">
-            MAHATMA <span className="text-orange-600">ACADEMY</span>
-          </Link>
-          <Link href="/#insight" className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-orange-600 uppercase tracking-widest transition">&larr; Beranda</Link>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 md:px-12 lg:px-16 py-10 md:py-16 max-w-7xl">
-        <div className="text-center mb-10 md:mb-14">
-            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-3 md:mb-4">Wawasan & Perspektif</h1>
-            <p className="text-slate-500 text-sm md:text-lg">Temukan artikel, berita terbaru, dan pandangan pakar kami.</p>
-        </div>
-
-        {/* SEARCH BAR & FILTER BUTTONS */}
+    <>
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 bg-white p-4 rounded-2xl md:rounded-full shadow-sm border border-slate-100">
-            
-            {/* Filter Kategori */}
             <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar justify-center md:justify-start">
                 {['Semua', 'News', 'Opini'].map(f => (
                     <button 
@@ -69,8 +58,6 @@ export default function SemuaBerita() {
                     </button>
                 ))}
             </div>
-
-            {/* Kolom Pencarian (Search Bar) */}
             <div className="relative w-full md:w-80">
                 <input 
                     type="text" 
@@ -83,7 +70,6 @@ export default function SemuaBerita() {
             </div>
         </div>
 
-        {/* GRID BERITA */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-8">
             {visiblePosts.map(post => {
                 let dStr = ""; if(post.createdAt) dStr = post.createdAt.toDate().toLocaleDateString('id-ID', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -101,7 +87,6 @@ export default function SemuaBerita() {
             )})}
         </div>
 
-        {/* KONDISI JIKA PENCARIAN KOSONG */}
         {visiblePosts.length === 0 && (
             <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 mt-6">
                 <span className="text-4xl mb-4 block">🔍</span>
@@ -109,7 +94,6 @@ export default function SemuaBerita() {
             </div>
         )}
 
-        {/* TOMBOL LOAD MORE (MUAT LEBIH BANYAK) */}
         {filteredPosts.length > visibleCount && (
             <div className="text-center mt-10 md:mt-14">
                 <button 
@@ -120,6 +104,34 @@ export default function SemuaBerita() {
                 </button>
             </div>
         )}
+    </>
+  );
+}
+
+// Kerangka Utama Halaman
+export default function SemuaBeritaPage() {
+  return (
+    <div className="bg-slate-50 min-h-screen text-slate-800 selection:bg-orange-500 selection:text-white">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+        <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
+          <Link href="/" className="font-extrabold text-lg md:text-xl tracking-tight text-slate-900 hover:text-orange-600 transition">
+            MAHATMA <span className="text-orange-600">ACADEMY</span>
+          </Link>
+          <Link href="/#insight" className="text-[10px] md:text-xs font-bold text-slate-500 hover:text-orange-600 uppercase tracking-widest transition">&larr; Beranda</Link>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 md:px-12 lg:px-16 py-10 md:py-16 max-w-7xl">
+        <div className="text-center mb-10 md:mb-14">
+            <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-3 md:mb-4">Wawasan & Perspektif</h1>
+            <p className="text-slate-500 text-sm md:text-lg">Temukan artikel, berita terbaru, dan pandangan pakar kami.</p>
+        </div>
+
+        {/* Suspense digunakan agar website tidak error saat mendeteksi parameter URL (?tag=) */}
+        <Suspense fallback={<div className="py-20 text-center text-slate-400 animate-pulse font-bold tracking-widest text-xs">MEMUAT KONTEN...</div>}>
+            <BeritaContent />
+        </Suspense>
+
       </main>
     </div>
   );

@@ -19,13 +19,19 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
   const toggleFaq = (index) => { setOpenFaq(openFaq === index ? null : index); };
 
-  // State untuk Menu Hamburger di HP
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "asc")), snap => { setSliders(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
-    const unsubPost = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(3)), snap => { setPosts(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
+    
+    // PERUBAHAN: Tarik lebih banyak berita, filter yang bukan draf, lalu ambil 3
+    const unsubPost = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(10)), snap => { 
+        const allPosts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const publishedPosts = allPosts.filter(p => !p.isDraft).slice(0,3);
+        setPosts(publishedPosts); 
+    });
+    
     const unsubService = onSnapshot(query(collection(db, "services"), orderBy("createdAt", "desc")), snap => { setServices(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => { setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("createdAt", "asc")), snap => { setTeams(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
@@ -41,7 +47,6 @@ export default function Home() {
       return () => clearInterval(interval);
   }, [sliders.length]);
 
-  // Format Nomor WA
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) {
@@ -51,22 +56,18 @@ export default function Home() {
   return (
     <div className="text-slate-800 bg-white overflow-x-hidden selection:bg-orange-500 selection:text-white relative">
 
-      {/* NAVBAR */}
       <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 transition-all">
-        {/* Padding dikecilkan di HP (px-4) */}
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
                 <img src={settings.logoUrl} alt="Logo" className="h-8 md:h-10 object-contain group-hover:scale-105 transition-transform" />
             ) : (
-                // Ukuran text logo dikecilkan di HP
                 <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors">
                     MAHATMA <span className="text-orange-600">ACADEMY</span>
                 </span>
             )}
           </Link>
 
-          {/* MENU DESKTOP */}
           <nav className="hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase text-slate-600">
             <a href="#layanan" className="hover:text-orange-600 hover:-translate-y-1 transition-all">Service</a>
             <Link href="/tentang-kami" className="hover:text-orange-600 hover:-translate-y-1 transition-all">About Us</Link>
@@ -74,7 +75,6 @@ export default function Home() {
             <a href="#insight" className="hover:text-orange-600 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
 
-          {/* TOMBOL KANAN DESKTOP */}
           <div className="hidden lg:flex items-center gap-4">
             <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 uppercase tracking-widest mr-4 transition">Admin</Link>
             <a href="#kontak" className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-full hover:bg-orange-600 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
@@ -82,22 +82,13 @@ export default function Home() {
             </a>
           </div>
 
-          {/* TOMBOL HAMBURGER MOBILE */}
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-slate-900 focus:outline-none z-50 p-2"
-          >
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="lg:hidden text-slate-900 focus:outline-none z-50 p-2">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isMobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-                )}
+                {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}
             </svg>
           </button>
         </div>
 
-        {/* MENU DROPDOWN MOBILE */}
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 px-4">
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50">Service</a>
@@ -106,43 +97,28 @@ export default function Home() {
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50">Insight</a>
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
-                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">
-                        Join Us
-                    </a>
+                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 hover:text-slate-800 uppercase tracking-widest">Admin Login</Link>
                 </div>
             </nav>
         </div>
       </header>
 
-      {/* 1. HERO SECTION */}
-      {/* TINGGI DI HP SANGAT DISESUAIKAN: aspec-square atau tinggi pas */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden flex items-center justify-center">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                    {/* Gambar akan selalu cover, tapi posisinya lebih baik */}
                     <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                     <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     
-                    {/* Padding diringkas untuk HP */}
                     <div className="relative z-20 flex flex-col justify-center items-center text-center h-full px-4 md:px-12 lg:px-16 max-w-5xl mx-auto">
                         <div className="transform transition-all duration-1000 translate-y-0 opacity-100 flex flex-col items-center w-full">
-                            <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">
-                                Reach The Future
-                            </span>
-                            {/* FONT SANGAT DIKECILKAN DI HP (text-2xl), LINE HEIGHT DIRAPATKAN */}
-                            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-3 md:mb-6 drop-shadow-xl">
-                                {slide.title || "Driving Change, Navigating Sustainable Future"}
-                            </h1>
-                            {/* FONT DESKRIPSI DIKECILKAN DI HP (text-xs) */}
-                            <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
-                                {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
-                            </p>
+                            <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">Reach The Future</span>
+                            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-3 md:mb-6 drop-shadow-xl">{slide.title || "Driving Change, Navigating Sustainable Future"}</h1>
+                            <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">{slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}</p>
                             
-                            {/* DUA TOMBOL DINAMIS DARI ADMIN */}
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
                                 {(slide.btnText || slide.btn1Text) && (
                                     <a href={slide.btnLink || slide.btn1Link || '#layanan'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
@@ -155,7 +131,6 @@ export default function Home() {
                                     </a>
                                 )}
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -168,29 +143,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION */}
       <section className="py-12 md:py-20 bg-slate-50 text-center px-4 md:px-12 lg:px-16 border-b border-slate-100">
         <div className="container mx-auto max-w-4xl">
             <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Mission</span>
-            {/* FONT JUDUL DIKECILKAN */}
-            <h2 className="text-xl md:text-4xl font-bold text-slate-900 mb-4 md:mb-6 leading-snug px-2">
-                {settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}
-            </h2>
-            {/* FONT DESKRIPSI DIKECILKAN */}
-            <p className="text-sm md:text-xl text-slate-500 leading-relaxed mb-8 md:mb-12 font-light max-w-2xl mx-auto px-2">
-                {settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}
-            </p>
+            <h2 className="text-xl md:text-4xl font-bold text-slate-900 mb-4 md:mb-6 leading-snug px-2">{settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}</h2>
+            <p className="text-sm md:text-xl text-slate-500 leading-relaxed mb-8 md:mb-12 font-light max-w-2xl mx-auto px-2">{settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}</p>
             
-            {/* IKON BISA CUSTOM GAMBAR DARI ADMIN */}
             <div className="flex justify-center gap-8 md:gap-20 font-bold text-xs md:text-lg text-slate-800 uppercase tracking-widest">
                 {[1, 2, 3].map(num => (
                     <div key={num} className="flex flex-col items-center hover:scale-110 transition-transform">
                         {settings[`mission${num}Img`] ? (
                             <img src={settings[`mission${num}Img`]} className="w-10 h-10 md:w-16 md:h-16 mb-2 md:mb-4 object-contain drop-shadow-sm" alt="Mission Icon" />
                         ) : (
-                            <span className="text-orange-500 text-3xl md:text-5xl mb-2 md:mb-4 drop-shadow-sm">
-                                {num === 1 ? '🌍' : num === 2 ? '🌱' : '🚀'}
-                            </span>
+                            <span className="text-orange-500 text-3xl md:text-5xl mb-2 md:mb-4 drop-shadow-sm">{num === 1 ? '🌍' : num === 2 ? '🌱' : '🚀'}</span>
                         )}
                         {settings[`mission${num}Title`] || (num === 1 ? 'People' : num === 2 ? 'Planet' : 'Progress')}
                     </div>
@@ -199,22 +164,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. OUR SERVICE */}
       <section id="layanan" className="py-12 md:py-24 bg-white px-4 md:px-12 lg:px-16">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Service</span>
-                    <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
-                        {settings.serviceTitle || "Layanan Terbaik Untuk Anda."}
-                    </h2>
-                    <p className="text-slate-600 text-sm md:text-lg leading-relaxed font-light">
-                        {settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}
-                    </p>
+                    <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
+                    <p className="text-slate-600 text-sm md:text-lg leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
                 {settings.serviceImageUrl && (
                     <div className="lg:w-1/2 w-full mt-2 lg:mt-0">
-                        {/* TINGGI GAMBAR DIKECILKAN DI HP (h-40) */}
                         <img src={settings.serviceImageUrl} alt="Our Service" className="w-full h-40 md:h-80 object-cover rounded-2xl md:rounded-[2rem] shadow-md md:shadow-xl" />
                     </div>
                 )}
@@ -237,7 +196,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR */}
       {teams.length > 0 && (
           <section id="tim" className="py-12 md:py-20 bg-slate-900 text-white px-4 md:px-12 lg:px-16">
             <div className="container mx-auto max-w-7xl">
@@ -245,11 +203,9 @@ export default function Home() {
                     <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Meet The Experts</span>
                     <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Orang-Orang Hebat di Balik Mahatma</h2>
                 </div>
-                {/* GRID DI HP DIBUAT 2 KOLOM (grid-cols-2) AGAR TIDAK TERLALU BESAR */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     {teams.map(member => (
                         <div key={member.id} className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800">
-                            {/* TINGGI FOTO DI HP DIKECILKAN (h-48) */}
                             <img src={member.img} alt={member.name} className="w-full h-48 md:h-80 object-cover group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 p-3 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
@@ -263,7 +219,6 @@ export default function Home() {
           </section>
       )}
 
-      {/* 5. OUR INSIGHT (BLOG) */}
       <section id="insight" className="py-12 md:py-20 bg-white px-4 md:px-12 lg:px-16 border-b border-slate-100">
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
@@ -278,7 +233,6 @@ export default function Home() {
                     
                     return (
                     <Link href={`/berita/${post.id}`} key={post.id} className="group flex flex-col cursor-pointer bg-slate-50 rounded-2xl md:rounded-3xl p-3 md:p-4 hover:bg-white hover:shadow-xl hover:-translate-y-2 transition-all duration-500 border border-transparent hover:border-slate-100">
-                        {/* TINGGI GAMBAR DIKECILKAN DI HP */}
                         <div className="w-full h-40 md:h-60 bg-slate-200 rounded-xl md:rounded-2xl overflow-hidden mb-3 md:mb-5 relative">
                             <img src={post.coverUrl || 'https://placehold.co/600x400'} className="w-full h-full object-cover group-hover:scale-110 transition duration-700"/>
                             <span className="absolute top-3 left-3 bg-white px-2 py-1 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md text-slate-900">{post.category}</span>
@@ -291,7 +245,6 @@ export default function Home() {
                 )})}
             </div>
 
-            {/* TOMBOL SEMUA BERITA */}
             <div className="mt-10 md:mt-14 text-center">
                 <Link href="/berita" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-slate-100 text-slate-800 font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 hover:text-white transition duration-300 shadow-sm border border-slate-200">
                     Lihat Semua Berita &rarr;
@@ -300,7 +253,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. TESTIMONI */}
       {testimonials.length > 0 && (
           <section className="py-12 md:py-20 bg-slate-50 px-4 md:px-12 lg:px-16 overflow-hidden">
             <div className="container mx-auto max-w-7xl">
@@ -324,7 +276,6 @@ export default function Home() {
           </section>
       )}
 
-      {/* 7. FAQ */}
       {faqs.length > 0 && (
           <section className="py-12 md:py-20 bg-white px-4 md:px-12 lg:px-16 border-t border-slate-100">
             <div className="container mx-auto max-w-3xl">
@@ -346,7 +297,6 @@ export default function Home() {
           </section>
       )}
 
-      {/* CALL TO ACTION DARI FIREBASE SETTINGS */}
       <section id="kontak" className="bg-slate-900 text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-orange-600 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-orange-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-indigo-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
@@ -356,11 +306,9 @@ export default function Home() {
             ) : (
                 <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">Siap Untuk <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Berubah?</span></h2>
             )}
-            
             <p className="text-xs md:text-xl text-slate-300 max-w-2xl mx-auto mb-6 md:mb-10 font-light leading-relaxed px-4">
                 {settings.ctaDesc || "Bergabunglah dalam perjalanan pertumbuhan, keberlanjutan, dan perubahan positif. Wujudkan masa depan di mana organisasi Anda berkembang dengan cepat."}
             </p>
-            
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
                 <button className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-orange-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-orange-500 hover:-translate-y-1 transition duration-300 shadow-lg">Pesan Layanan</button>
                 <a href={`https://wa.me/${waNumber}`} target="_blank" className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-white/10 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition duration-300 backdrop-blur-sm border border-white/20">Hubungi WhatsApp</a>
@@ -368,12 +316,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER DINAMIS */}
       <footer className="bg-white pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200">
         <div className="container mx-auto max-w-7xl">
-            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
-                
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
                         {settings.logoUrl ? (
@@ -399,15 +344,9 @@ export default function Home() {
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Follow Us</h4>
                     <div className="flex justify-center md:justify-start gap-3 md:gap-4">
-                        <a href={settings.linkedin || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-orange-600 hover:text-orange-600 transition">
-                            <span className="text-xs md:text-sm font-bold">in</span>
-                        </a>
-                        <a href={settings.youtube || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-red-600 hover:text-red-600 transition">
-                            <span className="text-xs md:text-sm font-bold">yt</span>
-                        </a>
-                        <a href={settings.instagram || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-pink-600 hover:text-pink-600 transition">
-                            <span className="text-xs md:text-sm font-bold">ig</span>
-                        </a>
+                        <a href={settings.linkedin || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-orange-600 hover:text-orange-600 transition"><span className="text-xs md:text-sm font-bold">in</span></a>
+                        <a href={settings.youtube || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-red-600 hover:text-red-600 transition"><span className="text-xs md:text-sm font-bold">yt</span></a>
+                        <a href={settings.instagram || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 flex items-center justify-center text-slate-400 hover:border-pink-600 hover:text-pink-600 transition"><span className="text-xs md:text-sm font-bold">ig</span></a>
                     </div>
                 </div>
 
@@ -422,10 +361,8 @@ export default function Home() {
                     </ul>
                 </div>
 
-                {/* UKURAN LOGO MITRA DI FOOTER DIPERBESAR DI LAPTOP (Dari lg:grid-cols-5 menjadi lg:grid-cols-3) */}
                 <div className="lg:col-span-4">
                     <h4 className="font-bold text-slate-900 mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Mitra Kerja</h4>
-                    
                     {partners.length > 0 ? (
                         <div className="flex flex-col items-center md:items-start">
                             <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 md:gap-3 opacity-80 w-full max-w-[200px] md:max-w-xs">
@@ -439,7 +376,6 @@ export default function Home() {
                                     </div>
                                 ))}
                             </div>
-                            
                             {partners.length > 12 && (
                                 <div className="mt-3 md:mt-5">
                                     <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-orange-600 hover:text-orange-700 font-bold transition">
@@ -462,10 +398,8 @@ export default function Home() {
                     <a href="#" className="hover:text-orange-600 transition">Terms of Service</a>
                 </div>
             </div>
-
         </div>
       </footer>
-
     </div>
   );
 }

@@ -43,12 +43,12 @@ export default function BeritaDetail({ params }) {
     });
 
     // 3. Fetch Berita Terbaru (Sidebar)
-    const unsubLatest = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(5)), snap => {
+    const unsubLatest = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(6)), snap => {
         setLatestPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
     // 4. Fetch Berita Terpopuler (Sidebar)
-    const unsubPopular = onSnapshot(query(collection(db, "posts"), orderBy("views", "desc"), limit(5)), snap => {
+    const unsubPopular = onSnapshot(query(collection(db, "posts"), orderBy("views", "desc"), limit(6)), snap => {
         setPopularPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
@@ -95,10 +95,19 @@ export default function BeritaDetail({ params }) {
       else finalContent = `<p>${datelineHtml} ${finalContent}</p>`;
   }
 
+  // MENGHITUNG ESTIMASI WAKTU BACA (ESTIMATED READING TIME)
+  // Menghapus semua tag HTML hanya untuk keperluan menghitung jumlah kata
+  const plainText = finalContent.replace(/<[^>]+>/g, ''); 
+  const wordCount = plainText.trim().split(/\s+/).length;
+  // Rata-rata orang membaca 200 kata per menit
+  const readTime = Math.max(1, Math.ceil(wordCount / 200)); 
+
   const formatDateSidebar = (timestamp) => timestamp ? timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Baru saja";
 
-  // DATA UNTUK "BACA JUGA" (Ambil 2 berita terbaru selain berita ini)
-  const bacaJugaPosts = latestPosts.filter(p => p.id !== id).slice(0, 2);
+  // DATA UNTUK SIDEBAR & BACA JUGA (Hanya tampilkan yang bukan DRAF)
+  const validLatestPosts = latestPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 4);
+  const validPopularPosts = popularPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 5);
+  const bacaJugaPosts = latestPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 2);
 
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 pb-20 overflow-x-hidden selection:bg-orange-500 selection:text-white">
@@ -150,13 +159,20 @@ export default function BeritaDetail({ params }) {
                     {post.category || 'Berita'}
                 </span>
                 
+                {/* JIKA BERITA INI ADALAH DRAF, TAMPILKAN LABEL PERINGATAN */}
+                {post.isDraft && (
+                    <span className="ml-2 inline-block px-3 py-1 md:px-4 md:py-1.5 bg-red-600 text-white rounded-full text-[9px] md:text-xs font-bold uppercase tracking-widest mb-3 md:mb-4">
+                        STATUS: DRAF (TIDAK PUBLIK)
+                    </span>
+                )}
+                
                 <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-[1.3] md:leading-[1.25] mb-4 md:mb-6">
                     {post.title}
                 </h1>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-b border-slate-100 py-3 md:py-5 mt-4">
                     
-                    {/* BAGIAN AUTHOR (DENGAN FOTO PAKAR JIKA ADA) */}
+                    {/* BAGIAN AUTHOR (DENGAN FOTO PAKAR & WAKTU BACA) */}
                     <div className="flex items-center gap-3 md:gap-4">
                         {authorProfile ? (
                             <img src={authorProfile.img} alt={authorName} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm border border-slate-100" />
@@ -168,7 +184,9 @@ export default function BeritaDetail({ params }) {
                         <div>
                             <p className="font-bold text-xs md:text-sm text-slate-900">{authorName}</p>
                             {authorProfile && <p className="text-[9px] md:text-[10px] text-orange-600 font-bold mb-0.5 line-clamp-1">{authorProfile.role}</p>}
-                            <p className="text-[9px] md:text-[10px] text-slate-400 font-semibold tracking-wider uppercase">{publishDate} • {post.views || 0} DIBACA</p>
+                            <p className="text-[9px] md:text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">
+                                {publishDate} • ⏱️ {readTime} MNT BACA • 👀 {post.views || 0} DIBACA
+                            </p>
                         </div>
                     </div>
 
@@ -211,13 +229,17 @@ export default function BeritaDetail({ params }) {
                 </div>
             )}
 
-            {/* Tags */}
+            {/* TAGS (HASHTAG BISA DIKLIK) */}
             {post.tags && (
                 <div className="mt-8 md:mt-12 pt-6 border-t border-slate-100 flex flex-wrap gap-2">
                     {post.tags.split(',').map((tag, index) => (
-                        <span key={index} className="px-3 py-1.5 md:px-4 md:py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-[9px] md:text-xs font-bold uppercase tracking-wider">
+                        <Link 
+                            href={`/berita?tag=${tag.trim()}`} 
+                            key={index} 
+                            className="px-3 py-1.5 md:px-4 md:py-2 bg-slate-50 hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-600 rounded-lg text-[9px] md:text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        >
                             #{tag.trim()}
-                        </span>
+                        </Link>
                     ))}
                 </div>
             )}
@@ -267,7 +289,7 @@ export default function BeritaDetail({ params }) {
                     <span className="w-2 h-5 md:h-6 bg-orange-500 rounded-full mr-2 md:mr-3"></span> Berita Terbaru
                 </h3>
                 <div className="flex flex-col gap-4 md:gap-5">
-                    {latestPosts.filter(p => p.id !== id).slice(0,4).map(p => (
+                    {validLatestPosts.map(p => (
                         <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-3 md:gap-4 group items-center">
                             <div className="w-20 h-16 md:w-24 md:h-20 flex-shrink-0 bg-slate-200 rounded-lg overflow-hidden shadow-sm">
                                 <img src={p.coverUrl || 'https://placehold.co/600x400'} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
@@ -288,7 +310,7 @@ export default function BeritaDetail({ params }) {
                     <span className="w-2 h-5 md:h-6 bg-orange-500 rounded-full mr-2 md:mr-3"></span> Terpopuler
                 </h3>
                 <div className="flex flex-col gap-4 md:gap-5">
-                    {popularPosts.map((p, index) => (
+                    {validPopularPosts.map((p, index) => (
                         <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-3 md:gap-4 group items-center">
                             <div className="w-6 md:w-8 flex-shrink-0 flex items-center justify-center font-black text-2xl md:text-3xl text-slate-700 group-hover:text-orange-500 transition italic">
                                 {index + 1}
