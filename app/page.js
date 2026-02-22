@@ -164,7 +164,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION (DENGAN KARTU RATA KIRI, TEKS RATA KANAN) */}
+      {/* 2. OUR MISSION (KARTU DI KIRI, TEKS DI KANAN) */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col-reverse lg:flex-row items-center gap-10 md:gap-16">
@@ -174,7 +174,7 @@ export default function Home() {
                     {[1, 2, 3, 4].map(num => {
                         const title = settings[`mission${num}Title`];
                         const img = settings[`mission${num}Img`];
-                        if (!title && !img) return null; // Jika kosong di admin, disembunyikan
+                        if (!title && !img) return null; 
                         
                         return (
                             <div key={num} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center text-center cursor-pointer">
@@ -185,7 +185,8 @@ export default function Home() {
                                         <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     </div>
                                 )}
-                                <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">{title || `Misi ${num}`}</h3>
+                                {/* Ukuran Judul Disamakan dengan Judul Kartu Our Service (text-base md:text-2xl) */}
+                                <h3 className="text-base md:text-2xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">{title || `Misi ${num}`}</h3>
                             </div>
                         )
                     })}
@@ -202,13 +203,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3. OUR SERVICE (JUDUL LEBIH KECIL) */}
+      {/* 3. OUR SERVICE */}
       <section id="layanan" className="py-12 md:py-24 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Service</span>
-                    {/* Ukuran font diperkecil: Dari lg:text-5xl menjadi text-2xl md:text-3xl lg:text-4xl */}
                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
@@ -237,7 +237,7 @@ export default function Home() {
                                 <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             </div>
                             
-                            <h3 className={`text-base md:text-xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                            <h3 className={`text-base md:text-2xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
                                 {svc.name}
                             </h3>
                             
