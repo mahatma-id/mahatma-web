@@ -10,7 +10,7 @@ export default function TentangKami() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Ambil data pengaturan (untuk Teks Misi dan Nomor WA)
+    // Ambil data pengaturan
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { 
         if(snap.exists()) setSettings(snap.data()); 
     });
@@ -24,7 +24,6 @@ export default function TentangKami() {
     return () => { unsubSettings(); unsubTeams(); };
   }, []);
 
-  // Perbaikan Format Nomor WA
   const rawPhone = settings.phone || "6285185639375"; 
   let waNumber = rawPhone.replace(/[^0-9]/g, ''); 
   if (waNumber.startsWith('0')) {
@@ -61,7 +60,7 @@ export default function TentangKami() {
         </div>
       </header>
 
-      {/* HERO SECTION TENTANG KAMI */}
+      {/* HERO SECTION TENTANG KAMI (TERHUBUNG KE ADMIN) */}
       <section className="bg-slate-900 text-white py-16 md:py-24 lg:py-32 px-4 md:px-12 lg:px-16 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
             <div className="absolute -top-20 -right-20 md:-top-40 md:-right-40 w-64 h-64 md:w-96 md:h-96 bg-orange-600 rounded-full blur-3xl"></div>
@@ -71,10 +70,10 @@ export default function TentangKami() {
         <div className="container mx-auto max-w-4xl text-center relative z-10">
             <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 md:mb-4 block">Tentang Perusahaan</span>
             <h1 className="text-3xl md:text-5xl lg:text-7xl font-extrabold mb-4 md:mb-8 leading-[1.2]">
-                Membangun Masa Depan yang Berkelanjutan.
+                {settings.aboutTitle || "Membangun Masa Depan yang Berkelanjutan."}
             </h1>
             <p className="text-sm md:text-xl text-slate-300 font-light leading-relaxed max-w-2xl mx-auto px-2">
-                Mahatma Academy berdedikasi untuk membantu individu dan organisasi menavigasi perubahan zaman, memastikan mereka tetap relevan dan bertumbuh.
+                {settings.aboutDesc || "Mahatma Academy berdedikasi untuk membantu individu dan organisasi menavigasi perubahan zaman, memastikan mereka tetap relevan dan bertumbuh."}
             </p>
         </div>
       </section>
@@ -119,11 +118,15 @@ export default function TentangKami() {
           </section>
       )}
 
-      {/* CALL TO ACTION */}
+      {/* CALL TO ACTION (TERHUBUNG KE ADMIN) */}
       <section className="bg-white py-16 md:py-24 px-4 md:px-12 lg:px-16 text-center border-t border-slate-100">
         <div className="container mx-auto max-w-3xl">
-            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6">Siap Memulai Transformasi?</h2>
-            <p className="text-sm md:text-lg text-slate-500 mb-8 md:mb-10 font-light leading-relaxed px-2">Jangan ragu untuk menghubungi tim kami dan jadwalkan sesi konsultasi pertama Anda. Mari berdiskusi tentang bagaimana kami bisa membantu.</p>
+            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6">
+                {settings.ctaTitle || "Siap Memulai Transformasi?"}
+            </h2>
+            <p className="text-sm md:text-lg text-slate-500 mb-8 md:mb-10 font-light leading-relaxed px-2">
+                {settings.ctaDesc || "Jangan ragu untuk menghubungi tim kami dan jadwalkan sesi konsultasi pertama Anda. Mari berdiskusi tentang bagaimana kami bisa membantu."}
+            </p>
             <a 
                 href={`https://wa.me/${waNumber}`} 
                 target="_blank" 

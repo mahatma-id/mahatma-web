@@ -42,8 +42,11 @@ export default function Home() {
   }, [sliders.length]);
 
   // Format Nomor WA
-  const rawPhone = settings.phone || "(+62) 851-8563-9375";
-  const waNumber = rawPhone.replace(/[^0-9]/g, '');
+  const rawPhone = settings.phone || "6285185639375";
+  let waNumber = rawPhone.replace(/[^0-9]/g, '');
+  if (waNumber.startsWith('0')) {
+      waNumber = '62' + waNumber.substring(1);
+  }
 
   return (
     <div className="text-slate-800 bg-white overflow-x-hidden selection:bg-orange-500 selection:text-white relative">
@@ -314,13 +317,21 @@ export default function Home() {
           </section>
       )}
 
-      {/* CALL TO ACTION */}
+      {/* CALL TO ACTION DARI FIREBASE SETTINGS */}
       <section id="kontak" className="bg-slate-900 text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-orange-600 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-orange-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-indigo-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="container mx-auto max-w-3xl text-center relative z-10">
-            <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">Siap Untuk <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Berubah?</span></h2>
-            <p className="text-xs md:text-xl text-slate-300 max-w-2xl mx-auto mb-6 md:mb-10 font-light leading-relaxed px-4">Bergabunglah dalam perjalanan pertumbuhan, keberlanjutan, dan perubahan positif. Wujudkan masa depan di mana organisasi Anda berkembang dengan cepat.</p>
+            {settings.ctaTitle ? (
+                <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">{settings.ctaTitle}</h2>
+            ) : (
+                <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">Siap Untuk <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Berubah?</span></h2>
+            )}
+            
+            <p className="text-xs md:text-xl text-slate-300 max-w-2xl mx-auto mb-6 md:mb-10 font-light leading-relaxed px-4">
+                {settings.ctaDesc || "Bergabunglah dalam perjalanan pertumbuhan, keberlanjutan, dan perubahan positif. Wujudkan masa depan di mana organisasi Anda berkembang dengan cepat."}
+            </p>
+            
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
                 <button className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-orange-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-orange-500 hover:-translate-y-1 transition duration-300 shadow-lg">Pesan Layanan</button>
                 <a href={`https://wa.me/${waNumber}`} target="_blank" className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-white/10 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition duration-300 backdrop-blur-sm border border-white/20">Hubungi WhatsApp</a>
