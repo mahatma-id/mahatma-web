@@ -2,6 +2,7 @@ import { Merriweather } from "next/font/google";
 import "./globals.css";
 import Script from "next/script"; // <-- Tambahan Import Script untuk Analytics
 import FloatingWA from "@/components/FloatingWA"; // <-- TAMBAHAN IMPORT TOMBOL WA
+import { ThemeProvider } from "@/components/ThemeProvider"; // <-- TAMBAHAN IMPORT THEME PROVIDER
 
 // Konfigurasi Font Merriweather
 const merriweather = Merriweather({ 
@@ -21,7 +22,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" className="scroll-smooth">
+    // suppressHydrationWarning wajib ditambahkan agar Next.js aman saat transisi tema
+    <html lang="id" className="scroll-smooth" suppressHydrationWarning>
       <head>
         {/* --- MULAI KODE GOOGLE ANALYTICS --- */}
         <Script 
@@ -45,12 +47,17 @@ export default function RootLayout({ children }) {
         {/* --- AKHIR KODE GOOGLE ANALYTICS --- */}
       </head>
 
-      {/* className ini akan menerapkan font Merriweather ke seluruh website */}
-      <body className={`${merriweather.className} antialiased bg-slate-50 text-slate-800`}>
-        {children}
+      {/* Tambahan dark:bg-slate-950 dark:text-slate-200 agar warna dasar berubah otomatis saat Dark Mode */}
+      <body className={`${merriweather.className} antialiased bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 transition-colors duration-300`}>
         
-        {/* --- TAMBAHAN TOMBOL WA MELAYANG --- */}
-        <FloatingWA />
+        {/* ThemeProvider membungkus seluruh aplikasi */}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            
+            {/* --- TAMBAHAN TOMBOL WA MELAYANG --- */}
+            <FloatingWA />
+        </ThemeProvider>
+
       </body>
     </html>
   );
