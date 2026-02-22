@@ -38,8 +38,16 @@ export default function Home() {
       return () => clearInterval(interval);
   }, [sliders.length]);
 
-  const rawPhone = settings.phone || "(+62) 851-8563-9375";
-  const waNumber = rawPhone.replace(/[^0-9]/g, ''); 
+  // Masukkan nomor asli Anda di dalam tanda kutip sebagai cadangan
+  const rawPhone = settings.phone || "6285185639375"; 
+  
+  // Membersihkan spasi/karakter lain
+  let waNumber = rawPhone.replace(/[^0-9]/g, ''); 
+  
+  // Jika nomornya diawali angka 0, otomatis ubah jadi 62
+  if (waNumber.startsWith('0')) {
+      waNumber = '62' + waNumber.substring(1);
+  } 
 
   return (
     <div className="text-slate-800 bg-white overflow-x-hidden selection:bg-orange-500 selection:text-white">
