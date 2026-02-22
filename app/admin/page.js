@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
 import 'react-quill-new/dist/quill.snow.css';
@@ -50,71 +50,71 @@ export default function AdminPage() {
                   const url = await uploadToCloudinary(file);
                   const quill = quillRef.current.getEditor();
                   const range = quill.getSelection(true);
-                  // Sisipkan gambar ke posisi kursor
                   quill.insertEmbed(range.index, 'image', url);
-                  // Pindahkan kursor ke setelah gambar
                   quill.setSelection(range.index + 1);
-              } catch (error) {
-                  alert("Gagal mengunggah gambar ke dalam teks.");
-              }
+              } catch (error) { alert("Gagal mengunggah gambar ke dalam teks."); }
               setLoading(false);
           }
       };
   };
 
-  // Konfigurasi Toolbar Editor Berita (dengan dukungan gambar)
   const modules = useMemo(() => ({
     toolbar: {
       container: [
         [{ 'header': [2, 3, false] }],
         ['bold', 'italic', 'underline', 'strike', 'blockquote'],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        ['link', 'image'], // Tambahkan opsi 'image'
+        ['link', 'image'], 
         ['clean']
       ],
-      handlers: {
-        image: imageHandler // Gunakan fungsi kustom kita untuk upload
-      }
+      handlers: { image: imageHandler } 
     }
   }), []);
 
+  // STATE UMUM & FOOTER
   const [settings, setSettings] = useState({ 
       logoUrl: '', missionTitle: '', missionDesc: '', serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
       footerDesc: '', phone: '', linkedin: '', youtube: '', instagram: ''
   });
   
+  // STATE SLIDER
   const [sliders, setSliders] = useState([]);
-  const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtnText, setSlideBtnText] = useState(''); const [slideBtnLink, setSlideBtnLink] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null);
+  const [editSliderId, setEditSliderId] = useState(null);
+  const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtnText, setSlideBtnText] = useState(''); const [slideBtnLink, setSlideBtnLink] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
 
+  // STATE MITRA
   const [partners, setPartners] = useState([]);
-  const [partnerName, setPartnerName] = useState('');
-  const [partnerImgFile, setPartnerImgFile] = useState(null);
-  const [partnerField, setPartnerField] = useState(''); 
+  const [editPartnerId, setEditPartnerId] = useState(null);
+  const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
 
+  // STATE LAYANAN
   const [services, setServices] = useState([]);
+  const [editServiceId, setEditServiceId] = useState(null);
   const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState('');
 
+  // STATE TIM
   const [teams, setTeams] = useState([]);
-  const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null);
+  const [editTeamId, setEditTeamId] = useState(null);
+  const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null); const [teamImgUrl, setTeamImgUrl] = useState('');
 
+  // STATE TESTIMONI
   const [testimonials, setTestimonials] = useState([]);
+  const [editTestiId, setEditTestiId] = useState(null);
   const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
 
+  // STATE FAQ
   const [faqs, setFaqs] = useState([]);
+  const [editFaqId, setEditFaqId] = useState(null);
   const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
 
+  // STATE BERITA
   const [posts, setPosts] = useState([]);
-  const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState('');
-  
-  // STATE BARU UNTUK DRAF
-  const [isDraft, setIsDraft] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
+  const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); setAuthLoading(false);
-    });
-
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
     getDoc(doc(db, "settings", "general")).then(snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "desc")), snap => setSliders(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => setPartners(snap.docs.map(d => ({id: d.id, ...d.data()}))));
@@ -129,53 +129,122 @@ export default function AdminPage() {
 
   const handleLogin = async (e) => { e.preventDefault(); setLoading(true); try { await signInWithEmailAndPassword(auth, email, password); alert("Login Berhasil!"); } catch (err) { alert("Email/Password salah!"); } setLoading(false); };
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
-
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  const addSlider = async (e) => { e.preventDefault(); if(!slideImageFile) return alert("Pilih gambar!"); setLoading(true); try { const imageUrl = await uploadToCloudinary(slideImageFile); await addDoc(collection(db, "sliders"), { title: slideTitle, subtitle: slideSubtitle, btnText: slideBtnText, btnLink: slideBtnLink, imageUrl, createdAt: serverTimestamp() }); alert("Berhasil!"); setSlideTitle(''); setSlideSubtitle(''); setSlideBtnText(''); setSlideBtnLink(''); setSlideImageFile(null); } catch(err) { alert(err.message); } setLoading(false); };
-  
-  const addPartner = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          let imgUrl = null; if (partnerImgFile) imgUrl = await uploadToCloudinary(partnerImgFile);
-          await addDoc(collection(db, "partners"), { name: partnerName, imgUrl: imgUrl, field: partnerField, createdAt: serverTimestamp() }); 
-          alert("Berhasil!"); setPartnerName(''); setPartnerField(''); setPartnerImgFile(null); document.getElementById('partnerFileInput').value = '';
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
+  // PEMBATALAN EDIT GLOBAL SAAT PINDAH TAB
+  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); };
+  const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
+  const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
-  const addService = async (e) => { e.preventDefault(); setLoading(true); try { await addDoc(collection(db, "services"), { name: serviceName, desc: serviceDesc, link: serviceLink || "#", createdAt: serverTimestamp() }); alert('Berhasil!'); setServiceName(''); setServiceDesc(''); setServiceLink(''); } catch(err) { alert(err.message); } setLoading(false); };
-  const addTeam = async (e) => { e.preventDefault(); if(!teamImgFile) return alert("Pilih foto!"); setLoading(true); try { const img = await uploadToCloudinary(teamImgFile); await addDoc(collection(db, "teams"), { name: teamName, role: teamRole, img, createdAt: serverTimestamp() }); alert("Berhasil!"); setTeamName(''); setTeamRole(''); setTeamImgFile(null); } catch(err) { alert(err.message); } setLoading(false); };
-  const addTestimonial = async (e) => { e.preventDefault(); setLoading(true); try { await addDoc(collection(db, "testimonials"), { name: testiName, company: testiCompany, text: testiText, createdAt: serverTimestamp() }); alert("Berhasil!"); setTestiName(''); setTestiCompany(''); setTestiText(''); } catch(err) { alert(err.message); } setLoading(false); };
-  const addFaq = async (e) => { e.preventDefault(); setLoading(true); try { await addDoc(collection(db, "faqs"), { q: faqQ, a: faqA, createdAt: serverTimestamp() }); alert("Berhasil!"); setFaqQ(''); setFaqA(''); } catch(err) { alert(err.message); } setLoading(false); };
-  
-  const addPost = async (e) => {
+  // ====================== CRUD SLIDER ======================
+  const cancelEditSlider = () => { setEditSliderId(null); setSlideTitle(''); setSlideSubtitle(''); setSlideBtnText(''); setSlideBtnLink(''); setSlideImageUrl(''); setSlideImageFile(null); };
+  const handleEditSlider = (s) => { setEditSliderId(s.id); setSlideTitle(s.title||''); setSlideSubtitle(s.subtitle||''); setSlideBtnText(s.btnText||s.btn1Text||''); setSlideBtnLink(s.btnLink||s.btn1Link||''); setSlideImageUrl(s.imageUrl||''); setSlideImageFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveSlider = async (e) => {
       e.preventDefault(); setLoading(true);
       try {
-          let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-          if (!slug) slug = 'berita-' + Date.now();
-          const docSnap = await getDoc(doc(db, "posts", slug));
-          if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000);
-          
-          // PENAMBAHAN STATUS DRAF KE FIREBASE
-          await setDoc(doc(db, "posts", slug), { 
-              title: postTitle, 
-              category: postCategory, 
-              content: postContent,
-              coverUrl: postCoverUrl, 
-              dateline: postDateline, 
-              author: postAuthor || 'Tim Redaksi', 
-              tags: postTags, 
-              views: 0, 
-              createdAt: serverTimestamp(),
-              isDraft: isDraft // Status Draf
-          });
-          
-          alert(isDraft ? 'Draf Berhasil Disimpan!' : 'Berita Diterbitkan!'); 
-          setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false);
+          let finalImg = slideImageUrl;
+          if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile);
+          if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; }
+          const data = { title: slideTitle, subtitle: slideSubtitle, btnText: slideBtnText, btnLink: slideBtnLink, imageUrl: finalImg };
+          if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() });
+          alert("Berhasil!"); cancelEditSlider();
       } catch(err) { alert(err.message); } setLoading(false);
   };
 
-  const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
+  // ====================== CRUD MITRA ======================
+  const cancelEditPartner = () => { setEditPartnerId(null); setPartnerName(''); setPartnerField(''); setPartnerImgUrl(''); setPartnerImgFile(null); if(document.getElementById('partnerFileInput')) document.getElementById('partnerFileInput').value = ''; };
+  const handleEditPartner = (p) => { setEditPartnerId(p.id); setPartnerName(p.name||''); setPartnerField(p.field||''); setPartnerImgUrl(p.imgUrl||''); setPartnerImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const savePartner = async (e) => { 
+      e.preventDefault(); setLoading(true); 
+      try { 
+          let finalImg = partnerImgUrl; if (partnerImgFile) finalImg = await uploadToCloudinary(partnerImgFile);
+          const data = { name: partnerName, imgUrl: finalImg, field: partnerField };
+          if (editPartnerId) await updateDoc(doc(db, "partners", editPartnerId), data); else await addDoc(collection(db, "partners"), { ...data, createdAt: serverTimestamp() });
+          alert("Berhasil!"); cancelEditPartner();
+      } catch(err) { alert(err.message); } setLoading(false); 
+  };
+
+  // ====================== CRUD LAYANAN ======================
+  const cancelEditService = () => { setEditServiceId(null); setServiceName(''); setServiceDesc(''); setServiceLink(''); };
+  const handleEditService = (s) => { setEditServiceId(s.id); setServiceName(s.name||''); setServiceDesc(s.desc||''); setServiceLink(s.link||''); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveService = async (e) => { 
+      e.preventDefault(); setLoading(true); 
+      try { 
+          const data = { name: serviceName, desc: serviceDesc, link: serviceLink || "#" };
+          if (editServiceId) await updateDoc(doc(db, "services", editServiceId), data); else await addDoc(collection(db, "services"), { ...data, createdAt: serverTimestamp() });
+          alert('Berhasil!'); cancelEditService();
+      } catch(err) { alert(err.message); } setLoading(false); 
+  };
+
+  // ====================== CRUD TIM ======================
+  const cancelEditTeam = () => { setEditTeamId(null); setTeamName(''); setTeamRole(''); setTeamImgUrl(''); setTeamImgFile(null); };
+  const handleEditTeam = (t) => { setEditTeamId(t.id); setTeamName(t.name||''); setTeamRole(t.role||''); setTeamImgUrl(t.img||''); setTeamImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveTeam = async (e) => { 
+      e.preventDefault(); setLoading(true); 
+      try { 
+          let finalImg = teamImgUrl; if (teamImgFile) finalImg = await uploadToCloudinary(teamImgFile);
+          if (!finalImg && !editTeamId) { alert("Pilih foto!"); setLoading(false); return; }
+          const data = { name: teamName, role: teamRole, img: finalImg };
+          if (editTeamId) await updateDoc(doc(db, "teams", editTeamId), data); else await addDoc(collection(db, "teams"), { ...data, createdAt: serverTimestamp() });
+          alert("Berhasil!"); cancelEditTeam();
+      } catch(err) { alert(err.message); } setLoading(false); 
+  };
+
+  // ====================== CRUD TESTIMONI ======================
+  const cancelEditTesti = () => { setEditTestiId(null); setTestiName(''); setTestiCompany(''); setTestiText(''); };
+  const handleEditTesti = (t) => { setEditTestiId(t.id); setTestiName(t.name||''); setTestiCompany(t.company||''); setTestiText(t.text||''); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveTestimonial = async (e) => { 
+      e.preventDefault(); setLoading(true); 
+      try { 
+          const data = { name: testiName, company: testiCompany, text: testiText };
+          if (editTestiId) await updateDoc(doc(db, "testimonials", editTestiId), data); else await addDoc(collection(db, "testimonials"), { ...data, createdAt: serverTimestamp() });
+          alert("Berhasil!"); cancelEditTesti();
+      } catch(err) { alert(err.message); } setLoading(false); 
+  };
+
+  // ====================== CRUD FAQ ======================
+  const cancelEditFaq = () => { setEditFaqId(null); setFaqQ(''); setFaqA(''); };
+  const handleEditFaq = (f) => { setEditFaqId(f.id); setFaqQ(f.q||''); setFaqA(f.a||''); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveFaq = async (e) => { 
+      e.preventDefault(); setLoading(true); 
+      try { 
+          const data = { q: faqQ, a: faqA };
+          if (editFaqId) await updateDoc(doc(db, "faqs", editFaqId), data); else await addDoc(collection(db, "faqs"), { ...data, createdAt: serverTimestamp() });
+          alert("Berhasil!"); cancelEditFaq();
+      } catch(err) { alert(err.message); } setLoading(false); 
+  };
+
+  // ====================== CRUD BERITA ======================
+  const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
+  const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  
+  const savePost = async (e) => {
+      e.preventDefault(); setLoading(true);
+      try {
+          if (editPostId) {
+              await updateDoc(doc(db, "posts", editPostId), { 
+                  title: postTitle, category: postCategory, content: postContent,
+                  coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', 
+                  tags: postTags, isDraft: isDraft 
+              });
+              alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); 
+          } else {
+              let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+              if (!slug) slug = 'berita-' + Date.now();
+              const docSnap = await getDoc(doc(db, "posts", slug));
+              if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000);
+              
+              await setDoc(doc(db, "posts", slug), { 
+                  title: postTitle, category: postCategory, content: postContent,
+                  coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', 
+                  tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft
+              });
+              alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); 
+          }
+          cancelEditPost();
+      } catch(err) { alert(err.message); } setLoading(false);
+  };
+
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
   
@@ -220,7 +289,7 @@ export default function AdminPage() {
                 <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p>
                 <nav className="space-y-1">
                     {[{ id: 'blog', label: 'Wawasan (Blog)' }, { id: 'layanan', label: 'Kelola Layanan' }, { id: 'mitra', label: 'Mitra & Klien' }].map(tab => (
-                        <button key={tab.id} onClick={() => {setActiveTab(tab.id); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
+                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
                     ))}
                 </nav>
             </div>
@@ -228,7 +297,7 @@ export default function AdminPage() {
                 <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p>
                 <nav className="space-y-1">
                     {[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (
-                        <button key={tab.id} onClick={() => {setActiveTab(tab.id); setIsSidebarOpen(false);}} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
+                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
                     ))}
                 </nav>
             </div>
@@ -311,112 +380,124 @@ export default function AdminPage() {
             </form>
         )}
 
-        {/* TAB SLIDER */}
+        {/* TAB SLIDER (DENGAN EDIT) */}
         {activeTab === 'slider' && (
-            <div className="max-w-4xl"><form onSubmit={addSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="file" onChange={e=>setSlideImageFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" /><input type="text" placeholder="Judul Slider Utama" value={slideTitle} onChange={e=>setSlideTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><input type="text" placeholder="Deskripsi Pendek" value={slideSubtitle} onChange={e=>setSlideSubtitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><div className="flex flex-col md:flex-row gap-3 md:gap-4"><input type="text" placeholder="Teks Tombol" value={slideBtnText} onChange={e=>setSlideBtnText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><input type="text" placeholder="Link Tombol" value={slideBtnLink} onChange={e=>setSlideBtnLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah Slider</button></form><div className="grid gap-4">{sliders.map(s => (<div key={s.id} className="flex flex-col md:flex-row bg-white p-4 rounded-xl border md:items-center gap-4"><img src={s.imageUrl} className="w-full md:w-24 h-32 md:h-16 object-cover rounded-lg" /><div className="flex-1 text-center md:text-left"><h4 className="font-bold text-sm">{s.title}</h4></div><button onClick={()=>deleteItem('sliders', s.id)} className="text-red-500 font-bold px-4 py-2 border border-red-100 rounded md:border-none md:p-0 w-full md:w-auto">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={saveSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editSliderId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Slider</span><button type="button" onClick={cancelEditSlider} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <p className="text-xs md:text-sm text-slate-500 mb-2">Upload gambar (Kosongkan jika tidak ingin mengganti gambar lama).</p>
+                    <input type="file" onChange={e=>setSlideImageFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                    {slideImageUrl && !slideImageFile && <img src={slideImageUrl} className="h-20 rounded object-cover border" alt="Current" />}
+                    <input type="text" placeholder="Judul Slider Utama" value={slideTitle} onChange={e=>setSlideTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <input type="text" placeholder="Deskripsi Pendek" value={slideSubtitle} onChange={e=>setSlideSubtitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-4"><input type="text" placeholder="Teks Tombol" value={slideBtnText} onChange={e=>setSlideBtnText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><input type="text" placeholder="Link Tombol" value={slideBtnLink} onChange={e=>setSlideBtnLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editSliderId ? 'Perbarui Slider' : 'Tambah Slider'}</button>
+                </form>
+                <div className="grid gap-4">{sliders.map(s => (<div key={s.id} className={`flex flex-col md:flex-row bg-white p-4 rounded-xl border md:items-center gap-4 ${editSliderId === s.id ? 'ring-2 ring-indigo-500' : ''}`}><img src={s.imageUrl} className="w-full md:w-24 h-32 md:h-16 object-cover rounded-lg" /><div className="flex-1 text-center md:text-left"><h4 className="font-bold text-sm">{s.title}</h4></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditSlider(s)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('sliders', s.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB MITRA */}
+        {/* TAB MITRA (DENGAN EDIT) */}
         {activeTab === 'mitra' && (
-            <div className="max-w-4xl"><form onSubmit={addPartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><p className="text-xs md:text-sm text-slate-500 mb-2">Tambahkan Logo/Gambar (Opsional), Nama Perusahaan, dan Bidangnya.</p><input id="partnerFileInput" type="file" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" /><input type="text" placeholder="Nama Perusahaan (Wajib diisi)" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold uppercase text-sm" required/><input type="text" placeholder="Bidang/Layanan (Cth: Pelatihan SDM)" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{loading ? 'Menyimpan...' : 'Tambah Mitra'}</button></form><div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{partners.map(p => (<div key={p.id} className="bg-white p-3 md:p-4 rounded-xl border flex flex-col justify-between items-center text-center">{p.imgUrl ? (<img src={p.imgUrl} alt={p.name} className="h-10 md:h-12 w-auto object-contain mb-3" />) : (<div className="h-10 md:h-12 flex items-center justify-center mb-3"><h4 className="font-bold text-slate-600 uppercase text-xs">{p.name}</h4></div>)}<button onClick={()=>deleteItem('partners', p.id)} className="text-red-500 text-xs font-bold bg-red-50 p-2 rounded w-full mt-auto">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={savePartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editPartnerId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Mitra</span><button type="button" onClick={cancelEditPartner} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <p className="text-xs md:text-sm text-slate-500 mb-2">Upload logo (Kosongkan jika tidak ingin mengganti logo lama).</p>
+                    <input id="partnerFileInput" type="file" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                    {partnerImgUrl && !partnerImgFile && <img src={partnerImgUrl} className="h-16 object-contain border rounded p-1 bg-slate-50" alt="Current" />}
+                    <input type="text" placeholder="Nama Perusahaan (Wajib diisi)" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold uppercase text-sm" required/>
+                    <input type="text" placeholder="Bidang/Layanan (Cth: Pelatihan SDM)" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editPartnerId ? 'Perbarui Mitra' : 'Tambah Mitra'}</button>
+                </form>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{partners.map(p => (<div key={p.id} className={`bg-white p-3 md:p-4 rounded-xl border flex flex-col justify-between items-center text-center ${editPartnerId === p.id ? 'ring-2 ring-indigo-500' : ''}`}>{p.imgUrl ? (<img src={p.imgUrl} alt={p.name} className="h-10 md:h-12 w-auto object-contain mb-3" />) : (<div className="h-10 md:h-12 flex items-center justify-center mb-3"><h4 className="font-bold text-slate-600 uppercase text-xs">{p.name}</h4></div>)}<div className="flex gap-2 w-full mt-auto"><button onClick={() => handleEditPartner(p)} className="flex-1 text-indigo-600 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 p-2 rounded transition">Edit</button><button onClick={()=>deleteItem('partners', p.id)} className="flex-1 text-red-500 text-xs font-bold bg-red-50 hover:bg-red-100 p-2 rounded transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB LAYANAN */}
+        {/* TAB LAYANAN (DENGAN EDIT) */}
         {activeTab === 'layanan' && (
-            <div className="max-w-4xl"><form onSubmit={addService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah Layanan</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className="bg-white p-4 md:p-6 rounded-xl border flex flex-col"><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><button onClick={()=>deleteItem('services', s.id)} className="mt-auto text-red-500 text-xs md:text-sm font-bold bg-red-50 py-2 rounded">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    <input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button>
+                </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB TIM */}
+        {/* TAB TIM (DENGAN EDIT) */}
         {activeTab === 'tim' && (
-            <div className="max-w-4xl"><form onSubmit={addTeam} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="file" onChange={e=>setTeamImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" required /><input type="text" placeholder="Nama Lengkap & Gelar" value={teamName} onChange={e=>setTeamName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><input type="text" placeholder="Jabatan / Role" value={teamRole} onChange={e=>setTeamRole(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{loading ? 'Upload Foto...' : 'Tambah Anggota Tim'}</button></form><div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{teams.map(t => (<div key={t.id} className="bg-white p-3 md:p-4 rounded-xl border flex flex-col items-center text-center"><img src={t.img} className="w-16 h-16 rounded-full object-cover mb-3"/><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[9px] md:text-[10px] text-orange-500 mb-3 line-clamp-1">{t.role}</p><button onClick={()=>deleteItem('teams', t.id)} className="text-red-500 text-xs font-bold w-full bg-red-50 py-1.5 md:py-2 rounded mt-auto">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={saveTeam} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editTeamId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Anggota Tim</span><button type="button" onClick={cancelEditTeam} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <p className="text-xs md:text-sm text-slate-500 mb-2">Upload foto (Kosongkan jika tidak ingin mengganti foto lama).</p>
+                    <input type="file" onChange={e=>setTeamImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                    {teamImgUrl && !teamImgFile && <img src={teamImgUrl} className="h-16 w-16 object-cover rounded-full border" alt="Current" />}
+                    <input type="text" placeholder="Nama Lengkap & Gelar" value={teamName} onChange={e=>setTeamName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <input type="text" placeholder="Jabatan / Role" value={teamRole} onChange={e=>setTeamRole(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editTeamId ? 'Perbarui Data Tim' : 'Tambah Anggota Tim'}</button>
+                </form>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{teams.map(t => (<div key={t.id} className={`bg-white p-3 md:p-4 rounded-xl border flex flex-col items-center text-center ${editTeamId === t.id ? 'ring-2 ring-indigo-500' : ''}`}><img src={t.img} className="w-16 h-16 rounded-full object-cover mb-3"/><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[9px] md:text-[10px] text-orange-500 mb-3 line-clamp-1">{t.role}</p><div className="flex gap-2 w-full mt-auto"><button onClick={() => handleEditTeam(t)} className="flex-1 text-indigo-600 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 py-1.5 rounded transition">Edit</button><button onClick={()=>deleteItem('teams', t.id)} className="flex-1 text-red-500 text-xs font-bold bg-red-50 hover:bg-red-100 py-1.5 rounded transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB TESTIMONI */}
+        {/* TAB TESTIMONI (DENGAN EDIT) */}
         {activeTab === 'testimoni' && (
-            <div className="max-w-4xl"><form onSubmit={addTestimonial} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Nama Klien" value={testiName} onChange={e=>setTestiName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><input type="text" placeholder="Asal Perusahaan / Instansi" value={testiCompany} onChange={e=>setTestiCompany(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><textarea rows="3" placeholder="Isi testimoni..." value={testiText} onChange={e=>setTestiText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah Testimoni</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{testimonials.map(t => (<div key={t.id} className="bg-white p-4 md:p-6 rounded-xl border"><p className="italic text-xs md:text-sm text-slate-600 mb-4">"{t.text}"</p><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[10px] md:text-xs text-slate-400 mb-3">{t.company}</p><button onClick={()=>deleteItem('testimonials', t.id)} className="text-red-500 text-xs font-bold bg-red-50 px-3 py-1.5 rounded">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={saveTestimonial} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editTestiId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Testimoni</span><button type="button" onClick={cancelEditTesti} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <input type="text" placeholder="Nama Klien" value={testiName} onChange={e=>setTestiName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <input type="text" placeholder="Asal Perusahaan / Instansi" value={testiCompany} onChange={e=>setTestiCompany(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                    <textarea rows="3" placeholder="Isi testimoni..." value={testiText} onChange={e=>setTestiText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editTestiId ? 'Perbarui Testimoni' : 'Tambah Testimoni'}</button>
+                </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{testimonials.map(t => (<div key={t.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editTestiId === t.id ? 'ring-2 ring-indigo-500' : ''}`}><p className="italic text-xs md:text-sm text-slate-600 mb-4">"{t.text}"</p><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[10px] md:text-xs text-slate-400 mb-3">{t.company}</p><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditTesti(t)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('testimonials', t.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB FAQ */}
+        {/* TAB FAQ (DENGAN EDIT) */}
         {activeTab === 'faq' && (
-            <div className="max-w-4xl"><form onSubmit={addFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Pertanyaan" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Jawaban..." value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah F.A.Q</button></form><div className="space-y-3">{faqs.map(f => (<div key={f.id} className="bg-white p-4 rounded-xl border flex flex-col md:flex-row justify-between md:items-start gap-4"><div className="pr-4"><h4 className="font-bold text-xs md:text-sm mb-1">{f.q}</h4><p className="text-[10px] md:text-xs text-slate-500">{f.a}</p></div><button onClick={()=>deleteItem('faqs', f.id)} className="text-red-500 text-xs font-bold w-full md:w-fit bg-red-50 px-3 py-2 rounded">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={saveFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editFaqId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit FAQ</span><button type="button" onClick={cancelEditFaq} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
+                    <input type="text" placeholder="Pertanyaan" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <textarea rows="3" placeholder="Jawaban..." value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editFaqId ? 'Perbarui F.A.Q' : 'Tambah F.A.Q'}</button>
+                </form>
+                <div className="space-y-3">{faqs.map(f => (<div key={f.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row justify-between md:items-start gap-4 ${editFaqId === f.id ? 'ring-2 ring-indigo-500' : ''}`}><div className="pr-4"><h4 className="font-bold text-xs md:text-sm mb-1">{f.q}</h4><p className="text-[10px] md:text-xs text-slate-500">{f.a}</p></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditFaq(f)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('faqs', f.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
+            </div>
         )}
 
-        {/* TAB BLOG / WAWASAN DENGAN SISTEM DRAF */}
+        {/* TAB BLOG / WAWASAN (DENGAN EDIT) */}
         {activeTab === 'blog' && (
             <div className="max-w-4xl">
-                <form onSubmit={addPost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8">
+                <form onSubmit={savePost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editPostId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200 mb-4"><span>Anda sedang mengedit: {postTitle}</span><button type="button" onClick={cancelEditPost} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
                     <input type="text" placeholder="Judul Berita" value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-base md:text-lg" required/>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                        <select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-white text-sm">
-                            <option value="News">News</option>
-                            <option value="Opini">Opini</option>
-                        </select>
+                        <select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-white text-sm"><option value="News">News</option><option value="Opini">Opini</option></select>
                         <input type="text" placeholder="Dateline (Cth: Jakarta)" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                     </div>
-                    
                     <div className="border p-3 md:p-4 rounded-lg bg-slate-50">
                         <p className="mb-2 font-bold text-xs md:text-sm text-slate-700">Upload Sampul Berita</p>
-                        <input type="file" onChange={async (e) => { 
-                            if(e.target.files[0]) { 
-                                setLoading(true); 
-                                try { 
-                                    const url = await uploadToCloudinary(e.target.files[0]); 
-                                    setPostCoverUrl(url); 
-                                    alert("Gambar Sampul Siap!"); 
-                                } catch(err) { alert(err.message); } 
-                                setLoading(false); 
-                            } 
-                        }} accept="image/*" className="text-xs md:text-sm w-full" />
+                        <input type="file" onChange={async (e) => { if(e.target.files[0]) { setLoading(true); try { const url = await uploadToCloudinary(e.target.files[0]); setPostCoverUrl(url); alert("Gambar Sampul Siap!"); } catch(err) { alert(err.message); } setLoading(false); } }} accept="image/*" className="text-xs md:text-sm w-full mb-2" />
+                        {postCoverUrl && <img src={postCoverUrl} className="h-20 rounded-lg object-cover border" alt="Cover Preview" />}
                     </div>
-
                     <div className="h-64 mb-14 md:mb-10 mt-2">
-                        <ReactQuill 
-                            ref={quillRef}
-                            theme="snow" 
-                            value={postContent} 
-                            onChange={setPostContent} 
-                            modules={modules}
-                            className="h-full bg-white rounded-b-lg" 
-                            placeholder="Tulis isi berita di sini... Gunakan ikon gambar di toolbar untuk menyisipkan gambar ke tengah paragraf."
-                        />
+                        <ReactQuill ref={quillRef} theme="snow" value={postContent} onChange={setPostContent} modules={modules} className="h-full bg-white rounded-b-lg" placeholder="Tulis isi berita di sini... Gunakan ikon gambar di toolbar untuk menyisipkan gambar ke tengah paragraf." />
                     </div>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pt-8 md:pt-12">
                         <input type="text" placeholder="Nama Penulis" value={postAuthor} onChange={e=>setPostAuthor(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                         <input type="text" placeholder="Tags (Pisahkan koma)" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                     </div>
-                    
-                    {/* BAGIAN PILIHAN STATUS (DRAF VS PUBLISH) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 border-t pt-4 border-slate-100">
-                        <select 
-                            value={isDraft} 
-                            onChange={e => setIsDraft(e.target.value === 'true')} 
-                            className="w-full border p-3 rounded-lg font-bold text-sm bg-slate-50 outline-none focus:border-indigo-500 cursor-pointer"
-                        >
-                            <option value="false">🌍 Terbitkan ke Publik</option>
-                            <option value="true">🔒 Simpan sebagai Draf (Sembunyikan)</option>
-                        </select>
-                        <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:bg-indigo-700 transition shadow-sm">
-                            {loading ? 'Menyimpan...' : (isDraft ? 'Simpan Draf' : 'Terbitkan Sekarang')}
-                        </button>
+                        <select value={isDraft} onChange={e => setIsDraft(e.target.value === 'true')} className="w-full border p-3 rounded-lg font-bold text-sm bg-slate-50 outline-none focus:border-indigo-500 cursor-pointer"><option value="false">🌍 Terbitkan ke Publik</option><option value="true">🔒 Simpan sebagai Draf (Sembunyikan)</option></select>
+                        <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:bg-indigo-700 transition shadow-sm">{loading ? 'Menyimpan...' : (editPostId ? 'Perbarui Berita' : 'Terbitkan Sekarang')}</button>
                     </div>
-
                 </form>
-                
-                <div className="space-y-3">
-                    {posts.map(p => (
-                        <div key={p.id} className={`flex flex-col md:flex-row p-4 rounded-xl border justify-between gap-3 ${p.isDraft ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'}`}>
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    {p.isDraft && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">DRAF</span>}
-                                    <h4 className="font-bold text-sm line-clamp-1">{p.title}</h4>
-                                </div>
-                            </div>
-                            <button onClick={()=>deleteItem('posts', p.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg w-full md:w-auto transition">Hapus</button>
-                        </div>
-                    ))}
-                </div>
+                <div className="space-y-3">{posts.map(p => (<div key={p.id} className={`flex flex-col md:flex-row p-4 rounded-xl border justify-between gap-3 items-center ${p.isDraft ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'} ${editPostId === p.id ? 'ring-2 ring-indigo-500' : ''}`}><div className="flex-1"><div className="flex items-center gap-2 mb-1">{p.isDraft && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">DRAF</span>}<h4 className="font-bold text-sm line-clamp-1">{p.title}</h4></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditPost(p)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('posts', p.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
             </div>
         )}
 
