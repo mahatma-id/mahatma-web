@@ -164,35 +164,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION */}
-      <section className="py-12 md:py-20 bg-slate-50 dark:bg-slate-900 text-center px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
-        <div className="container mx-auto max-w-4xl">
-            <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Mission</span>
-            <h2 className="text-xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-snug px-2">{settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}</h2>
-            <p className="text-sm md:text-xl text-slate-500 dark:text-slate-400 leading-relaxed mb-8 md:mb-12 font-light max-w-2xl mx-auto px-2">{settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}</p>
-            
-            <div className="flex justify-center gap-8 md:gap-20 font-bold text-xs md:text-lg text-slate-800 dark:text-slate-200 uppercase tracking-widest">
-                {[1, 2, 3].map(num => (
-                    <div key={num} className="flex flex-col items-center hover:scale-110 transition-transform">
-                        {settings[`mission${num}Img`] ? (
-                            <img src={settings[`mission${num}Img`]} className="w-10 h-10 md:w-16 md:h-16 mb-2 md:mb-4 object-contain drop-shadow-sm" alt="Mission Icon" />
-                        ) : (
-                            <span className="text-orange-500 text-3xl md:text-5xl mb-2 md:mb-4 drop-shadow-sm">{num === 1 ? '🌍' : num === 2 ? '🌱' : '🚀'}</span>
-                        )}
-                        {settings[`mission${num}Title`] || (num === 1 ? 'People' : num === 2 ? 'Planet' : 'Progress')}
-                    </div>
-                ))}
+      {/* 2. OUR MISSION (DENGAN KARTU RATA KIRI, TEKS RATA KANAN) */}
+      <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
+        <div className="container mx-auto max-w-7xl">
+            <div className="flex flex-col-reverse lg:flex-row items-center gap-10 md:gap-16">
+                
+                {/* BAGIAN KIRI: KARTU MISI */}
+                <div className="w-full lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    {[1, 2, 3, 4].map(num => {
+                        const title = settings[`mission${num}Title`];
+                        const img = settings[`mission${num}Img`];
+                        if (!title && !img) return null; // Jika kosong di admin, disembunyikan
+                        
+                        return (
+                            <div key={num} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col items-center text-center cursor-pointer">
+                                {img ? (
+                                    <img src={img} className="w-16 h-16 md:w-20 md:h-20 mb-4 object-contain group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500" alt={title} />
+                                ) : (
+                                    <div className="w-16 h-16 md:w-20 md:h-20 mb-4 bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-orange-500 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                                        <svg className="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
+                                )}
+                                <h3 className="text-base md:text-xl font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500 transition-colors">{title || `Misi ${num}`}</h3>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* BAGIAN KANAN: TEKS RATA KANAN */}
+                <div className="w-full lg:w-1/2 text-center lg:text-right">
+                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Mission</span>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}</h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light">{settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}</p>
+                </div>
+
             </div>
         </div>
       </section>
 
-      {/* 3. OUR SERVICE */}
+      {/* 3. OUR SERVICE (JUDUL LEBIH KECIL) */}
       <section id="layanan" className="py-12 md:py-24 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Service</span>
-                    <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
+                    {/* Ukuran font diperkecil: Dari lg:text-5xl menjadi text-2xl md:text-3xl lg:text-4xl */}
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
                 {settings.serviceImageUrl && (
@@ -206,7 +223,6 @@ export default function Home() {
                 {services.map(svc => (
                     <div key={svc.id} className="relative overflow-hidden p-6 md:p-10 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col h-full cursor-pointer">
                         
-                        {/* BACKGROUND IMAGE DENGAN OVERLAY GELAP */}
                         {svc.imgUrl ? (
                             <>
                                 <img src={svc.imgUrl} alt={svc.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 z-0" />
@@ -216,13 +232,12 @@ export default function Home() {
                             <div className="absolute inset-0 bg-slate-50 dark:bg-slate-900 z-0 transition-colors"></div>
                         )}
 
-                        {/* KONTEN KARTU */}
                         <div className="relative z-20 flex flex-col h-full">
                             <div className={`w-10 h-10 md:w-14 md:h-14 shadow-sm rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:rotate-12 transition-all duration-500 ${svc.imgUrl ? 'bg-white/20 backdrop-blur-md text-white group-hover:bg-orange-600' : 'bg-white dark:bg-slate-800 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
                                 <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             </div>
                             
-                            <h3 className={`text-base md:text-2xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                            <h3 className={`text-base md:text-xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
                                 {svc.name}
                             </h3>
                             

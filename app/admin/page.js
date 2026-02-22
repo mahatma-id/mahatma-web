@@ -7,7 +7,6 @@ import { db, auth } from '@/lib/firebase';
 import 'react-quill-new/dist/quill.snow.css';
 import Link from 'next/link';
 
-// Import Quill secara dinamis agar tidak error di sisi Server Next.js
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 export default function AdminPage() {
@@ -20,7 +19,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Referensi untuk Quill Editor
   const quillRef = useRef(null);
 
   const uploadToCloudinary = async (file) => {
@@ -35,7 +33,6 @@ export default function AdminPage() {
     throw new Error(data.error?.message || "Gagal upload gambar");
   };
 
-  // Handler khusus untuk menyisipkan gambar langsung ke dalam editor teks
   const imageHandler = () => {
       const input = document.createElement('input');
       input.setAttribute('type', 'file');
@@ -73,7 +70,9 @@ export default function AdminPage() {
 
   // STATE UMUM & FOOTER
   const [settings, setSettings] = useState({ 
-      logoUrl: '', missionTitle: '', missionDesc: '', serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
+      logoUrl: '', missionTitle: '', missionDesc: '', 
+      mission1Title: '', mission1Img: '', mission2Title: '', mission2Img: '', mission3Title: '', mission3Img: '', mission4Title: '', mission4Img: '',
+      serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
       footerDesc: '', phone: '', linkedin: '', youtube: '', instagram: ''
   });
@@ -81,47 +80,15 @@ export default function AdminPage() {
   // STATE SLIDER
   const [sliders, setSliders] = useState([]);
   const [editSliderId, setEditSliderId] = useState(null);
-  const [slideTagline, setSlideTagline] = useState(''); 
-  const [slideTitle, setSlideTitle] = useState(''); 
-  const [slideSubtitle, setSlideSubtitle] = useState(''); 
-  const [slideBtn1Text, setSlideBtn1Text] = useState(''); 
-  const [slideBtn1Link, setSlideBtn1Link] = useState(''); 
-  const [slideBtn2Text, setSlideBtn2Text] = useState(''); 
-  const [slideBtn2Link, setSlideBtn2Link] = useState(''); 
-  const [slideImageFile, setSlideImageFile] = useState(null); 
-  const [slideImageUrl, setSlideImageUrl] = useState('');
+  const [slideTagline, setSlideTagline] = useState(''); const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtn1Text, setSlideBtn1Text] = useState(''); const [slideBtn1Link, setSlideBtn1Link] = useState(''); const [slideBtn2Text, setSlideBtn2Text] = useState(''); const [slideBtn2Link, setSlideBtn2Link] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
 
-  // STATE MITRA
-  const [partners, setPartners] = useState([]);
-  const [editPartnerId, setEditPartnerId] = useState(null);
-  const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
-
-  // STATE LAYANAN (DITAMBAH GAMBAR)
-  const [services, setServices] = useState([]);
-  const [editServiceId, setEditServiceId] = useState(null);
-  const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState('');
-  const [serviceImgFile, setServiceImgFile] = useState(null); 
-  const [serviceImgUrl, setServiceImgUrl] = useState('');
-
-  // STATE TIM
-  const [teams, setTeams] = useState([]);
-  const [editTeamId, setEditTeamId] = useState(null);
-  const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null); const [teamImgUrl, setTeamImgUrl] = useState('');
-
-  // STATE TESTIMONI
-  const [testimonials, setTestimonials] = useState([]);
-  const [editTestiId, setEditTestiId] = useState(null);
-  const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
-
-  // STATE FAQ
-  const [faqs, setFaqs] = useState([]);
-  const [editFaqId, setEditFaqId] = useState(null);
-  const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
-
-  // STATE BERITA
-  const [posts, setPosts] = useState([]);
-  const [editPostId, setEditPostId] = useState(null);
-  const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
+  // STATE LAINNYA
+  const [partners, setPartners] = useState([]); const [editPartnerId, setEditPartnerId] = useState(null); const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
+  const [services, setServices] = useState([]); const [editServiceId, setEditServiceId] = useState(null); const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState(''); const [serviceImgFile, setServiceImgFile] = useState(null); const [serviceImgUrl, setServiceImgUrl] = useState('');
+  const [teams, setTeams] = useState([]); const [editTeamId, setEditTeamId] = useState(null); const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null); const [teamImgUrl, setTeamImgUrl] = useState('');
+  const [testimonials, setTestimonials] = useState([]); const [editTestiId, setEditTestiId] = useState(null); const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
+  const [faqs, setFaqs] = useState([]); const [editFaqId, setEditFaqId] = useState(null); const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
+  const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -141,213 +108,50 @@ export default function AdminPage() {
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  // PEMBATALAN EDIT GLOBAL SAAT PINDAH TAB
   const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); };
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
-  // ====================== CRUD SLIDER ======================
   const cancelEditSlider = () => { setEditSliderId(null); setSlideTagline(''); setSlideTitle(''); setSlideSubtitle(''); setSlideBtn1Text(''); setSlideBtn1Link(''); setSlideBtn2Text(''); setSlideBtn2Link(''); setSlideImageUrl(''); setSlideImageFile(null); };
-  const handleEditSlider = (s) => { 
-      setEditSliderId(s.id); 
-      setSlideTagline(s.tagline || ''); 
-      setSlideTitle(s.title || ''); 
-      setSlideSubtitle(s.subtitle || ''); 
-      setSlideBtn1Text(s.btn1Text || s.btnText || ''); 
-      setSlideBtn1Link(s.btn1Link || s.btnLink || ''); 
-      setSlideBtn2Text(s.btn2Text || ''); 
-      setSlideBtn2Link(s.btn2Link || ''); 
-      setSlideImageUrl(s.imageUrl || ''); 
-      setSlideImageFile(null); 
-      window.scrollTo({top:0, behavior:'smooth'}); 
-  };
-  const saveSlider = async (e) => {
-      e.preventDefault(); setLoading(true);
-      try {
-          let finalImg = slideImageUrl;
-          if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile);
-          if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; }
-          const data = { tagline: slideTagline, title: slideTitle, subtitle: slideSubtitle, btn1Text: slideBtn1Text, btn1Link: slideBtn1Link, btn2Text: slideBtn2Text, btn2Link: slideBtn2Link, imageUrl: finalImg };
-          if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() });
-          alert("Berhasil!"); cancelEditSlider();
-      } catch(err) { alert(err.message); } setLoading(false);
-  };
-
-  // ====================== CRUD MITRA ======================
+  const handleEditSlider = (s) => { setEditSliderId(s.id); setSlideTagline(s.tagline || ''); setSlideTitle(s.title || ''); setSlideSubtitle(s.subtitle || ''); setSlideBtn1Text(s.btn1Text || s.btnText || ''); setSlideBtn1Link(s.btn1Link || s.btnLink || ''); setSlideBtn2Text(s.btn2Text || ''); setSlideBtn2Link(s.btn2Link || ''); setSlideImageUrl(s.imageUrl || ''); setSlideImageFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveSlider = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = slideImageUrl; if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile); if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; } const data = { tagline: slideTagline, title: slideTitle, subtitle: slideSubtitle, btn1Text: slideBtn1Text, btn1Link: slideBtn1Link, btn2Text: slideBtn2Text, btn2Link: slideBtn2Link, imageUrl: finalImg }; if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditSlider(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditPartner = () => { setEditPartnerId(null); setPartnerName(''); setPartnerField(''); setPartnerImgUrl(''); setPartnerImgFile(null); if(document.getElementById('partnerFileInput')) document.getElementById('partnerFileInput').value = ''; };
   const handleEditPartner = (p) => { setEditPartnerId(p.id); setPartnerName(p.name||''); setPartnerField(p.field||''); setPartnerImgUrl(p.imgUrl||''); setPartnerImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
-  const savePartner = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          let finalImg = partnerImgUrl; if (partnerImgFile) finalImg = await uploadToCloudinary(partnerImgFile);
-          const data = { name: partnerName, imgUrl: finalImg, field: partnerField };
-          if (editPartnerId) await updateDoc(doc(db, "partners", editPartnerId), data); else await addDoc(collection(db, "partners"), { ...data, createdAt: serverTimestamp() });
-          alert("Berhasil!"); cancelEditPartner();
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
-
-  // ====================== CRUD LAYANAN (DIPERBAIKI) ======================
+  const savePartner = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = partnerImgUrl; if (partnerImgFile) finalImg = await uploadToCloudinary(partnerImgFile); const data = { name: partnerName, imgUrl: finalImg, field: partnerField }; if (editPartnerId) await updateDoc(doc(db, "partners", editPartnerId), data); else await addDoc(collection(db, "partners"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditPartner(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditService = () => { setEditServiceId(null); setServiceName(''); setServiceDesc(''); setServiceLink(''); setServiceImgUrl(''); setServiceImgFile(null); };
-  const handleEditService = (s) => { 
-      setEditServiceId(s.id); 
-      setServiceName(s.name||''); 
-      setServiceDesc(s.desc||''); 
-      setServiceLink(s.link||''); 
-      setServiceImgUrl(s.imgUrl||''); 
-      setServiceImgFile(null); 
-      window.scrollTo({top:0, behavior:'smooth'}); 
-  };
-  const saveService = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          let finalImg = serviceImgUrl;
-          if (serviceImgFile) finalImg = await uploadToCloudinary(serviceImgFile);
-          
-          const data = { name: serviceName, desc: serviceDesc, link: serviceLink || "#", imgUrl: finalImg };
-          if (editServiceId) await updateDoc(doc(db, "services", editServiceId), data); else await addDoc(collection(db, "services"), { ...data, createdAt: serverTimestamp() });
-          alert('Berhasil!'); cancelEditService();
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
-
-  // ====================== CRUD TIM ======================
+  const handleEditService = (s) => { setEditServiceId(s.id); setServiceName(s.name||''); setServiceDesc(s.desc||''); setServiceLink(s.link||''); setServiceImgUrl(s.imgUrl||''); setServiceImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveService = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = serviceImgUrl; if (serviceImgFile) finalImg = await uploadToCloudinary(serviceImgFile); const data = { name: serviceName, desc: serviceDesc, link: serviceLink || "#", imgUrl: finalImg }; if (editServiceId) await updateDoc(doc(db, "services", editServiceId), data); else await addDoc(collection(db, "services"), { ...data, createdAt: serverTimestamp() }); alert('Berhasil!'); cancelEditService(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditTeam = () => { setEditTeamId(null); setTeamName(''); setTeamRole(''); setTeamImgUrl(''); setTeamImgFile(null); };
   const handleEditTeam = (t) => { setEditTeamId(t.id); setTeamName(t.name||''); setTeamRole(t.role||''); setTeamImgUrl(t.img||''); setTeamImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveTeam = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          let finalImg = teamImgUrl; if (teamImgFile) finalImg = await uploadToCloudinary(teamImgFile);
-          if (!finalImg && !editTeamId) { alert("Pilih foto!"); setLoading(false); return; }
-          const data = { name: teamName, role: teamRole, img: finalImg };
-          if (editTeamId) await updateDoc(doc(db, "teams", editTeamId), data); else await addDoc(collection(db, "teams"), { ...data, createdAt: serverTimestamp() });
-          alert("Berhasil!"); cancelEditTeam();
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
-
-  // ====================== CRUD TESTIMONI ======================
+  const saveTeam = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = teamImgUrl; if (teamImgFile) finalImg = await uploadToCloudinary(teamImgFile); if (!finalImg && !editTeamId) { alert("Pilih foto!"); setLoading(false); return; } const data = { name: teamName, role: teamRole, img: finalImg }; if (editTeamId) await updateDoc(doc(db, "teams", editTeamId), data); else await addDoc(collection(db, "teams"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditTeam(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditTesti = () => { setEditTestiId(null); setTestiName(''); setTestiCompany(''); setTestiText(''); };
   const handleEditTesti = (t) => { setEditTestiId(t.id); setTestiName(t.name||''); setTestiCompany(t.company||''); setTestiText(t.text||''); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveTestimonial = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          const data = { name: testiName, company: testiCompany, text: testiText };
-          if (editTestiId) await updateDoc(doc(db, "testimonials", editTestiId), data); else await addDoc(collection(db, "testimonials"), { ...data, createdAt: serverTimestamp() });
-          alert("Berhasil!"); cancelEditTesti();
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
-
-  // ====================== CRUD FAQ ======================
+  const saveTestimonial = async (e) => { e.preventDefault(); setLoading(true); try { const data = { name: testiName, company: testiCompany, text: testiText }; if (editTestiId) await updateDoc(doc(db, "testimonials", editTestiId), data); else await addDoc(collection(db, "testimonials"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditTesti(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditFaq = () => { setEditFaqId(null); setFaqQ(''); setFaqA(''); };
   const handleEditFaq = (f) => { setEditFaqId(f.id); setFaqQ(f.q||''); setFaqA(f.a||''); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveFaq = async (e) => { 
-      e.preventDefault(); setLoading(true); 
-      try { 
-          const data = { q: faqQ, a: faqA };
-          if (editFaqId) await updateDoc(doc(db, "faqs", editFaqId), data); else await addDoc(collection(db, "faqs"), { ...data, createdAt: serverTimestamp() });
-          alert("Berhasil!"); cancelEditFaq();
-      } catch(err) { alert(err.message); } setLoading(false); 
-  };
-
-  // ====================== CRUD BERITA ======================
+  const saveFaq = async (e) => { e.preventDefault(); setLoading(true); try { const data = { q: faqQ, a: faqA }; if (editFaqId) await updateDoc(doc(db, "faqs", editFaqId), data); else await addDoc(collection(db, "faqs"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditFaq(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
   const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  
-  const savePost = async (e) => {
-      e.preventDefault(); setLoading(true);
-      try {
-          if (editPostId) {
-              await updateDoc(doc(db, "posts", editPostId), { 
-                  title: postTitle, category: postCategory, content: postContent,
-                  coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', 
-                  tags: postTags, isDraft: isDraft 
-              });
-              alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); 
-          } else {
-              let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-              if (!slug) slug = 'berita-' + Date.now();
-              const docSnap = await getDoc(doc(db, "posts", slug));
-              if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000);
-              
-              await setDoc(doc(db, "posts", slug), { 
-                  title: postTitle, category: postCategory, content: postContent,
-                  coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', 
-                  tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft
-              });
-              alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); 
-          }
-          cancelEditPost();
-      } catch(err) { alert(err.message); } setLoading(false);
-  };
-
+  const savePost = async (e) => { e.preventDefault(); setLoading(true); try { if (editPostId) { await updateDoc(doc(db, "posts", editPostId), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, isDraft: isDraft }); alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); } else { let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); if (!slug) slug = 'berita-' + Date.now(); const docSnap = await getDoc(doc(db, "posts", slug)); if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft }); alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); } cancelEditPost(); } catch(err) { alert(err.message); } setLoading(false); };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
-  
-  if (!user) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 p-4">
-      <form onSubmit={handleLogin} className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md">
-        <h1 className="text-2xl font-black text-slate-900 mb-2">Admin Login</h1>
-        <div className="space-y-4 mt-6">
-          <div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Email</label><input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div>
-          <div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Password</label><input type="password" required value={password} onChange={(e)=>setPassword(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div>
-          <button disabled={loading} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition">{loading ? 'Loading...' : 'MASUK'}</button>
-        </div>
-      </form>
-    </div>
-  );
+  if (!user) return (<div className="min-h-screen flex items-center justify-center bg-slate-900 p-4"><form onSubmit={handleLogin} className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md"><h1 className="text-2xl font-black text-slate-900 mb-2">Admin Login</h1><div className="space-y-4 mt-6"><div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Email</label><input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div><div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Password</label><input type="password" required value={password} onChange={(e)=>setPassword(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div><button disabled={loading} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition">{loading ? 'Loading...' : 'MASUK'}</button></div></form></div>);
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden relative">
-      
-      {/* MOBILE HEADER */}
-      <div className="md:hidden absolute top-0 left-0 w-full bg-slate-950 text-white p-4 flex justify-between items-center z-20 shadow-md">
-          <h1 className="text-sm font-black text-orange-500 tracking-widest uppercase">Admin Panel</h1>
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="focus:outline-none bg-slate-800 p-2 rounded">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path></svg>
-          </button>
-      </div>
-
-      {/* OVERLAY */}
+      <div className="md:hidden absolute top-0 left-0 w-full bg-slate-950 text-white p-4 flex justify-between items-center z-20 shadow-md"><h1 className="text-sm font-black text-orange-500 tracking-widest uppercase">Admin Panel</h1><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="focus:outline-none bg-slate-800 p-2 rounded"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path></svg></button></div>
       {isSidebarOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-20" onClick={() => setIsSidebarOpen(false)}></div>}
-
-      {/* SIDEBAR */}
       <aside className={`fixed md:relative top-0 left-0 w-64 h-full bg-slate-900 text-slate-300 flex flex-col shadow-xl z-30 transition-transform duration-300 border-r border-slate-800 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
-        <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center">
-            <div>
-                <h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1>
-                <p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p>
-            </div>
-            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-        </div>
+        <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center"><div><h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1><p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p></div><button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-            <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p>
-                <nav className="space-y-1">
-                    {[{ id: 'blog', label: 'Wawasan (Blog)' }, { id: 'layanan', label: 'Kelola Layanan' }, { id: 'mitra', label: 'Mitra & Klien' }].map(tab => (
-                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
-                    ))}
-                </nav>
-            </div>
-            <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p>
-                <nav className="space-y-1">
-                    {[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (
-                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
-                    ))}
-                </nav>
-            </div>
+            <div><p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p><nav className="space-y-1">{[{ id: 'blog', label: 'Wawasan (Blog)' }, { id: 'layanan', label: 'Kelola Layanan' }, { id: 'mitra', label: 'Mitra & Klien' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav></div>
+            <div><p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p><nav className="space-y-1">{[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav></div>
         </div>
-        <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-2 pb-6 md:pb-4">
-            <Link href="/" target="_blank" className="flex-1 text-center py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">WEB ↗</Link>
-            <button onClick={handleLogout} className="flex-1 py-2.5 bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white rounded text-[10px] font-bold transition">LOGOUT</button>
-        </div>
+        <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-2 pb-6 md:pb-4"><Link href="/" target="_blank" className="flex-1 text-center py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">WEB ↗</Link><button onClick={handleLogout} className="flex-1 py-2.5 bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white rounded text-[10px] font-bold transition">LOGOUT</button></div>
       </aside>
 
-      {/* KONTEN UTAMA */}
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
-        <div className="mb-6 border-b border-slate-200 pb-4">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
-                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : `Kelola ${activeTab}`}
-            </h2>
-        </div>
+        <div className="mb-6 border-b border-slate-200 pb-4"><h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">{activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : `Kelola ${activeTab}`}</h2></div>
         
         {/* TAB UMUM */}
         {activeTab === 'umum' && (
@@ -357,7 +161,30 @@ export default function AdminPage() {
                 <div className="p-4 bg-slate-50 rounded-xl border">
                     <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Mission</h3>
                     <input type="text" value={settings.missionTitle || ''} onChange={e=>setSettings({...settings, missionTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Judul Mission" />
-                    <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi Mission"></textarea>
+                    <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-4" rows="3" placeholder="Deskripsi Mission"></textarea>
+                    
+                    {/* INPUT KARTU MISI MAX 4 */}
+                    <h4 className="font-bold text-slate-700 mb-2 text-sm border-t pt-4">Poin Misi (Maksimal 4 Kartu)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map(num => (
+                            <div key={num} className="border border-slate-200 p-3 rounded-lg bg-white">
+                                <label className="text-xs font-bold block mb-1 text-slate-600">Kartu Misi {num}</label>
+                                <input type="text" placeholder={`Judul Misi ${num} (Cth: People)`} value={settings[`mission${num}Title`] || ''} onChange={e=>setSettings({...settings, [`mission${num}Title`]: e.target.value})} className="w-full border p-2 rounded text-xs mb-2" />
+                                <input type="file" accept="image/*" onChange={async (e) => {
+                                    if(e.target.files[0]) {
+                                        setLoading(true);
+                                        try {
+                                            const url = await uploadToCloudinary(e.target.files[0]);
+                                            setSettings({...settings, [`mission${num}Img`]: url});
+                                            alert(`Gambar Misi ${num} Berhasil Diunggah!`);
+                                        } catch(err) { alert(err.message); }
+                                        setLoading(false);
+                                    }
+                                }} className="text-[10px] border p-1 rounded w-full" />
+                                {settings[`mission${num}Img`] && <img src={settings[`mission${num}Img`]} className="h-10 mt-2 object-contain rounded border p-1" alt="preview"/>}
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 
                 <div className="p-4 bg-slate-50 rounded-xl border">
@@ -413,7 +240,7 @@ export default function AdminPage() {
             </form>
         )}
 
-        {/* TAB SLIDER (DENGAN EDIT + TAGLINE + 2 TOMBOL) */}
+        {/* TAB SLIDER */}
         {activeTab === 'slider' && (
             <div className="max-w-4xl">
                 <form onSubmit={saveSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -461,7 +288,7 @@ export default function AdminPage() {
             </div>
         )}
 
-        {/* TAB LAYANAN DENGAN FORM GAMBAR */}
+        {/* TAB LAYANAN */}
         {activeTab === 'layanan' && (
             <div className="max-w-4xl">
                 <form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
