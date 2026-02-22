@@ -167,9 +167,9 @@ export default function Home() {
                         </div>
                         <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 group-hover:text-orange-600 transition-colors">{svc.name}</h3>
                         <p className="text-slate-600 text-sm md:text-base mb-8 line-clamp-4 leading-relaxed flex-grow font-light">{svc.desc}</p>
-                        <a href={svc.link} target="_blank" className="inline-flex items-center font-bold text-slate-900 uppercase tracking-widest text-[10px] md:text-xs group-hover:text-orange-600 transition mt-auto">
+                        <Link href={`/layanan/${svc.id}`} className="inline-flex items-center font-bold text-slate-900 uppercase tracking-widest text-[10px] md:text-xs group-hover:text-orange-600 transition mt-auto">
                             Eksplorasi <span className="ml-2 text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
-                        </a>
+                        </Link>
                     </div>
                 ))}
             </div>
