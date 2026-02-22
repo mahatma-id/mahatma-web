@@ -77,17 +77,17 @@ export default function BeritaDetail({ params }) {
   // Tampilan Loading
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 font-bold text-slate-500">Memuat Berita...</p>
+        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="mt-4 font-bold text-slate-500 text-xs uppercase tracking-widest">Memuat Berita...</p>
     </div>
   );
   
   // Tampilan Error
   if (!post) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <h1 className="text-4xl font-bold text-slate-800 mb-2">404</h1>
-        <p className="text-slate-500 mb-6">Berita tidak ditemukan.</p>
-        <Link href="/" className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold">Kembali ke Beranda</Link>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-center px-4">
+        <h1 className="text-5xl font-bold text-slate-800 mb-2">404</h1>
+        <p className="text-slate-500 mb-6 text-sm">Berita tidak ditemukan.</p>
+        <Link href="/" className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest">Kembali ke Beranda</Link>
     </div>
   );
 
@@ -97,14 +97,22 @@ export default function BeritaDetail({ params }) {
       publishDate = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  // PEMBERSIH SPASI KAKU DARI COPY PASTE & DATELINE
+  // PEMBERSIH SPASI KAKU & ENTER KOSONG DARI EDITOR
   let finalContent = post.content || '';
   finalContent = finalContent.replace(/&nbsp;/g, ' '); 
+  
+  // Hapus paragraf kosong di awal (<p><br></p> atau <p></p>) agar dateline tidak melompat
+  finalContent = finalContent.replace(/^(<p><br><\/p>\s*)+/g, ''); 
+  finalContent = finalContent.replace(/^(<p>\s*<\/p>\s*)+/g, ''); 
 
   if (post.dateline) {
-      const datelineHtml = `<strong class="text-slate-900 font-black mr-2">${post.dateline} &mdash;</strong>`;
-      if (finalContent.startsWith('<p>')) finalContent = finalContent.replace('<p>', `<p>${datelineHtml}`);
-      else finalContent = `<p>${datelineHtml} ${finalContent}</p>`;
+      const datelineHtml = `<strong class="text-slate-900 font-black mr-2 uppercase">${post.dateline} &mdash;</strong>`;
+      if (finalContent.includes('<p>')) {
+          // Sisipkan dateline di dalam paragraf pertama yang ditemukan
+          finalContent = finalContent.replace(/<p>/, `<p>${datelineHtml} `);
+      } else {
+          finalContent = `<p>${datelineHtml} ${finalContent}</p>`;
+      }
   }
 
   // Helper untuk format tanggal di Sidebar
@@ -116,7 +124,7 @@ export default function BeritaDetail({ params }) {
   return (
     <div className="bg-slate-50 min-h-screen font-sans text-slate-800 pb-20 overflow-x-hidden">
       
-      {/* CSS KHUSUS EDITOR TEKS - SUDAH DIPERBAIKI TOTAL */}
+      {/* CSS KHUSUS EDITOR TEKS - RESPONSIF UNTUK HP & DESKTOP */}
       <style jsx global>{`
         .article-content { 
             text-align: left; 
@@ -124,88 +132,100 @@ export default function BeritaDetail({ params }) {
             width: 100%; 
         }
         
+        /* Ukuran font paragraf responsif: HP lebih kecil, Desktop normal */
         .article-content p { 
-            margin-bottom: 1.5rem; 
+            margin-bottom: 1.25rem; 
             line-height: 1.8; 
-            font-size: 1.125rem; 
-            word-break: normal; /* PERBAIKAN: Teks dilarang memotong di tengah kata */
-            overflow-wrap: break-word; /* Hanya potong jika ada URL kepanjangan */
+            font-size: 1rem; /* 16px di HP */
+            word-break: normal; 
+            overflow-wrap: break-word; 
         }
+        @media (min-width: 768px) { .article-content p { font-size: 1.125rem; /* 18px di Desktop */ } }
 
         .article-content strong, .article-content b { font-weight: 800; color: #111827; }
-        .article-content h2, .article-content h3 { font-weight: 800; color: #111827; margin-top: 2.5rem; margin-bottom: 1rem; line-height: 1.4; }
-        .article-content h2 { font-size: 1.875rem; } 
-        .article-content h3 { font-size: 1.5rem; }
-        .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; }
-        .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; }
+        .article-content h2, .article-content h3 { font-weight: 800; color: #111827; margin-top: 2rem; margin-bottom: 1rem; line-height: 1.4; }
+        
+        /* H2 dan H3 dikecilkan di HP */
+        .article-content h2 { font-size: 1.5rem; } 
+        .article-content h3 { font-size: 1.25rem; }
+        @media (min-width: 768px) { 
+            .article-content h2 { font-size: 1.875rem; margin-top: 2.5rem; } 
+            .article-content h3 { font-size: 1.5rem; } 
+        }
+
+        .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; font-size: 1rem; }
+        .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.8; font-size: 1rem; }
+        @media (min-width: 768px) { .article-content ul, .article-content ol { font-size: 1.125rem; } }
+        
         .article-content li { margin-bottom: 0.5rem; }
         .article-content a { color: #4f46e5; text-decoration: underline; }
-        .article-content img { border-radius: 0.5rem; margin-top: 2rem; margin-bottom: 2rem; width: 100%; height: auto; }
-        .article-content blockquote { border-left: 4px solid #4f46e5; padding-left: 1.5rem; font-style: italic; background: #f8fafc; padding: 1.5rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 2rem; }
+        .article-content img { border-radius: 0.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem; width: 100%; height: auto; }
+        .article-content blockquote { border-left: 4px solid #4f46e5; padding-left: 1rem; font-style: italic; background: #f8fafc; padding: 1rem; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1.5rem; font-size: 0.9rem;}
+        @media (min-width: 768px) { .article-content blockquote { padding-left: 1.5rem; padding: 1.5rem; margin-bottom: 2rem; font-size: 1rem;} }
       `}</style>
 
-      {/* Navbar Atas */}
+      {/* Navbar Atas - Responsif */}
       <header className="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 md:px-8 h-16 flex items-center justify-between max-w-7xl">
-            <Link href="/" className="font-extrabold text-2xl tracking-tight text-slate-900">Mahatma<span className="text-orange-600">.id</span></Link>
-            <Link href="/" className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition flex items-center gap-2 uppercase tracking-widest">&larr; Kembali</Link>
+        <div className="container mx-auto px-4 md:px-8 lg:px-16 h-14 md:h-16 flex items-center justify-between max-w-7xl">
+            <Link href="/" className="font-extrabold text-lg md:text-2xl tracking-tight text-slate-900">MAHATMA <span className="text-orange-600">ACADEMY</span></Link>
+            <Link href="/#insight" className="text-[10px] md:text-sm font-bold text-slate-500 hover:text-indigo-600 transition flex items-center gap-2 uppercase tracking-widest">&larr; Kembali</Link>
         </div>
       </header>
 
       {/* GRID UTAMA (KIRI ARTIKEL, KANAN SIDEBAR) */}
-      <main className="container mx-auto px-4 md:px-8 mt-6 md:mt-10 max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <main className="container mx-auto px-4 md:px-8 lg:px-16 mt-4 md:mt-10 max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
         
         {/* =========================================
             KOLOM KIRI: ARTIKEL UTAMA (8 Kolom)
             ========================================= */}
-        <article className="lg:col-span-8 bg-white p-6 md:p-10 lg:p-12 rounded-[2rem] shadow-sm border border-slate-100 h-fit">
+        <article className="lg:col-span-8 bg-white p-5 md:p-10 lg:p-12 rounded-2xl md:rounded-[2rem] shadow-sm border border-slate-100 h-fit">
             
             {/* Header Berita */}
-            <div className="mb-8">
-                <span className="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
+            <div className="mb-6 md:mb-8">
+                <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-[9px] md:text-xs font-bold uppercase tracking-widest mb-3 md:mb-4">
                     {post.category || 'Berita'}
                 </span>
                 
-                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-[1.25] mb-6">
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-[1.3] md:leading-[1.25] mb-4 md:mb-6">
                     {post.title}
                 </h1>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-b border-slate-100 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-b border-slate-100 py-3 md:py-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-lg">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-sm md:text-lg">
                             {(post.author || 'R')[0].toUpperCase()}
                         </div>
                         <div>
-                            <p className="font-bold text-sm text-slate-900">{post.author || 'Tim Redaksi'}</p>
-                            <p className="text-[11px] text-slate-500 font-semibold tracking-wider uppercase">{publishDate} • {post.views || 0} DIBACA</p>
+                            <p className="font-bold text-xs md:text-sm text-slate-900">{post.author || 'Tim Redaksi'}</p>
+                            <p className="text-[9px] md:text-[11px] text-slate-500 font-semibold tracking-wider uppercase mt-0.5 md:mt-0">{publishDate} • {post.views || 0} DIBACA</p>
                         </div>
                     </div>
 
                     {/* Tombol Share */}
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Share:</span>
-                        <button onClick={() => {navigator.clipboard.writeText(window.location.href); alert('Link Tersalin!')}} className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition">🔗</button>
-                        <a href={`https://api.whatsapp.com/send?text=${post.title} - ${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition font-bold text-xs">WA</a>
-                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition font-bold text-xs">FB</a>
+                        <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Share:</span>
+                        <button onClick={() => {navigator.clipboard.writeText(window.location.href); alert('Link Tersalin!')}} className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition text-xs">🔗</button>
+                        <a href={`https://api.whatsapp.com/send?text=${post.title} - ${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition font-bold text-[10px] md:text-xs">WA</a>
+                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${typeof window !== 'undefined' ? window.location.href : ''}`} target="_blank" className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition font-bold text-[10px] md:text-xs">FB</a>
                     </div>
                 </div>
             </div>
 
-            {/* Gambar Sampul */}
+            {/* Gambar Sampul - Tinggi disesuaikan di HP */}
             {post.coverUrl && (
-                <div className="w-full aspect-[16/9] md:aspect-[2/1] bg-slate-200 rounded-2xl overflow-hidden mb-10 shadow-sm">
+                <div className="w-full h-48 md:h-auto md:aspect-[2/1] bg-slate-200 rounded-xl md:rounded-2xl overflow-hidden mb-6 md:mb-10 shadow-sm">
                     <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover" />
                 </div>
             )}
 
-            {/* Isi Berita (Sudah aman dari pemotongan huruf) */}
+            {/* Isi Berita (Sudah aman dari pemotongan huruf & Dateline rapi) */}
             <div className="article-content w-full" dangerouslySetInnerHTML={{ __html: finalContent }}></div>
 
             {/* Tags */}
             {post.tags && (
-                <div className="mt-12 pt-6 border-t border-slate-100 flex flex-wrap gap-2">
+                <div className="mt-8 md:mt-12 pt-6 border-t border-slate-100 flex flex-wrap gap-2">
                     {post.tags.split(',').map((tag, index) => (
-                        <span key={index} className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                        <span key={index} className="px-3 py-1.5 md:px-4 md:py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-[9px] md:text-xs font-bold uppercase tracking-wider">
                             #{tag.trim()}
                         </span>
                     ))}
@@ -213,34 +233,34 @@ export default function BeritaDetail({ params }) {
             )}
 
             {/* Komentar */}
-            <div className="mt-16 bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100">
-                <h3 className="text-2xl font-extrabold text-slate-900 mb-6">Komentar Pembaca ({comments.length})</h3>
+            <div className="mt-10 md:mt-16 bg-slate-50 p-5 md:p-8 rounded-xl md:rounded-2xl border border-slate-100">
+                <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 mb-4 md:mb-6">Komentar Pembaca ({comments.length})</h3>
                 
-                <form onSubmit={submitComment} className="mb-10 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <input type="text" required placeholder="Nama Anda" className="w-full mb-4 border border-slate-300 p-3 rounded-lg outline-none focus:border-indigo-500 font-medium text-sm" value={name} onChange={e => setName(e.target.value)} />
-                    <textarea required rows="3" placeholder="Tulis pendapat Anda tentang berita ini..." className="w-full mb-4 border border-slate-300 p-3 rounded-lg outline-none focus:border-indigo-500 text-sm" value={text} onChange={e => setText(e.target.value)}></textarea>
-                    <button disabled={loadingComment} type="submit" className="bg-slate-900 text-white font-bold py-3 px-8 rounded-lg hover:bg-slate-800 transition disabled:opacity-50 text-sm">
+                <form onSubmit={submitComment} className="mb-8 md:mb-10 bg-white p-4 md:p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <input type="text" required placeholder="Nama Anda" className="w-full mb-3 md:mb-4 border border-slate-300 p-2.5 md:p-3 rounded-lg outline-none focus:border-indigo-500 font-medium text-xs md:text-sm" value={name} onChange={e => setName(e.target.value)} />
+                    <textarea required rows="3" placeholder="Tulis pendapat Anda tentang berita ini..." className="w-full mb-3 md:mb-4 border border-slate-300 p-2.5 md:p-3 rounded-lg outline-none focus:border-indigo-500 text-xs md:text-sm" value={text} onChange={e => setText(e.target.value)}></textarea>
+                    <button disabled={loadingComment} type="submit" className="bg-slate-900 text-white font-bold py-2.5 px-6 md:py-3 md:px-8 rounded-lg hover:bg-slate-800 transition disabled:opacity-50 text-xs md:text-sm w-full md:w-auto">
                         {loadingComment ? 'Mengirim...' : 'Kirim Komentar'}
                     </button>
                 </form>
 
                 <div className="space-y-4">
                     {comments.length === 0 ? (
-                        <p className="text-slate-400 italic text-sm">Belum ada komentar jadilah yang pertama.</p>
+                        <p className="text-slate-400 italic text-xs md:text-sm text-center py-4">Belum ada komentar jadilah yang pertama.</p>
                     ) : (
                         comments.map(c => {
                             let cDate = 'Baru saja';
                             if(c.createdAt) cDate = c.createdAt.toDate().toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'});
                             return (
-                                <div key={c.id} className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-xs">{c.name.charAt(0).toUpperCase()}</div>
-                                            <span className="font-bold text-slate-800 text-sm">{c.name}</span>
+                                <div key={c.id} className="bg-white p-4 md:p-5 rounded-xl border border-slate-100 shadow-sm">
+                                    <div className="flex justify-between items-center mb-2 md:mb-3">
+                                        <div className="flex items-center gap-2 md:gap-3">
+                                            <div className="w-6 h-6 md:w-8 md:h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold text-[10px] md:text-xs">{c.name.charAt(0).toUpperCase()}</div>
+                                            <span className="font-bold text-slate-800 text-xs md:text-sm">{c.name}</span>
                                         </div>
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{cDate}</span>
+                                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider">{cDate}</span>
                                     </div>
-                                    <p className="text-slate-600 text-sm leading-relaxed">{c.text}</p>
+                                    <p className="text-slate-600 text-xs md:text-sm leading-relaxed">{c.text}</p>
                                 </div>
                             )
                         })
@@ -252,23 +272,23 @@ export default function BeritaDetail({ params }) {
         {/* =========================================
             KOLOM KANAN: SIDEBAR (4 Kolom)
             ========================================= */}
-        <aside className="lg:col-span-4 space-y-8">
+        <aside className="lg:col-span-4 space-y-6 md:space-y-8">
             
             {/* Widget: Berita Terbaru */}
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                <h3 className="font-extrabold text-lg text-slate-900 mb-6 border-b border-slate-100 pb-3 flex items-center">
-                    <span className="w-2 h-6 bg-orange-500 rounded-full mr-3"></span> Berita Terbaru
+            <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-[2rem] shadow-sm border border-slate-100">
+                <h3 className="font-extrabold text-base md:text-lg text-slate-900 mb-4 md:mb-6 border-b border-slate-100 pb-3 flex items-center">
+                    <span className="w-2 h-5 md:h-6 bg-orange-500 rounded-full mr-2 md:mr-3"></span> Berita Terbaru
                 </h3>
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-4 md:gap-5">
                     {latestPosts.filter(p => p.id !== id).slice(0,4).map(p => (
-                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-4 group items-center">
-                            <div className="w-24 h-20 flex-shrink-0 bg-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-3 md:gap-4 group items-center">
+                            <div className="w-20 h-16 md:w-24 md:h-20 flex-shrink-0 bg-slate-200 rounded-lg overflow-hidden shadow-sm">
                                 <img src={p.coverUrl || 'https://placehold.co/600x400'} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
                             </div>
                             <div className="flex-1">
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-orange-600 mb-1 block">{p.category}</span>
-                                <h4 className="font-bold text-sm text-slate-800 group-hover:text-orange-600 transition line-clamp-2 leading-snug">{p.title}</h4>
-                                <span className="text-[10px] text-slate-400 mt-1.5 font-medium block">{formatDateSidebar(p.createdAt)}</span>
+                                <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-widest text-orange-600 mb-0.5 md:mb-1 block">{p.category}</span>
+                                <h4 className="font-bold text-xs md:text-sm text-slate-800 group-hover:text-orange-600 transition line-clamp-2 leading-snug">{p.title}</h4>
+                                <span className="text-[9px] md:text-[10px] text-slate-400 mt-1 font-medium block">{formatDateSidebar(p.createdAt)}</span>
                             </div>
                         </Link>
                     ))}
@@ -276,21 +296,21 @@ export default function BeritaDetail({ params }) {
             </div>
 
             {/* Widget: Berita Terpopuler */}
-            <div className="bg-slate-900 p-6 rounded-[2rem] shadow-lg">
-                <h3 className="font-extrabold text-lg text-white mb-6 border-b border-slate-800 pb-3 flex items-center">
-                    <span className="w-2 h-6 bg-indigo-500 rounded-full mr-3"></span> Terpopuler
+            <div className="bg-slate-900 p-5 md:p-6 rounded-2xl md:rounded-[2rem] shadow-lg">
+                <h3 className="font-extrabold text-base md:text-lg text-white mb-4 md:mb-6 border-b border-slate-800 pb-3 flex items-center">
+                    <span className="w-2 h-5 md:h-6 bg-indigo-500 rounded-full mr-2 md:mr-3"></span> Terpopuler
                 </h3>
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-4 md:gap-5">
                     {popularPosts.map((p, index) => (
-                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-4 group items-center">
-                            <div className="w-8 flex-shrink-0 flex items-center justify-center font-black text-3xl text-slate-700 group-hover:text-indigo-500 transition italic">
+                        <Link href={`/berita/${p.id}`} key={p.id} className="flex gap-3 md:gap-4 group items-center">
+                            <div className="w-6 md:w-8 flex-shrink-0 flex items-center justify-center font-black text-2xl md:text-3xl text-slate-700 group-hover:text-indigo-500 transition italic">
                                 {index + 1}
                             </div>
-                            <div className="flex-1 border-b border-slate-800 pb-4 group-last:border-0 group-last:pb-0">
-                                <h4 className="font-bold text-sm text-gray-200 group-hover:text-white transition line-clamp-2 leading-snug">{p.title}</h4>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-[9px] font-bold uppercase tracking-widest bg-slate-800 text-slate-300 px-2 py-0.5 rounded">{p.category}</span>
-                                    <span className="text-[10px] text-slate-400 font-medium">👀 {p.views || 0} x dibaca</span>
+                            <div className="flex-1 border-b border-slate-800 pb-3 md:pb-4 group-last:border-0 group-last:pb-0">
+                                <h4 className="font-bold text-xs md:text-sm text-gray-200 group-hover:text-white transition line-clamp-2 leading-snug">{p.title}</h4>
+                                <div className="flex items-center gap-2 mt-1.5 md:mt-2">
+                                    <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-widest bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">{p.category}</span>
+                                    <span className="text-[9px] md:text-[10px] text-slate-400 font-medium">👀 {p.views || 0}x</span>
                                 </div>
                             </div>
                         </Link>
