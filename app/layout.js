@@ -1,6 +1,7 @@
 import { Merriweather } from "next/font/google";
 import "./globals.css";
 import Script from "next/script"; // <-- Tambahan Import Script untuk Analytics
+import FloatingWA from "@/components/FloatingWA"; // <-- TAMBAHAN IMPORT TOMBOL WA
 
 // Konfigurasi Font Merriweather
 const merriweather = Merriweather({ 
@@ -47,6 +48,9 @@ export default function RootLayout({ children }) {
       {/* className ini akan menerapkan font Merriweather ke seluruh website */}
       <body className={`${merriweather.className} antialiased bg-slate-50 text-slate-800`}>
         {children}
+        
+        {/* --- TAMBAHAN TOMBOL WA MELAYANG --- */}
+        <FloatingWA />
       </body>
     </html>
   );
