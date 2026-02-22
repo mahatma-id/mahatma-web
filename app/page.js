@@ -141,10 +141,21 @@ export default function Home() {
                             <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
                                 {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
                             </p>
-                            {/* TOMBOL DIKECILKAN DI HP */}
-                            <a href={slide.btnLink || '#layanan'} className="inline-block px-6 py-2.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                {slide.btnText || "Learn More"}
-                            </a>
+                            
+                            {/* DUA TOMBOL DINAMIS DARI ADMIN */}
+                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
+                                {(slide.btnText || slide.btn1Text) && (
+                                    <a href={slide.btnLink || slide.btn1Link || '#layanan'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                        {slide.btnText || slide.btn1Text || "Learn More"}
+                                    </a>
+                                )}
+                                {slide.btn2Text && (
+                                    <a href={slide.btn2Link || '#kontak'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-white/10 text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 backdrop-blur-sm border border-white/20 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                        {slide.btn2Text}
+                                    </a>
+                                )}
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -166,14 +177,24 @@ export default function Home() {
                 {settings.missionTitle || "Solusi Terintegrasi Untuk Bisnis Anda."}
             </h2>
             {/* FONT DESKRIPSI DIKECILKAN */}
-            <p className="text-sm md:text-xl text-slate-500 leading-relaxed mb-8 md:mb-10 font-light max-w-2xl mx-auto px-2">
+            <p className="text-sm md:text-xl text-slate-500 leading-relaxed mb-8 md:mb-12 font-light max-w-2xl mx-auto px-2">
                 {settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}
             </p>
-            {/* IKON DIKECILKAN DI HP */}
-            <div className="flex justify-center gap-6 md:gap-16 font-bold text-xs md:text-lg text-slate-800 uppercase tracking-widest">
-                <div className="flex flex-col items-center hover:scale-110 transition-transform"><span className="text-orange-500 text-2xl md:text-4xl mb-1 md:mb-3">🌍</span> People</div>
-                <div className="flex flex-col items-center hover:scale-110 transition-transform"><span className="text-orange-500 text-2xl md:text-4xl mb-1 md:mb-3">🌱</span> Planet</div>
-                <div className="flex flex-col items-center hover:scale-110 transition-transform"><span className="text-orange-500 text-2xl md:text-4xl mb-1 md:mb-3">🚀</span> Progress</div>
+            
+            {/* IKON BISA CUSTOM GAMBAR DARI ADMIN */}
+            <div className="flex justify-center gap-8 md:gap-20 font-bold text-xs md:text-lg text-slate-800 uppercase tracking-widest">
+                {[1, 2, 3].map(num => (
+                    <div key={num} className="flex flex-col items-center hover:scale-110 transition-transform">
+                        {settings[`mission${num}Img`] ? (
+                            <img src={settings[`mission${num}Img`]} className="w-10 h-10 md:w-16 md:h-16 mb-2 md:mb-4 object-contain drop-shadow-sm" alt="Mission Icon" />
+                        ) : (
+                            <span className="text-orange-500 text-3xl md:text-5xl mb-2 md:mb-4 drop-shadow-sm">
+                                {num === 1 ? '🌍' : num === 2 ? '🌱' : '🚀'}
+                            </span>
+                        )}
+                        {settings[`mission${num}Title`] || (num === 1 ? 'People' : num === 2 ? 'Planet' : 'Progress')}
+                    </div>
+                ))}
             </div>
         </div>
       </section>
@@ -249,6 +270,7 @@ export default function Home() {
                 <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Insight</span>
                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-2 md:mb-4 leading-tight">Wawasan & Perspektif Terbaru</h2>
             </div>
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 {posts.map(post => {
                     let dStr = "";
@@ -267,6 +289,13 @@ export default function Home() {
                         </div>
                     </Link>
                 )})}
+            </div>
+
+            {/* TOMBOL SEMUA BERITA */}
+            <div className="mt-10 md:mt-14 text-center">
+                <Link href="/berita" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-slate-100 text-slate-800 font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 hover:text-white transition duration-300 shadow-sm border border-slate-200">
+                    Lihat Semua Berita &rarr;
+                </Link>
             </div>
         </div>
       </section>
@@ -393,25 +422,15 @@ export default function Home() {
                     </ul>
                 </div>
 
-                <div className="lg:col-span-2">
-                    <h4 className="font-bold text-slate-900 mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Layanan</h4>
-                    <ul className="space-y-2 md:space-y-4 text-xs md:text-base text-slate-500">
-                        {services.length > 0 ? services.slice(0, 4).map(s => (
-                            <li key={s.id}><a href={s.link || '#layanan'} className="hover:text-orange-600 transition">{s.name}</a></li>
-                        )) : (
-                            <li>Memuat Layanan...</li>
-                        )}
-                    </ul>
-                </div>
-
-                <div className="lg:col-span-2">
+                {/* UKURAN LOGO MITRA DI FOOTER DIPERBESAR DI LAPTOP (Dari lg:grid-cols-5 menjadi lg:grid-cols-3) */}
+                <div className="lg:col-span-4">
                     <h4 className="font-bold text-slate-900 mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Mitra Kerja</h4>
                     
                     {partners.length > 0 ? (
                         <div className="flex flex-col items-center md:items-start">
-                            <div className="grid grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3 opacity-70 w-full max-w-[200px] md:max-w-none">
-                                {partners.slice(0, 15).map(p => (
-                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white rounded border border-slate-100 hover:border-orange-200 p-1 transition-colors">
+                            <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 md:gap-3 opacity-80 w-full max-w-[200px] md:max-w-xs">
+                                {partners.slice(0, 12).map(p => (
+                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white rounded border border-slate-100 hover:border-orange-200 p-1 md:p-2 transition-colors">
                                         {p.imgUrl ? (
                                             <img src={p.imgUrl} alt={p.name} title={p.name} className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition duration-300" />
                                         ) : (
@@ -421,7 +440,7 @@ export default function Home() {
                                 ))}
                             </div>
                             
-                            {partners.length > 15 && (
+                            {partners.length > 12 && (
                                 <div className="mt-3 md:mt-5">
                                     <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-orange-600 hover:text-orange-700 font-bold transition">
                                         Selengkapnya &rarr;

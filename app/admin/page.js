@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -7,6 +7,7 @@ import { db, auth } from '@/lib/firebase';
 import 'react-quill-new/dist/quill.snow.css';
 import Link from 'next/link';
 
+// Import Quill secara dinamis agar tidak error di sisi Server Next.js
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 export default function AdminPage() {
@@ -17,7 +18,10 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState('umum');
   const [loading, setLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State untuk buka tutup menu di HP
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Referensi untuk Quill Editor
+  const quillRef = useRef(null);
 
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -31,7 +35,49 @@ export default function AdminPage() {
     throw new Error(data.error?.message || "Gagal upload gambar");
   };
 
-  // TAMBAHAN: Menampung text Tentang Kami & CTA
+  // Handler khusus untuk menyisipkan gambar langsung ke dalam editor teks
+  const imageHandler = () => {
+      const input = document.createElement('input');
+      input.setAttribute('type', 'file');
+      input.setAttribute('accept', 'image/*');
+      input.click();
+
+      input.onchange = async () => {
+          const file = input.files[0];
+          if (file) {
+              setLoading(true);
+              try {
+                  const url = await uploadToCloudinary(file);
+                  const quill = quillRef.current.getEditor();
+                  const range = quill.getSelection(true);
+                  // Sisipkan gambar ke posisi kursor
+                  quill.insertEmbed(range.index, 'image', url);
+                  // Pindahkan kursor ke setelah gambar
+                  quill.setSelection(range.index + 1);
+              } catch (error) {
+                  alert("Gagal mengunggah gambar ke dalam teks.");
+              }
+              setLoading(false);
+          }
+      };
+  };
+
+  // Konfigurasi Toolbar Editor Berita (dengan dukungan gambar)
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'image'], // Tambahkan opsi 'image'
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler // Gunakan fungsi kustom kita untuk upload
+      }
+    }
+  }), []);
+
   const [settings, setSettings] = useState({ 
       logoUrl: '', missionTitle: '', missionDesc: '', serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
@@ -98,6 +144,7 @@ export default function AdminPage() {
   const addTeam = async (e) => { e.preventDefault(); if(!teamImgFile) return alert("Pilih foto!"); setLoading(true); try { const img = await uploadToCloudinary(teamImgFile); await addDoc(collection(db, "teams"), { name: teamName, role: teamRole, img, createdAt: serverTimestamp() }); alert("Berhasil!"); setTeamName(''); setTeamRole(''); setTeamImgFile(null); } catch(err) { alert(err.message); } setLoading(false); };
   const addTestimonial = async (e) => { e.preventDefault(); setLoading(true); try { await addDoc(collection(db, "testimonials"), { name: testiName, company: testiCompany, text: testiText, createdAt: serverTimestamp() }); alert("Berhasil!"); setTestiName(''); setTestiCompany(''); setTestiText(''); } catch(err) { alert(err.message); } setLoading(false); };
   const addFaq = async (e) => { e.preventDefault(); setLoading(true); try { await addDoc(collection(db, "faqs"), { q: faqQ, a: faqA, createdAt: serverTimestamp() }); alert("Berhasil!"); setFaqQ(''); setFaqA(''); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const addPost = async (e) => {
       e.preventDefault(); setLoading(true);
       try {
@@ -105,8 +152,21 @@ export default function AdminPage() {
           if (!slug) slug = 'berita-' + Date.now();
           const docSnap = await getDoc(doc(db, "posts", slug));
           if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000);
-          await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp() });
-          alert('Berita Diterbitkan!'); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags('');
+          
+          await setDoc(doc(db, "posts", slug), { 
+              title: postTitle, 
+              category: postCategory, 
+              content: postContent, // Konten dari Quill (Bisa memuat tag <img src="...">)
+              coverUrl: postCoverUrl, 
+              dateline: postDateline, 
+              author: postAuthor || 'Tim Redaksi', 
+              tags: postTags, 
+              views: 0, 
+              createdAt: serverTimestamp() 
+          });
+          
+          alert('Berita Diterbitkan!'); 
+          setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags('');
       } catch(err) { alert(err.message); } setLoading(false);
   };
 
@@ -130,7 +190,7 @@ export default function AdminPage() {
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden relative">
       
-      {/* MOBILE HEADER (Tombol Hamburger & Judul) */}
+      {/* MOBILE HEADER */}
       <div className="md:hidden absolute top-0 left-0 w-full bg-slate-950 text-white p-4 flex justify-between items-center z-20 shadow-md">
           <h1 className="text-sm font-black text-orange-500 tracking-widest uppercase">Admin Panel</h1>
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="focus:outline-none bg-slate-800 p-2 rounded">
@@ -138,18 +198,16 @@ export default function AdminPage() {
           </button>
       </div>
 
-      {/* OVERLAY HITAM UNTUK HP (Menutup sidebar jika diklik area luar) */}
+      {/* OVERLAY */}
       {isSidebarOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-20" onClick={() => setIsSidebarOpen(false)}></div>}
 
-      {/* SIDEBAR RESPONSIVE */}
-      {/* Di layar HP (kurang dari md), sidebar disembunyikan pakai translate-x. Di laptop, tampil normal */}
+      {/* SIDEBAR */}
       <aside className={`fixed md:relative top-0 left-0 w-64 h-full bg-slate-900 text-slate-300 flex flex-col shadow-xl z-30 transition-transform duration-300 border-r border-slate-800 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
         <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center">
             <div>
                 <h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1>
                 <p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p>
             </div>
-            {/* Tombol Silang khusus HP */}
             <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
@@ -184,7 +242,7 @@ export default function AdminPage() {
             </h2>
         </div>
         
-        {/* TAB UMUM (PENGATURAN TEKS WEB) */}
+        {/* TAB UMUM */}
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
                 <div><label className="font-bold text-slate-700 text-sm">URL Logo Utama</label><input type="url" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 focus:border-orange-500 outline-none text-sm" placeholder="https://..." /></div>
@@ -278,9 +336,67 @@ export default function AdminPage() {
             <div className="max-w-4xl"><form onSubmit={addFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Pertanyaan" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Jawaban..." value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah F.A.Q</button></form><div className="space-y-3">{faqs.map(f => (<div key={f.id} className="bg-white p-4 rounded-xl border flex flex-col md:flex-row justify-between md:items-start gap-4"><div className="pr-4"><h4 className="font-bold text-xs md:text-sm mb-1">{f.q}</h4><p className="text-[10px] md:text-xs text-slate-500">{f.a}</p></div><button onClick={()=>deleteItem('faqs', f.id)} className="text-red-500 text-xs font-bold w-full md:w-fit bg-red-50 px-3 py-2 rounded">Hapus</button></div>))}</div></div>
         )}
 
-        {/* TAB BLOG */}
+        {/* TAB BLOG / WAWASAN DENGAN EDITOR GAMBAR */}
         {activeTab === 'blog' && (
-            <div className="max-w-4xl"><form onSubmit={addPost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8"><input type="text" placeholder="Judul Berita" value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-base md:text-lg" required/><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"><select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-white text-sm"><option value="News">News</option><option value="Opini">Opini</option></select><input type="text" placeholder="Dateline (Cth: Jakarta)" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div><div className="border p-3 md:p-4 rounded-lg bg-slate-50"><p className="mb-2 font-bold text-xs md:text-sm text-slate-700">Upload Sampul</p><input type="file" onChange={async (e) => { if(e.target.files[0]) { setLoading(true); try { const url = await uploadToCloudinary(e.target.files[0]); setPostCoverUrl(url); alert("Gambar Siap!"); } catch(err) { alert(err.message); } setLoading(false); } }} accept="image/*" className="text-xs md:text-sm w-full" /></div><div className="h-64 mb-14 md:mb-10"><ReactQuill theme="snow" value={postContent} onChange={setPostContent} className="h-full bg-white" /></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pt-4 md:pt-8"><input type="text" placeholder="Nama Penulis" value={postAuthor} onChange={e=>setPostAuthor(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><input type="text" placeholder="Tags (Pisahkan koma)" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div><button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold mt-4 w-full text-sm">Terbitkan Berita</button></form><div className="space-y-3">{posts.map(p => (<div key={p.id} className="flex flex-col md:flex-row bg-white p-4 rounded-xl border justify-between gap-3"><div className="flex-1"><h4 className="font-bold text-sm line-clamp-2">{p.title}</h4></div><button onClick={()=>deleteItem('posts', p.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 rounded-lg w-full md:w-auto">Hapus</button></div>))}</div></div>
+            <div className="max-w-4xl">
+                <form onSubmit={addPost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    <input type="text" placeholder="Judul Berita" value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-base md:text-lg" required/>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                        <select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-white text-sm">
+                            <option value="News">News</option>
+                            <option value="Opini">Opini</option>
+                        </select>
+                        <input type="text" placeholder="Dateline (Cth: Jakarta)" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                    </div>
+                    
+                    <div className="border p-3 md:p-4 rounded-lg bg-slate-50">
+                        <p className="mb-2 font-bold text-xs md:text-sm text-slate-700">Upload Sampul Berita</p>
+                        <input type="file" onChange={async (e) => { 
+                            if(e.target.files[0]) { 
+                                setLoading(true); 
+                                try { 
+                                    const url = await uploadToCloudinary(e.target.files[0]); 
+                                    setPostCoverUrl(url); 
+                                    alert("Gambar Sampul Siap!"); 
+                                } catch(err) { alert(err.message); } 
+                                setLoading(false); 
+                            } 
+                        }} accept="image/*" className="text-xs md:text-sm w-full" />
+                    </div>
+
+                    {/* QUILL EDITOR DENGAN KONFIGURASI GAMBAR */}
+                    <div className="h-64 mb-14 md:mb-10 mt-2">
+                        <ReactQuill 
+                            ref={quillRef}
+                            theme="snow" 
+                            value={postContent} 
+                            onChange={setPostContent} 
+                            modules={modules}
+                            className="h-full bg-white rounded-b-lg" 
+                            placeholder="Tulis isi berita di sini... Gunakan ikon gambar di toolbar untuk menyisipkan gambar ke tengah paragraf."
+                        />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pt-8 md:pt-12">
+                        <input type="text" placeholder="Nama Penulis" value={postAuthor} onChange={e=>setPostAuthor(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                        <input type="text" placeholder="Tags (Pisahkan koma)" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                    </div>
+                    
+                    <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold mt-4 w-full text-sm">
+                        {loading ? 'Mengunggah...' : 'Terbitkan Berita'}
+                    </button>
+                </form>
+                
+                <div className="space-y-3">
+                    {posts.map(p => (
+                        <div key={p.id} className="flex flex-col md:flex-row bg-white p-4 rounded-xl border justify-between gap-3">
+                            <div className="flex-1"><h4 className="font-bold text-sm line-clamp-2">{p.title}</h4></div>
+                            <button onClick={()=>deleteItem('posts', p.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 rounded-lg w-full md:w-auto">Hapus</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
         )}
 
       </main>
