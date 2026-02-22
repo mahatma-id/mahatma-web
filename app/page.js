@@ -104,38 +104,52 @@ export default function Home() {
         </div>
       </header>
 
+      {/* 1. HERO SECTION (DIPERBAIKI POSISI TEKSNYA) */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden flex items-center justify-center">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
             sliders.map((slide, index) => (
-                <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
-                    <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
-                    <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
+                <div key={slide.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none -z-10'}`}>
                     
-                    <div className="relative z-20 flex flex-col justify-center items-center text-center h-full px-4 md:px-12 lg:px-16 max-w-5xl mx-auto">
-                        <div className="transform transition-all duration-1000 translate-y-0 opacity-100 flex flex-col items-center w-full">
-                            <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">Reach The Future</span>
-                            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-3 md:mb-6 drop-shadow-xl">{slide.title || "Driving Change, Navigating Sustainable Future"}</h1>
-                            <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">{slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}</p>
-                            
-                            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
-                                {(slide.btnText || slide.btn1Text) && (
-                                    <a href={slide.btnLink || slide.btn1Link || '#layanan'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                        {slide.btnText || slide.btn1Text || "Learn More"}
-                                    </a>
-                                )}
-                                {slide.btn2Text && (
-                                    <a href={slide.btn2Link || '#kontak'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-white/10 text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 backdrop-blur-sm border border-white/20 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
-                                        {slide.btn2Text}
-                                    </a>
-                                )}
-                            </div>
+                    {/* Gambar dikunci posisinya sebagai background */}
+                    <img src={slide.imageUrl} className="absolute inset-0 w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite] z-0" alt="Hero Background"/>
+                    
+                    {/* Overlay hitam agar teks terbaca */}
+                    <div className="absolute inset-0 bg-black/60 md:bg-black/50 z-10"></div>
+                    
+                    {/* Teks dikunci posisinya di atas segalanya (z-20) dan ditaruh di tengah layar */}
+                    <div className="absolute inset-0 z-20 flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 max-w-5xl mx-auto">
+                        <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-2 md:mb-4 block drop-shadow-md">
+                            Reach The Future
+                        </span>
+                        
+                        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-3 md:mb-6 drop-shadow-xl">
+                            {slide.title || "Driving Change, Navigating Sustainable Future"}
+                        </h1>
+                        
+                        <p className="text-xs sm:text-sm md:text-xl text-gray-200 mb-6 md:mb-10 leading-relaxed font-light drop-shadow-md max-w-3xl px-2">
+                            {slide.subtitle || "Our range of services is tailored individually for each company. No matter how complex the case is, we inspire confidence and empower in all we do."}
+                        </p>
+                        
+                        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 w-full px-4">
+                            {(slide.btnText || slide.btn1Text) && (
+                                <a href={slide.btnLink || slide.btn1Link || '#layanan'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                    {slide.btnText || slide.btn1Text || "Learn More"}
+                                </a>
+                            )}
+                            {slide.btn2Text && (
+                                <a href={slide.btn2Link || '#kontak'} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-4 bg-white/10 text-white font-bold rounded-full hover:bg-white hover:text-slate-900 transition-all duration-300 backdrop-blur-sm border border-white/20 uppercase tracking-widest text-[10px] md:text-sm shadow-lg">
+                                    {slide.btn2Text}
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
             ))
         )}
+        
+        {/* Navigasi Titik-Titik di bagian paling bawah layar */}
         <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-2 md:gap-3">
             {sliders.map((_, idx) => (
                 <button key={idx} onClick={() => setCurrentSlide(idx)} className={`h-1 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-6 md:w-8 bg-orange-500' : 'w-2 bg-white/50 hover:bg-white'}`}></button>
@@ -143,6 +157,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 2. OUR MISSION */}
       <section className="py-12 md:py-20 bg-slate-50 text-center px-4 md:px-12 lg:px-16 border-b border-slate-100">
         <div className="container mx-auto max-w-4xl">
             <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Mission</span>
@@ -164,6 +179,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 3. OUR SERVICE */}
       <section id="layanan" className="py-12 md:py-24 bg-white px-4 md:px-12 lg:px-16">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
@@ -196,6 +212,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 4. TIM PAKAR */}
       {teams.length > 0 && (
           <section id="tim" className="py-12 md:py-20 bg-slate-900 text-white px-4 md:px-12 lg:px-16">
             <div className="container mx-auto max-w-7xl">
@@ -219,6 +236,7 @@ export default function Home() {
           </section>
       )}
 
+      {/* 5. OUR INSIGHT (BLOG) */}
       <section id="insight" className="py-12 md:py-20 bg-white px-4 md:px-12 lg:px-16 border-b border-slate-100">
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
@@ -253,6 +271,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 6. TESTIMONI */}
       {testimonials.length > 0 && (
           <section className="py-12 md:py-20 bg-slate-50 px-4 md:px-12 lg:px-16 overflow-hidden">
             <div className="container mx-auto max-w-7xl">
@@ -276,6 +295,7 @@ export default function Home() {
           </section>
       )}
 
+      {/* 7. FAQ */}
       {faqs.length > 0 && (
           <section className="py-12 md:py-20 bg-white px-4 md:px-12 lg:px-16 border-t border-slate-100">
             <div className="container mx-auto max-w-3xl">
@@ -297,6 +317,7 @@ export default function Home() {
           </section>
       )}
 
+      {/* CALL TO ACTION DARI FIREBASE SETTINGS */}
       <section id="kontak" className="bg-slate-900 text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-orange-600 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-orange-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-indigo-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
@@ -316,6 +337,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FOOTER DINAMIS */}
       <footer className="bg-white pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
