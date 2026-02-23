@@ -41,6 +41,7 @@ export default function Home() {
     return () => { unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); };
   }, []);
 
+  // DURASI SLIDER: 5 Detik (5000 ms)
   useEffect(() => {
       if (sliders.length <= 1) return;
       const interval = setInterval(() => { setCurrentSlide(prev => (prev + 1) % sliders.length); }, 5000);
@@ -54,7 +55,7 @@ export default function Home() {
   }
 
   return (
-    <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-orange-500 selection:text-white relative transition-colors duration-300">
+    <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
 
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
@@ -62,9 +63,9 @@ export default function Home() {
             {settings.logoUrl ? (
                 <img src={settings.logoUrl} alt="Logo" className="h-8 md:h-10 object-contain group-hover:scale-105 transition-transform" />
             ) : (
-                <div className="flex flex-col md:flex-row md:items-center group-hover:text-orange-600 transition-colors">
-                    <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">
-                        Mahatma <span className="text-orange-600">Academy</span>
+                <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
+                    <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                        Mahatma <span className="text-emerald-600">Academy</span>
                     </span>
                     <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
                         <span className="hidden md:inline">- </span>Driving Transformation for Sustainable Education
@@ -74,16 +75,16 @@ export default function Home() {
           </Link>
 
           <nav className="hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase text-slate-600 dark:text-slate-300">
-            <a href="#layanan" className="hover:text-orange-600 dark:hover:text-orange-500 hover:-translate-y-1 transition-all">Service</a>
-            <Link href="/tentang-kami" className="hover:text-orange-600 dark:hover:text-orange-500 hover:-translate-y-1 transition-all">About Us</Link>
-            <a href="#tim" className="hover:text-orange-600 dark:hover:text-orange-500 hover:-translate-y-1 transition-all">Our Team</a>
-            <a href="#insight" className="hover:text-orange-600 dark:hover:text-orange-500 hover:-translate-y-1 transition-all">Insight</a>
+            <a href="#layanan" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
+            <Link href="/tentang-kami" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
+            <a href="#tim" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</a>
+            <a href="#insight" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
             <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
-            <a href="#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-orange-600 dark:hover:bg-orange-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
+            <a href="#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
               Join Us
             </a>
           </div>
@@ -100,13 +101,13 @@ export default function Home() {
 
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
-                <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
-                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
-                <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Our Team</a>
-                <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-orange-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
+                <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
+                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
+                <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Our Team</a>
+                <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
-                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
+                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
                 </div>
             </nav>
@@ -129,7 +130,7 @@ export default function Home() {
                     <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-10 md:pt-0">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             {slide.tagline && (
-                                <span className="text-orange-500 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-3 block drop-shadow-md">
+                                <span className="text-yellow-400 font-bold tracking-widest uppercase text-[10px] md:text-sm mb-3 block drop-shadow-md">
                                     {slide.tagline}
                                 </span>
                             )}
@@ -148,7 +149,7 @@ export default function Home() {
                                     </a>
                                 )}
                                 {slide.btn2Text && (
-                                    <a href={slide.btn2Link || '#'} className="w-full sm:w-auto px-8 py-3.5 md:px-10 md:py-4 bg-orange-600 border-2 border-orange-600 text-white font-bold rounded-full hover:bg-orange-500 hover:border-orange-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-xs shadow-lg">
+                                    <a href={slide.btn2Link || '#'} className="w-full sm:w-auto px-8 py-3.5 md:px-10 md:py-4 bg-emerald-600 border-2 border-emerald-600 text-white font-bold rounded-full hover:bg-emerald-500 hover:border-emerald-500 hover:scale-105 transition-all duration-300 uppercase tracking-widest text-[10px] md:text-xs shadow-lg">
                                         {slide.btn2Text}
                                     </a>
                                 )}
@@ -162,56 +163,53 @@ export default function Home() {
         
         <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 z-30 flex gap-2 md:gap-3">
             {sliders.map((_, idx) => (
-                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`h-1 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-6 md:w-8 bg-orange-500' : 'w-2 bg-white/50 hover:bg-white'}`}></button>
+                <button key={idx} onClick={() => setCurrentSlide(idx)} className={`h-1 md:h-1.5 rounded-full transition-all duration-500 ${currentSlide === idx ? 'w-6 md:w-8 bg-emerald-500' : 'w-2 bg-white/50 hover:bg-white'}`}></button>
             ))}
         </div>
       </section>
 
-      {/* 2. OUR MISSION (GAMBAR BESAR DI KIRI, KARTU-KARTU TEKS DI KANAN) */}
+      {/* 2. OUR MISSION (KARTU SHUFFLE DI KIRI, TEKS DI KANAN) */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
-            <div className="flex flex-col lg:flex-row gap-10 md:gap-16">
+            <div className="flex flex-col-reverse lg:flex-row gap-10 md:gap-16 items-center">
                 
-                {/* BAGIAN KIRI: GAMBAR UTAMA MISI */}
-                <div className="w-full lg:w-1/2 relative group rounded-3xl overflow-hidden shadow-xl sticky top-24 h-fit">
-                    {settings.missionMainImg ? (
-                        <img src={settings.missionMainImg} alt="Our Mission" className="w-full h-auto max-h-[80vh] object-cover group-hover:scale-105 transition-transform duration-700" />
-                    ) : (
-                        <div className="w-full aspect-square bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                            <span className="text-slate-400 dark:text-slate-500 font-bold tracking-widest text-xs uppercase">Gambar Misi Belum Diunggah</span>
-                        </div>
-                    )}
-                </div>
+                {/* BAGIAN KIRI: KARTU MISI SHUFFLE */}
+                <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px]">
+                    {[1, 2, 3, 4].map((num, idx) => {
+                        const desc = settings[`mission${num}Desc`];
+                        if (!desc) return null; 
+                        
+                        // Posisi stack yang berbeda untuk tiap kartu
+                        const positions = [
+                            "top-0 left-0 z-40 transform hover:scale-105 hover:-translate-y-4 hover:z-50",
+                            "top-12 left-6 md:left-12 z-30 transform rotate-2 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50",
+                            "top-24 left-12 md:left-24 z-20 transform -rotate-2 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50",
+                            "top-36 left-16 md:left-32 z-10 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50"
+                        ];
 
-                {/* BAGIAN KANAN: TEKS JUDUL & KARTU PARAGRAF */}
-                <div className="w-full lg:w-1/2 flex flex-col text-right">
-                    
-                    {/* Judul Utama Misi (Rata Kanan) */}
-                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[20px] md:text-xs mb-3 block">Our Mission</span>
-                    <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight">
-                        {settings.missionTitle || "Integrated Solution for Your Needs"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-lg leading-relaxed font-light mb-10">
-                        {settings.missionDesc || ""}
-                    </p>
-                    
-                    {/* Kartu-Kartu Poin Misi (Disusun Rapi ke Bawah) */}
-                    <div className="flex flex-col gap-4 md:gap-5 w-full">
-                        {[1, 2, 3, 4].map(num => {
-                            const desc = settings[`mission${num}Desc`];
-                            if (!desc) return null; 
-                            
-                            return (
-                                <div key={num} className="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md hover:-translate-x-2 transition-all duration-300 group text-left relative overflow-hidden cursor-default">
-                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-orange-100 dark:bg-slate-700 group-hover:bg-orange-500 transition-colors"></div>
-                                    <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed font-light group-hover:text-slate-900 dark:group-hover:text-white transition-colors pl-4">
+                        return (
+                            <div key={num} className={`absolute w-full max-w-sm bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 transition-all duration-500 cursor-pointer ${positions[idx]}`}>
+                                <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-100 dark:bg-slate-700 group-hover:bg-emerald-500 transition-colors"></div>
+                                <div className="flex items-start gap-4">
+                                    <span className="text-3xl md:text-4xl font-black text-emerald-100 dark:text-slate-700">0{num}</span>
+                                    <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-semibold">
                                         {desc}
                                     </p>
                                 </div>
-                            )
-                        })}
-                    </div>
-                    
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* BAGIAN KANAN: TEKS JUDUL (UKURAN DIPERBESAR) */}
+                <div className="w-full lg:w-1/2 text-center lg:text-right">
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
+                        {settings.missionTitle || "Integrated Solution for Your Needs"}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">
+                        {settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}
+                    </p>
                 </div>
 
             </div>
@@ -223,9 +221,9 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
-                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[20px] md:text-xs mb-3 block">Our Service</span>
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Service</span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
                 {settings.serviceImageUrl && (
                     <div className="lg:w-1/2 w-full mt-2 lg:mt-0">
@@ -248,19 +246,19 @@ export default function Home() {
                         )}
 
                         <div className="relative z-20 flex flex-col h-full">
-                            <div className={`w-10 h-10 md:w-14 md:h-14 shadow-sm rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:rotate-12 transition-all duration-500 ${svc.imgUrl ? 'bg-white/20 backdrop-blur-md text-white group-hover:bg-orange-600' : 'bg-white dark:bg-slate-800 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'}`}>
+                            <div className={`w-10 h-10 md:w-14 md:h-14 shadow-sm rounded-xl md:rounded-2xl flex items-center justify-center mb-4 md:mb-6 group-hover:rotate-12 transition-all duration-500 ${svc.imgUrl ? 'bg-white/20 backdrop-blur-md text-white group-hover:bg-emerald-600' : 'bg-white dark:bg-slate-800 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'}`}>
                                 <svg className="w-5 h-5 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             </div>
                             
-                            <h3 className={`text-base md:text-xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                            <h3 className={`text-base md:text-xl font-bold mb-2 md:mb-4 transition-colors ${svc.imgUrl ? 'text-white group-hover:text-yellow-400' : 'text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-500'}`}>
                                 {svc.name}
                             </h3>
                             
-                            <p className={`text-xs md:text-base mb-4 md:mb-8 line-clamp-3 md:line-clamp-4 leading-relaxed flex-grow font-light ${svc.imgUrl ? 'text-slate-200' : 'text-slate-600 dark:text-slate-400'}`}>
+                            <p className={`text-xs md:text-sm mb-4 md:mb-8 line-clamp-3 md:line-clamp-4 leading-relaxed flex-grow font-light ${svc.imgUrl ? 'text-slate-200' : 'text-slate-500 dark:text-slate-400'}`}>
                                 {svc.desc}
                             </p>
                             
-                            <Link href={`/layanan/${svc.id}`} className={`inline-flex items-center font-bold uppercase tracking-widest text-[9px] md:text-xs transition mt-auto ${svc.imgUrl ? 'text-white hover:text-orange-400' : 'text-slate-900 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-500'}`}>
+                            <Link href={`/layanan/${svc.id}`} className={`inline-flex items-center font-bold uppercase tracking-widest text-[9px] md:text-xs transition mt-auto ${svc.imgUrl ? 'text-white hover:text-yellow-400' : 'text-slate-900 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-500'}`}>
                                 Read more <span className="ml-2 text-sm md:text-base leading-none transform group-hover:translate-x-2 transition-transform">→</span>
                             </Link>
                         </div>
@@ -276,8 +274,8 @@ export default function Home() {
           <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-7xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-orange-500 font-bold tracking-widest uppercase text-[20px] md:text-xs mb-3 block">Our Experts</span>
-                    <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4"></h2>
+                    <span className="text-emerald-500 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Experts</span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4">Orang-Orang Hebat di Balik Mahatma</h2>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     {teams.map(member => (
@@ -286,7 +284,7 @@ export default function Home() {
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 p-3 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                                 <h3 className="text-sm md:text-xl font-bold mb-0.5 md:mb-1 text-white">{member.name}</h3>
-                                <p className="text-orange-400 text-[8px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
+                                <p className="text-yellow-400 text-[8px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
                             </div>
                         </div>
                     ))}
@@ -299,8 +297,8 @@ export default function Home() {
       <section id="insight" className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
-                <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Our Insight</span>
-                <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight"></h2>
+                <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Insight</span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight">Wawasan & Perspektif Terbaru</h2>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
@@ -315,8 +313,8 @@ export default function Home() {
                             <span className="absolute top-3 left-3 bg-white dark:bg-slate-900 px-2 py-1 text-[8px] md:text-[10px] font-bold uppercase tracking-widest rounded-full shadow-md text-slate-900 dark:text-white">{post.category}</span>
                         </div>
                         <div className="px-1 md:px-3 pb-1 flex-1 flex flex-col">
-                            <h3 className="text-sm md:text-2xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3 group-hover:text-orange-600 dark:group-hover:text-orange-500 transition leading-snug line-clamp-2">{post.title}</h3>
-                            <p className="text-[8px] md:text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase mt-auto pt-3 md:pt-4 border-t border-slate-200 dark:border-slate-700">{dStr} <span className="mx-1 md:mx-2 text-orange-300 dark:text-orange-700">•</span> {post.author || 'Admin'}</p>
+                            <h3 className="text-sm md:text-2xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition leading-snug line-clamp-2">{post.title}</h3>
+                            <p className="text-[8px] md:text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase mt-auto pt-3 md:pt-4 border-t border-slate-200 dark:border-slate-700">{dStr} <span className="mx-1 md:mx-2 text-yellow-500 dark:text-yellow-600">•</span> {post.author || 'Admin'}</p>
                         </div>
                     </Link>
                 )})}
@@ -335,13 +333,13 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 overflow-hidden transition-colors duration-300">
             <div className="container mx-auto max-w-7xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[10px] md:text-xs mb-3 block">Testimonials</span>
-                    <h2 className="text-2xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4">Apa Kata Mereka Tentang Kami</h2>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Testimonials</span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4">Apa Kata Mereka Tentang Kami</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                     {testimonials.map(testi => (
                         <div key={testi.id} className="bg-white dark:bg-slate-950 p-5 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-300">
-                            <span className="absolute top-2 right-4 md:top-4 md:right-6 text-3xl md:text-5xl text-slate-100 dark:text-slate-800 font-serif group-hover:text-orange-100 dark:group-hover:text-orange-900 transition-colors">"</span>
+                            <span className="absolute top-2 right-4 md:top-4 md:right-6 text-3xl md:text-5xl text-slate-100 dark:text-slate-800 font-serif group-hover:text-yellow-100 dark:group-hover:text-yellow-900 transition-colors">"</span>
                             <p className="text-slate-600 dark:text-slate-400 text-xs md:text-base italic leading-relaxed mb-4 md:mb-8 relative z-10">{testi.text}</p>
                             <div className="flex items-center gap-3 md:gap-4 border-t border-slate-100 dark:border-slate-800 pt-4 md:pt-6">
                                 <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-slate-900 dark:bg-slate-800 text-white flex justify-center items-center font-bold text-xs md:text-base">{testi.name[0]}</div>
@@ -359,16 +357,16 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[200px] md:text-xs mb-3 block">FAQ</span>
-                    <h2 className="text-2xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4">Pertanyaan Paling Sering Diajukan</h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
                     {faqs.map((faq, idx) => (
                         <div key={faq.id} className="border border-slate-200 dark:border-slate-800 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300">
-                            <button onClick={() => toggleFaq(idx)} className={`w-full text-left p-4 md:p-8 font-bold text-sm md:text-lg flex justify-between items-center transition-colors ${openFaq === idx ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+                            <button onClick={() => toggleFaq(idx)} className={`w-full text-left p-4 md:p-8 font-bold text-sm md:text-lg flex justify-between items-center transition-colors ${openFaq === idx ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                                 {faq.q} <span className={`transform transition-transform text-base md:text-xl ${openFaq === idx ? 'rotate-45' : ''}`}>+</span>
                             </button>
-                            <div className={`px-4 md:px-8 overflow-hidden transition-all duration-500 ease-in-out ${openFaq === idx ? 'max-h-96 py-4 md:py-6 border-t border-orange-100 dark:border-orange-900/30' : 'max-h-0 py-0'}`}><p className="text-slate-600 dark:text-slate-400 text-xs md:text-base leading-relaxed font-light">{faq.a}</p></div>
+                            <div className={`px-4 md:px-8 overflow-hidden transition-all duration-500 ease-in-out ${openFaq === idx ? 'max-h-96 py-4 md:py-6 border-t border-emerald-100 dark:border-emerald-900/30' : 'max-h-0 py-0'}`}><p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">{faq.a}</p></div>
                         </div>
                     ))}
                 </div>
@@ -377,20 +375,20 @@ export default function Home() {
       )}
 
       {/* CALL TO ACTION */}
-      <section id="kontak" className="bg-slate-900 dark:bg-black text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-orange-600 relative overflow-hidden transition-colors duration-300">
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-orange-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-indigo-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
+      <section id="kontak" className="bg-slate-900 dark:bg-black text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-emerald-600 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-emerald-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-yellow-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="container mx-auto max-w-3xl text-center relative z-10">
             {settings.ctaTitle ? (
                 <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">{settings.ctaTitle}</h2>
             ) : (
-                <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">Siap Untuk <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">Berubah?</span></h2>
+                <h2 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-6 leading-[1.2]">Siap Untuk <br className="md:hidden"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-yellow-400">Berubah?</span></h2>
             )}
             <p className="text-xs md:text-xl text-slate-300 dark:text-slate-400 max-w-2xl mx-auto mb-6 md:mb-10 font-light leading-relaxed px-4">
                 {settings.ctaDesc || "Bergabunglah dalam perjalanan pertumbuhan, keberlanjutan, dan perubahan positif. Wujudkan masa depan di mana organisasi Anda berkembang dengan cepat."}
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
-                <button className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-orange-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-orange-500 hover:-translate-y-1 transition duration-300 shadow-lg">Pesan Layanan</button>
+                <button className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-emerald-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-emerald-500 hover:-translate-y-1 transition duration-300 shadow-lg">Pesan Layanan</button>
                 <a href={`https://wa.me/${waNumber}`} target="_blank" className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-white/10 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition duration-300 backdrop-blur-sm border border-white/20">Hubungi WhatsApp</a>
             </div>
         </div>
@@ -405,9 +403,9 @@ export default function Home() {
                         {settings.logoUrl ? (
                             <img src={settings.logoUrl} alt="Logo" className="h-8 md:h-14 object-contain" />
                         ) : (
-                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-orange-600 transition-colors">
-                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-orange-600 transition-colors">
-                                    Mahatma <span className="text-orange-600">Academy</span>
+                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
+                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                                    Mahatma <span className="text-emerald-600">Academy</span>
                                 </span>
                                 <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
                                     <span className="hidden md:inline">- </span>Driving Transformation
@@ -422,7 +420,7 @@ export default function Home() {
                         <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                         <span className="text-[10px] md:text-sm font-bold">Speak to our expert at</span>
                     </div>
-                    <a href={`https://wa.me/${waNumber}`} target="_blank" className="text-lg md:text-2xl font-bold text-orange-600 hover:text-orange-700 transition">
+                    <a href={`https://wa.me/${waNumber}`} target="_blank" className="text-lg md:text-2xl font-bold text-emerald-600 hover:text-emerald-700 transition">
                         {rawPhone}
                     </a>
                 </div>
@@ -430,7 +428,7 @@ export default function Home() {
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Follow Us</h4>
                     <div className="flex justify-center md:justify-start gap-3 md:gap-4">
-                        <a href={settings.linkedin || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-orange-600 hover:text-orange-600 transition"><span className="text-xs md:text-sm font-bold">in</span></a>
+                        <a href={settings.linkedin || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-emerald-600 hover:text-emerald-600 transition"><span className="text-xs md:text-sm font-bold">in</span></a>
                         <a href={settings.youtube || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-red-600 hover:text-red-600 transition"><span className="text-xs md:text-sm font-bold">yt</span></a>
                         <a href={settings.instagram || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-pink-600 hover:text-pink-600 transition"><span className="text-xs md:text-sm font-bold">ig</span></a>
                     </div>
@@ -439,11 +437,11 @@ export default function Home() {
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Pages</h4>
                     <ul className="space-y-2 md:space-y-4 text-xs md:text-base text-slate-500 dark:text-slate-400">
-                        <li><Link href="/" className="hover:text-orange-600 transition">Homepage</Link></li>
-                        <li><Link href="/tentang-kami" className="hover:text-orange-600 transition">About Us</Link></li>
-                        <li><a href="#insight" className="hover:text-orange-600 transition">Our Insight</a></li>
-                        <li><a href="#tim" className="hover:text-orange-600 transition">Our Team</a></li>
-                        <li><a href="#kontak" className="hover:text-orange-600 transition">Contact Us</a></li>
+                        <li><Link href="/" className="hover:text-emerald-600 transition">Homepage</Link></li>
+                        <li><Link href="/tentang-kami" className="hover:text-emerald-600 transition">About Us</Link></li>
+                        <li><a href="#insight" className="hover:text-emerald-600 transition">Our Insight</a></li>
+                        <li><a href="#tim" className="hover:text-emerald-600 transition">Our Team</a></li>
+                        <li><a href="#kontak" className="hover:text-emerald-600 transition">Contact Us</a></li>
                     </ul>
                 </div>
 
@@ -453,7 +451,7 @@ export default function Home() {
                         <div className="flex flex-col items-center md:items-start">
                             <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 md:gap-3 opacity-80 w-full max-w-[200px] md:max-w-xs">
                                 {partners.slice(0, 12).map(p => (
-                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-900 rounded border border-slate-100 dark:border-slate-800 hover:border-orange-200 p-1 md:p-2 transition-colors">
+                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-900 rounded border border-slate-100 dark:border-slate-800 hover:border-emerald-200 p-1 md:p-2 transition-colors">
                                         {p.imgUrl ? (
                                             <img src={p.imgUrl} alt={p.name} title={p.name} className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition duration-300" />
                                         ) : (
@@ -464,7 +462,7 @@ export default function Home() {
                             </div>
                             {partners.length > 12 && (
                                 <div className="mt-3 md:mt-5">
-                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-orange-600 hover:text-orange-700 font-bold transition">
+                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">
                                         Selengkapnya &rarr;
                                     </Link>
                                 </div>
@@ -480,8 +478,8 @@ export default function Home() {
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
                 <p className="mb-3 md:mb-0">&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex justify-center gap-4 md:gap-6">
-                    <a href="#" className="hover:text-orange-600 transition">Privacy Policy</a>
-                    <a href="#" className="hover:text-orange-600 transition">Terms of Service</a>
+                    <a href="#" className="hover:text-emerald-600 transition">Privacy Policy</a>
+                    <a href="#" className="hover:text-emerald-600 transition">Terms of Service</a>
                 </div>
             </div>
         </div>
