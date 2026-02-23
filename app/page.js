@@ -4,7 +4,7 @@ import { collection, query, orderBy, onSnapshot, limit, doc } from 'firebase/fir
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle'; 
-import { useTheme } from 'next-themes'; // <-- IMPORT UNTUK DETEKSI TEMA
+import { useTheme } from 'next-themes';
 
 export default function Home() {
   const [settings, setSettings] = useState({});
@@ -15,8 +15,10 @@ export default function Home() {
   
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
-  // State untuk Carousel Tim
+  
+  // State untuk Carousel Tim & Logika Slide
   const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
+  const [visibleTeamCards, setVisibleTeamCards] = useState(4); // Default Laptop 4
 
   const [testimonials, setTestimonials] = useState([]);
   const [faqs, setFaqs] = useState([]);
@@ -25,13 +27,25 @@ export default function Home() {
   const toggleFaq = (index) => { setOpenFaq(openFaq === index ? null : index); };
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // LOGIKA TEMA (UNTUK GANTI LOGO)
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true); // Menandakan komponen sudah di-load di browser
+    setMounted(true);
+
+    // Deteksi ukuran layar untuk menentukan jumlah kartu tim (HP=3, Laptop=4)
+    const handleResize = () => {
+        if (window.innerWidth < 768) {
+            setVisibleTeamCards(3);
+        } else {
+            setVisibleTeamCards(4);
+        }
+    };
+    
+    // Jalankan saat awal mount
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
 
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "asc")), snap => { setSliders(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
@@ -48,15 +62,33 @@ export default function Home() {
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => { setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
 
-    return () => { unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); };
+    return () => { 
+        window.removeEventListener('resize', handleResize);
+        unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); 
+    };
   }, []);
 
-  // DURASI SLIDER HERO: 5 Detik
+  // SLIDER HERO (5 Detik)
   useEffect(() => {
       if (sliders.length <= 1) return;
       const interval = setInterval(() => { setCurrentSlide(prev => (prev + 1) % sliders.length); }, 5000);
       return () => clearInterval(interval);
   }, [sliders.length]);
+
+  // SLIDER EXPERTS (5 Detik, hanya jika jumlah tim melebihi batas tampilan)
+  useEffect(() => {
+    // Jika jumlah tim kurang atau sama dengan yang ditampilkan, jangan slide
+    if (teams.length <= visibleTeamCards) {
+        setCurrentTeamIndex(0); // Reset ke posisi awal agar rapi
+        return;
+    }
+
+    const interval = setInterval(() => {
+        setCurrentTeamIndex(prev => (prev + 1) % teams.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [teams.length, visibleTeamCards]);
 
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
@@ -64,33 +96,17 @@ export default function Home() {
       waNumber = '62' + waNumber.substring(1);
   }
 
-  // Duplikasi tim untuk efek infinite scroll
-  const infiniteTeams = [...teams, ...teams];
+  // LOGIKA "CONTINUOUS SLIDE": Duplikasi array tim agar saat di slide terakhir ada data yang mengisi kekosongan di kanan
+  const displayTeams = teams.length > visibleTeamCards ? [...teams, ...teams.slice(0, visibleTeamCards)] : teams;
 
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
-      
-      {/* CSS KHUSUS UNTUK ANIMASI SCROLL TIM */}
-      <style jsx>{`
-        @keyframes scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-scroll {
-          display: flex;
-          width: fit-content;
-          animation: scroll 20s linear infinite; /* Kecepatan scroll 20 detik */
-        }
-        .animate-scroll:hover {
-          animation-play-state: paused; /* Berhenti saat di-hover */
-        }
-      `}</style>
 
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
-                // LOGIKA LOGO GANDA: Cek jika Dark Mode aktif & Logo Dark tersedia
+                // LOGO LANDSCAPE 1x4 (Otomatis ganti Dark/Light)
                 <img 
                     src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
                     alt="Logo" 
@@ -148,7 +164,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION (FULL SIZE BACKGROUND) */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
@@ -157,6 +173,7 @@ export default function Home() {
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
                     <div className="absolute inset-0 z-0">
+                        {/* UKURAN ASLI (FULL COVER) - TIDAK DIPAKSA ASPECT-VIDEO */}
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                         <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
@@ -207,6 +224,7 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col-reverse lg:flex-row gap-10 md:gap-16 items-center">
                 
+                {/* BAGIAN KIRI: KARTU MISI SHUFFLE */}
                 <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px]">
                     {[1, 2, 3, 4].map((num, idx) => {
                         const desc = settings[`mission${num}Desc`];
@@ -233,6 +251,7 @@ export default function Home() {
                     })}
                 </div>
 
+                {/* BAGIAN KANAN: TEKS JUDUL */}
                 <div className="w-full lg:w-1/2 text-center lg:text-right">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
@@ -288,7 +307,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR (INFINITE SCROLL) */}
+      {/* 4. TIM PAKAR (SLIDER OTOMATIS JIKA JUMLAH TIM > VISIBLE) */}
       {teams.length > 0 && (
           <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300 overflow-hidden">
             <div className="container mx-auto max-w-7xl px-4 md:px-12 lg:px-16">
@@ -298,13 +317,21 @@ export default function Home() {
                 </div>
             </div>
             
-            {/* INFINITE SCROLL CONTAINER */}
-            <div className="w-full overflow-hidden">
-                <div className="animate-scroll flex w-fit">
-                    {/* Render 2x list untuk efek infinite loop */}
-                    {infiniteTeams.map((member, idx) => (
-                        <div key={`${member.id}-${idx}`} className="w-[33vw] md:w-[25vw] flex-shrink-0 px-2 md:px-3">
-                            <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
+            <div className="w-full overflow-hidden container mx-auto max-w-7xl">
+                <div 
+                    className={`flex gap-4 transition-transform duration-700 ease-in-out ${teams.length > visibleTeamCards ? '' : 'justify-center'}`}
+                    style={{ 
+                        transform: teams.length > visibleTeamCards ? `translateX(-${currentTeamIndex * (100 / visibleTeamCards)}%)` : 'none',
+                        width: teams.length > visibleTeamCards ? `${displayTeams.length * (100/visibleTeamCards)}%` : '100%'
+                    }}
+                >
+                    {(teams.length > visibleTeamCards ? displayTeams : teams).map((member, idx) => (
+                        <div 
+                            key={`${member.id}-${idx}`} 
+                            className="flex-shrink-0 px-2 box-border"
+                            style={{ width: `${100 / visibleTeamCards}%`, minWidth: `${100 / visibleTeamCards}%` }}
+                        >
+                            <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4] w-full">
                                 {/* FOTO DARI TENGAH (OBJECT-CENTER) */}
                                 <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
@@ -349,7 +376,7 @@ export default function Home() {
 
             <div className="mt-10 md:mt-14 text-center">
                 <Link href="/berita" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 dark:hover:bg-slate-800 hover:text-white transition duration-300 shadow-sm border border-slate-200 dark:border-slate-800">
-                    Lihat Semua Berita →
+                    Lihat Semua Berita &rarr;
                 </Link>
             </div>
         </div>
@@ -427,7 +454,6 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
-                        {/* LOGIKA LOGO GANDA */}
                         {settings.logoUrl ? (
                             <img 
                                 src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
