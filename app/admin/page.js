@@ -68,16 +68,14 @@ export default function AdminPage() {
     }
   }), []);
 
-  // STATE UMUM & FOOTER
+  // STATE UMUM & FOOTER (DITAMBAH FIELD BARU: EMAIL, ALAMAT, MAPS, CTA LINK)
   const [settings, setSettings] = useState({ 
       logoUrl: '', missionTitle: '', missionDesc: '', missionMainImg: '', 
-      mission1Title: '', mission1Img: '', mission1Desc: '', 
-      mission2Title: '', mission2Img: '', mission2Desc: '', 
-      mission3Title: '', mission3Img: '', mission3Desc: '', 
-      mission4Title: '', mission4Img: '', mission4Desc: '',
+      mission1Desc: '', mission2Desc: '', mission3Desc: '', mission4Desc: '',
       serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
-      aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
-      footerDesc: '', phone: '', linkedin: '', youtube: '', instagram: ''
+      aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '', ctaLink: '',
+      footerDesc: '', phone: '', email: '', address: '', mapUrl: '', mapLink: '',
+      linkedin: '', youtube: '', instagram: ''
   });
   
   // STATE SLIDER
@@ -160,7 +158,7 @@ export default function AdminPage() {
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
                 
-                {/* UPLOAD LOGO DIPERBAIKI MENJADI TOMBOL FILE */}
+                {/* UPLOAD LOGO */}
                 <div className="mb-4 bg-slate-50 p-4 border rounded-xl">
                     <label className="text-sm font-bold block mb-2 text-slate-700">Logo Website (Kiri Atas & Footer)</label>
                     <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -203,8 +201,8 @@ export default function AdminPage() {
 
                     <label className="text-xs font-bold block mb-1 text-slate-700">Judul Utama Misi (Area Kanan Atas)</label>
                     <input type="text" value={settings.missionTitle || ''} onChange={e=>setSettings({...settings, missionTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Contoh: Integrated Solution for Your Needs" />
+                    <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-4" rows="3" placeholder="Deskripsi Singkat Misi (Opsional)"></textarea>
                     
-                    {/* 4 KARTU POIN MISI */}
                     <h4 className="font-bold text-slate-700 mb-2 mt-6 text-sm border-t pt-4">Kartu Poin Misi (Area Kanan Bawah)</h4>
                     <p className="text-xs text-slate-500 mb-3">Isi paragraf panjang untuk setiap kartu misi. Biarkan kosong jika tidak digunakan.</p>
                     <div className="grid grid-cols-1 gap-4">
@@ -244,6 +242,10 @@ export default function AdminPage() {
                     <input type="text" value={settings.ctaTitle || ''} onChange={e=>setSettings({...settings, ctaTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Cth: Siap Untuk Berubah?" />
                     <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Deskripsi</label>
                     <textarea value={settings.ctaDesc || ''} onChange={e=>setSettings({...settings, ctaDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi ajakan..."></textarea>
+                    
+                    {/* INPUT LINK CTA */}
+                    <label className="text-xs md:text-sm font-bold text-slate-700 block mt-2 mb-1">Link Tombol "Pesan Layanan"</label>
+                    <input type="text" value={settings.ctaLink || ''} onChange={e=>setSettings({...settings, ctaLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="https://..." />
                 </div>
                 
                 <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan</button>
@@ -253,7 +255,44 @@ export default function AdminPage() {
         {/* TAB FOOTER */}
         {activeTab === 'footer' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div className="p-4 bg-slate-50 rounded-xl border"><h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Profil & Kontak Footer</h3><label className="text-xs md:text-sm font-bold text-slate-700">Deskripsi Singkat</label><textarea value={settings.footerDesc || ''} onChange={e=>setSettings({...settings, footerDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-4 text-sm" rows="3"></textarea><label className="text-xs md:text-sm font-bold text-slate-700">Telepon / WhatsApp</label><input type="text" value={settings.phone || ''} onChange={e=>setSettings({...settings, phone: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" /></div>
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Profil & Kontak Footer</h3>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Deskripsi Singkat</label>
+                    <textarea value={settings.footerDesc || ''} onChange={e=>setSettings({...settings, footerDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-4 text-sm" rows="3"></textarea>
+                    
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Telepon / WhatsApp</label>
+                    <input type="text" value={settings.phone || ''} onChange={e=>setSettings({...settings, phone: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
+
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Email Perusahaan</label>
+                    <input type="email" value={settings.email || ''} onChange={e=>setSettings({...settings, email: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
+
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Alamat Lengkap</label>
+                    <textarea value={settings.address || ''} onChange={e=>setSettings({...settings, address: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" rows="2"></textarea>
+                </div>
+                
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Lokasi & Maps</h3>
+                    
+                    <div className="mb-4 bg-white p-3 border rounded-lg">
+                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Peta/Lokasi</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, mapUrl: url});
+                                    alert(`Gambar Peta Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-xs border p-2 rounded w-full" />
+                        {settings.mapUrl && <img src={settings.mapUrl} className="h-24 mt-2 object-cover rounded border p-1" alt="map preview"/>}
+                    </div>
+
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Link Google Maps (Saat gambar diklik)</label>
+                    <input type="text" value={settings.mapLink || ''} onChange={e=>setSettings({...settings, mapLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://maps.google.com/..." />
+                </div>
+
                 <div className="p-4 bg-slate-50 rounded-xl border"><h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Social Media</h3><label className="text-xs md:text-sm font-bold text-slate-700">LinkedIn</label><input type="url" value={settings.linkedin || ''} onChange={e=>setSettings({...settings, linkedin: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" /><label className="text-xs md:text-sm font-bold text-slate-700">YouTube</label><input type="url" value={settings.youtube || ''} onChange={e=>setSettings({...settings, youtube: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" /><label className="text-xs md:text-sm font-bold text-slate-700">Instagram</label><input type="url" value={settings.instagram || ''} onChange={e=>setSettings({...settings, instagram: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" /></div>
                 <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan Footer</button>
             </form>
@@ -284,7 +323,7 @@ export default function AdminPage() {
 
         {/* TAB LAYANAN */}
         {activeTab === 'layanan' && (
-            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
+            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>{s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
         )}
 
         {/* TAB TIM */}
