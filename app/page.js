@@ -14,9 +14,6 @@ export default function Home() {
   
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
-  // State untuk Carousel Tim
-  const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
-
   const [testimonials, setTestimonials] = useState([]);
   const [faqs, setFaqs] = useState([]);
   
@@ -51,24 +48,33 @@ export default function Home() {
       return () => clearInterval(interval);
   }, [sliders.length]);
 
-  // DURASI SLIDER EXPERTS: 5 Detik
-  useEffect(() => {
-    if (teams.length <= 2) return; // Tidak perlu slide jika tim sedikit
-    const interval = setInterval(() => {
-        setCurrentTeamIndex(prev => (prev + 1) % teams.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [teams.length]);
-
-
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) {
       waNumber = '62' + waNumber.substring(1);
   }
 
+  // Duplikasi tim untuk efek infinite scroll
+  const infiniteTeams = [...teams, ...teams];
+
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
+      
+      {/* CSS KHUSUS UNTUK ANIMASI SCROLL TIM */}
+      <style jsx>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-scroll {
+          display: flex;
+          width: fit-content;
+          animation: scroll 20s linear infinite; /* Kecepatan scroll 20 detik */
+        }
+        .animate-scroll:hover {
+          animation-play-state: paused; /* Berhenti saat di-hover */
+        }
+      `}</style>
 
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
@@ -128,7 +134,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION (BACKGROUND KEMBALI KE UKURAN SEMULA/FULL) */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
@@ -136,21 +142,19 @@ export default function Home() {
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
-                    <div className="absolute inset-0 z-0 flex items-center justify-center bg-black">
-                        {/* GAMBAR DIPAKSA LANDSCAPE (ASPECT VIDEO) DI HP */}
-                        <img src={slide.imageUrl} className="w-full h-auto aspect-video md:h-full md:aspect-auto object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
+                    <div className="absolute inset-0 z-0">
+                        {/* REVISI: Ukuran dikembalikan ke full cover */}
+                        <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                         <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
                     
                     <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-10 md:pt-0">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             {slide.tagline && (
-                                // TAGLINE LEBIH BESAR
                                 <span className="text-yellow-400 font-bold tracking-widest uppercase text-sm md:text-lg mb-4 block drop-shadow-md">
                                     {slide.tagline}
                                 </span>
                             )}
-                            {/* JUDUL UTAMA LEBIH KECIL */}
                             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-xl">
                                 {slide.title || "Driving Change, Navigating Sustainable Future"}
                             </h1>
@@ -217,7 +221,7 @@ export default function Home() {
                     })}
                 </div>
 
-                {/* BAGIAN KANAN: TEKS JUDUL (DESKRIPSI PADAT & CATCHY) */}
+                {/* BAGIAN KANAN: TEKS JUDUL */}
                 <div className="w-full lg:w-1/2 text-center lg:text-right">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
@@ -273,35 +277,33 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR (CAROUSEL / SLIDER EXPERTS) */}
+      {/* 4. TIM PAKAR (INFINITE SCROLL: KIRI SAJA) */}
       {teams.length > 0 && (
-          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300">
-            <div className="container mx-auto max-w-7xl">
+          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white border-t border-slate-800 transition-colors duration-300 overflow-hidden">
+            <div className="container mx-auto max-w-7xl px-4 md:px-12 lg:px-16">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-emerald-500 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Experts</span>
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4"></h2> {/* Subjudul dihapus */}
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4"></h2>
                 </div>
-                
-                {/* CAROUSEL CONTAINER */}
-                <div className="relative overflow-hidden w-full">
-                    <div 
-                        className="flex transition-transform duration-700 ease-in-out" 
-                        style={{ transform: `translateX(-${currentTeamIndex * (100 / (window.innerWidth < 768 ? 2 : 3))}%)` }}
-                    >
-                        {teams.map((member) => (
-                            <div key={member.id} className="min-w-[50%] md:min-w-[33.33%] px-2 md:px-3">
-                                <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
-                                    {/* FOTO DARI TENGAH (OBJECT-CENTER) */}
-                                    <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
-                                    <div className="absolute bottom-0 left-0 p-4 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
-                                        <h3 className="text-base md:text-xl font-bold mb-1 text-white">{member.name}</h3>
-                                        <p className="text-yellow-400 text-[10px] md:text-xs font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
-                                    </div>
+            </div>
+            
+            {/* INFINITE SCROLL CONTAINER */}
+            <div className="w-full overflow-hidden">
+                <div className="animate-scroll flex w-fit">
+                    {/* Render 2x list untuk efek infinite loop */}
+                    {infiniteTeams.map((member, idx) => (
+                        <div key={`${member.id}-${idx}`} className="w-[33vw] md:w-[25vw] flex-shrink-0 px-2 md:px-3">
+                            <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
+                                {/* FOTO DARI TENGAH (OBJECT-CENTER) */}
+                                <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
+                                <div className="absolute bottom-0 left-0 p-4 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
+                                    <h3 className="text-sm md:text-lg font-bold mb-1 text-white">{member.name}</h3>
+                                    <p className="text-yellow-400 text-[9px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             </div>
           </section>
@@ -312,7 +314,7 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
                 <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Insight</span>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight"></h2> {/* Subjudul dihapus */}
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4 leading-tight"></h2>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
@@ -372,7 +374,7 @@ export default function Home() {
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2> {/* Subjudul dihapus */}
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
                     {faqs.map((faq, idx) => (
@@ -388,7 +390,7 @@ export default function Home() {
           </section>
       )}
 
-      {/* CALL TO ACTION (CTA LINK DINAMIS) */}
+      {/* CALL TO ACTION */}
       <section id="kontak" className="bg-slate-900 dark:bg-black text-white pt-16 pb-12 md:pt-24 md:pb-20 px-4 md:px-12 lg:px-16 border-t-[6px] md:border-t-[8px] border-emerald-600 relative overflow-hidden transition-colors duration-300">
         <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-emerald-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 md:-ml-20 md:-mb-20 w-40 h-40 md:w-80 md:h-80 bg-yellow-600/20 rounded-full blur-2xl md:blur-3xl pointer-events-none"></div>
@@ -402,14 +404,13 @@ export default function Home() {
                 {settings.ctaDesc || "Bergabunglah dalam perjalanan pertumbuhan, keberlanjutan, dan perubahan positif. Wujudkan masa depan di mana organisasi Anda berkembang dengan cepat."}
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3 md:gap-4 px-4">
-                {/* CTA BUTTON DENGAN LINK ADMIN */}
                 <a href={settings.ctaLink || "#"} className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-emerald-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-emerald-500 hover:-translate-y-1 transition duration-300 shadow-lg text-center">Pesan Layanan</a>
                 <a href={`https://wa.me/${waNumber}`} target="_blank" className="w-full sm:w-auto px-6 py-3.5 md:px-10 md:py-5 bg-white/10 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition duration-300 backdrop-blur-sm border border-white/20 text-center">Hubungi WhatsApp</a>
             </div>
         </div>
       </section>
 
-      {/* FOOTER DINAMIS (DITAMBAH EMAIL, ALAMAT, MAPS) */}
+      {/* FOOTER DINAMIS */}
       <footer className="bg-white dark:bg-slate-950 pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
@@ -431,8 +432,6 @@ export default function Home() {
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-base leading-relaxed md:leading-loose mb-4 md:mb-8 max-w-xs md:max-w-none">
                         {settings.footerDesc || "Mempersiapkan diri menghadapi perubahan zaman dan membuat bisnis Anda tetap relevan di masa depan."}
                     </p>
-                    
-                    {/* Kontak Info */}
                     <div className="flex flex-col gap-2 w-full">
                         <a href={`https://wa.me/${waNumber}`} target="_blank" className="flex items-center justify-center md:justify-start gap-2 text-emerald-600 hover:text-emerald-700 transition">
                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
@@ -464,7 +463,6 @@ export default function Home() {
 
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Location</h4>
-                    {/* INTEGRASI MAPS (GAMBAR ATAU LINK) */}
                     {settings.mapUrl ? (
                          <a href={settings.mapLink || "#"} target="_blank" className="block w-full aspect-square rounded-xl overflow-hidden border border-slate-200 hover:opacity-80 transition">
                             <img src={settings.mapUrl} className="w-full h-full object-cover" alt="Lokasi Kami" />
@@ -489,6 +487,13 @@ export default function Home() {
                                     </div>
                                 ))}
                             </div>
+                            {partners.length > 12 && (
+                                <div className="mt-3 md:mt-5">
+                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">
+                                        Selengkapnya &rarr;
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>

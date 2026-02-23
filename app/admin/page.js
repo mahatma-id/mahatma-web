@@ -68,9 +68,10 @@ export default function AdminPage() {
     }
   }), []);
 
-  // STATE UMUM & FOOTER (DITAMBAH FIELD BARU: EMAIL, ALAMAT, MAPS, CTA LINK)
+  // STATE UMUM & FOOTER (DITAMBAH logoDarkUrl)
   const [settings, setSettings] = useState({ 
-      logoUrl: '', missionTitle: '', missionDesc: '', missionMainImg: '', 
+      logoUrl: '', logoDarkUrl: '', // <-- Tambahan Logo Dark
+      missionTitle: '', missionDesc: '', missionMainImg: '', 
       mission1Desc: '', mission2Desc: '', mission3Desc: '', mission4Desc: '',
       serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '', ctaLink: '',
@@ -158,26 +159,49 @@ export default function AdminPage() {
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
                 
-                {/* UPLOAD LOGO */}
-                <div className="mb-4 bg-slate-50 p-4 border rounded-xl">
-                    <label className="text-sm font-bold block mb-2 text-slate-700">Logo Website (Kiri Atas & Footer)</label>
-                    <div className="flex flex-col md:flex-row gap-4 items-center">
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try {
-                                    const url = await uploadToCloudinary(e.target.files[0]);
-                                    setSettings({...settings, logoUrl: url});
-                                    alert(`Logo Berhasil Diunggah! Silakan klik Simpan.`);
-                                } catch(err) { alert(err.message); }
-                                setLoading(false);
-                            }
-                        }} className="text-xs border p-2 rounded bg-white w-full md:w-auto" />
-                        {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1" alt="logo"/>}
+                {/* UPLOAD LOGO UTAMA & LOGO DARK */}
+                <div className="mb-4 bg-slate-50 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* LOGO TERANG (DEFAULT) */}
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Terang (Default)</label>
+                        <div className="flex flex-col gap-2">
+                            <input type="file" accept="image/*" onChange={async (e) => {
+                                if(e.target.files[0]) {
+                                    setLoading(true);
+                                    try {
+                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                        setSettings({...settings, logoUrl: url});
+                                        alert(`Logo Terang Berhasil Diunggah!`);
+                                    } catch(err) { alert(err.message); }
+                                    setLoading(false);
+                                }
+                            }} className="text-xs border p-2 rounded bg-white w-full" />
+                            {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1 w-fit" alt="logo"/>}
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-1">Muncul di latar putih.</p>
+                        <input type="text" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-[10px] text-slate-400" placeholder="URL Logo..." />
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-2">Untuk menghapus gambar dan kembali memakai Teks Merek, hapus link URL ini: 
-                        <input type="text" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-xs text-slate-400" />
-                    </p>
+
+                    {/* LOGO GELAP (DARK MODE) */}
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Gelap (Opsional)</label>
+                        <div className="flex flex-col gap-2">
+                            <input type="file" accept="image/*" onChange={async (e) => {
+                                if(e.target.files[0]) {
+                                    setLoading(true);
+                                    try {
+                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                        setSettings({...settings, logoDarkUrl: url});
+                                        alert(`Logo Gelap Berhasil Diunggah!`);
+                                    } catch(err) { alert(err.message); }
+                                    setLoading(false);
+                                }
+                            }} className="text-xs border p-2 rounded bg-white w-full" />
+                            {settings.logoDarkUrl && <img src={settings.logoDarkUrl} className="h-12 object-contain bg-slate-900 rounded border p-1 w-fit" alt="logo dark"/>}
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-1">Muncul otomatis saat mode gelap (latar hitam).</p>
+                        <input type="text" value={settings.logoDarkUrl || ''} onChange={e=>setSettings({...settings, logoDarkUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-[10px] text-slate-400" placeholder="URL Logo Gelap..." />
+                    </div>
                 </div>
                 
                 <div className="p-4 bg-slate-50 rounded-xl border">
@@ -243,7 +267,6 @@ export default function AdminPage() {
                     <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Deskripsi</label>
                     <textarea value={settings.ctaDesc || ''} onChange={e=>setSettings({...settings, ctaDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi ajakan..."></textarea>
                     
-                    {/* INPUT LINK CTA */}
                     <label className="text-xs md:text-sm font-bold text-slate-700 block mt-2 mb-1">Link Tombol "Pesan Layanan"</label>
                     <input type="text" value={settings.ctaLink || ''} onChange={e=>setSettings({...settings, ctaLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="https://..." />
                 </div>
@@ -323,7 +346,7 @@ export default function AdminPage() {
 
         {/* TAB LAYANAN */}
         {activeTab === 'layanan' && (
-            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
+            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.maps => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>{s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
         )}
 
         {/* TAB TIM */}
