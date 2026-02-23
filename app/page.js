@@ -4,6 +4,7 @@ import { collection, query, orderBy, onSnapshot, limit, doc } from 'firebase/fir
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle'; 
+import { useTheme } from 'next-themes'; // <-- IMPORT UNTUK DETEKSI TEMA
 
 export default function Home() {
   const [settings, setSettings] = useState({});
@@ -14,6 +15,9 @@ export default function Home() {
   
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
+  // State untuk Carousel Tim
+  const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
+
   const [testimonials, setTestimonials] = useState([]);
   const [faqs, setFaqs] = useState([]);
   
@@ -22,7 +26,13 @@ export default function Home() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // LOGIKA TEMA (UNTUK GANTI LOGO)
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true); // Menandakan komponen sudah di-load di browser
+
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "asc")), snap => { setSliders(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     
@@ -80,8 +90,12 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
-                // LOGO LANDSCAPE 1x4
-                <img src={settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
+                // LOGIKA LOGO GANDA: Cek jika Dark Mode aktif & Logo Dark tersedia
+                <img 
+                    src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
+                    alt="Logo" 
+                    className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
+                />
             ) : (
                 <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
                     <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
@@ -134,7 +148,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION (BACKGROUND KEMBALI KE UKURAN SEMULA/FULL) */}
+      {/* 1. HERO SECTION */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
@@ -143,7 +157,6 @@ export default function Home() {
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
                     <div className="absolute inset-0 z-0">
-                        {/* REVISI: Ukuran dikembalikan ke full cover */}
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                         <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
@@ -194,7 +207,6 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col-reverse lg:flex-row gap-10 md:gap-16 items-center">
                 
-                {/* BAGIAN KIRI: KARTU MISI SHUFFLE */}
                 <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px]">
                     {[1, 2, 3, 4].map((num, idx) => {
                         const desc = settings[`mission${num}Desc`];
@@ -221,7 +233,6 @@ export default function Home() {
                     })}
                 </div>
 
-                {/* BAGIAN KANAN: TEKS JUDUL */}
                 <div className="w-full lg:w-1/2 text-center lg:text-right">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
@@ -277,9 +288,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR (INFINITE SCROLL: KIRI SAJA) */}
+      {/* 4. TIM PAKAR (INFINITE SCROLL) */}
       {teams.length > 0 && (
-          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white border-t border-slate-800 transition-colors duration-300 overflow-hidden">
+          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300 overflow-hidden">
             <div className="container mx-auto max-w-7xl px-4 md:px-12 lg:px-16">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-emerald-500 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Experts</span>
@@ -338,7 +349,7 @@ export default function Home() {
 
             <div className="mt-10 md:mt-14 text-center">
                 <Link href="/berita" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 dark:hover:bg-slate-800 hover:text-white transition duration-300 shadow-sm border border-slate-200 dark:border-slate-800">
-                    Lihat Semua Berita &rarr;
+                    Lihat Semua Berita →
                 </Link>
             </div>
         </div>
@@ -416,8 +427,13 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
+                        {/* LOGIKA LOGO GANDA */}
                         {settings.logoUrl ? (
-                            <img src={settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
+                            <img 
+                                src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
+                                alt="Logo" 
+                                className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
+                            />
                         ) : (
                             <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
                                 <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
