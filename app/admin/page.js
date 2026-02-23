@@ -71,7 +71,10 @@ export default function AdminPage() {
   // STATE UMUM & FOOTER
   const [settings, setSettings] = useState({ 
       logoUrl: '', missionTitle: '', missionDesc: '', missionMainImg: '', 
-      mission1Desc: '', mission2Desc: '', mission3Desc: '', mission4Desc: '',
+      mission1Title: '', mission1Img: '', mission1Desc: '', 
+      mission2Title: '', mission2Img: '', mission2Desc: '', 
+      mission3Title: '', mission3Img: '', mission3Desc: '', 
+      mission4Title: '', mission4Img: '', mission4Desc: '',
       serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
       aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '',
       footerDesc: '', phone: '', linkedin: '', youtube: '', instagram: ''
@@ -156,14 +159,34 @@ export default function AdminPage() {
         {/* TAB UMUM */}
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div><label className="font-bold text-slate-700 text-sm">URL Logo Utama</label><input type="url" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 focus:border-orange-500 outline-none text-sm" placeholder="https://..." /></div>
                 
-                {/* --- BAGIAN OUR MISSION DIPERBAIKI --- */}
+                {/* UPLOAD LOGO DIPERBAIKI MENJADI TOMBOL FILE */}
+                <div className="mb-4 bg-slate-50 p-4 border rounded-xl">
+                    <label className="text-sm font-bold block mb-2 text-slate-700">Logo Website (Kiri Atas & Footer)</label>
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, logoUrl: url});
+                                    alert(`Logo Berhasil Diunggah! Silakan klik Simpan.`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-xs border p-2 rounded bg-white w-full md:w-auto" />
+                        {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1" alt="logo"/>}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-2">Untuk menghapus gambar dan kembali memakai Teks Merek, hapus link URL ini: 
+                        <input type="text" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-xs text-slate-400" />
+                    </p>
+                </div>
+                
                 <div className="p-4 bg-slate-50 rounded-xl border">
                     <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Mission</h3>
                     
                     <div className="mb-4 bg-white p-3 border rounded-lg">
-                        <label className="text-xs font-bold block mb-2 text-slate-700">Gambar Utama Misi (Untuk Area Kiri)</label>
+                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Utama Misi (Area Kiri)</label>
                         <input type="file" accept="image/*" onChange={async (e) => {
                             if(e.target.files[0]) {
                                 setLoading(true);
@@ -174,8 +197,8 @@ export default function AdminPage() {
                                 } catch(err) { alert(err.message); }
                                 setLoading(false);
                             }
-                        }} className="text-xs border p-2 rounded w-full" />
-                        {settings.missionMainImg && <img src={settings.missionMainImg} className="h-24 mt-2 object-cover rounded border" alt="preview"/>}
+                        }} className="text-[10px] border p-1 rounded w-full" />
+                        {settings.missionMainImg && <img src={settings.missionMainImg} className="h-24 mt-2 object-cover rounded border p-1" alt="preview"/>}
                     </div>
 
                     <label className="text-xs font-bold block mb-1 text-slate-700">Judul Utama Misi (Area Kanan Atas)</label>
@@ -193,7 +216,7 @@ export default function AdminPage() {
                                     placeholder={`Isi Poin Misi ${num} (Contoh: 1. Cultivating Leadership...)`} 
                                     value={settings[`mission${num}Desc`] || ''} 
                                     onChange={e=>setSettings({...settings, [`mission${num}Desc`]: e.target.value})} 
-                                    className="w-full border p-2 rounded text-sm" 
+                                    className="w-full border p-2 rounded text-sm outline-none focus:border-orange-400" 
                                 />
                             </div>
                         ))}
@@ -261,7 +284,7 @@ export default function AdminPage() {
 
         {/* TAB LAYANAN */}
         {activeTab === 'layanan' && (
-            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>{s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
+            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
         )}
 
         {/* TAB TIM */}
