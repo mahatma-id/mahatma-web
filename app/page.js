@@ -359,7 +359,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[20px] md:text-xs mb-3 block">FAQ</span>
+                    <span className="text-orange-600 font-bold tracking-widest uppercase text-[200px] md:text-xs mb-3 block">FAQ</span>
                     <h2 className="text-2xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
