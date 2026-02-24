@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from "next/script"; 
 import FloatingWA from "@/components/FloatingWA"; 
 import { ThemeProvider } from "@/components/ThemeProvider"; 
+import CookieBanner from "@/components/CookieBanner"; // <-- 1. IMPORT COOKIE BANNER
 
 // Konfigurasi Font Merriweather
 const merriweather = Merriweather({ 
@@ -78,6 +79,9 @@ export default function RootLayout({ children }) {
         {/* ThemeProvider membungkus seluruh aplikasi */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
+            
+            {/* --- 2. PASANG KOMPONEN COOKIE BANNER DISINI --- */}
+            <CookieBanner /> 
             
             {/* --- TAMBAHAN TOMBOL WA MELAYANG --- */}
             <FloatingWA />
