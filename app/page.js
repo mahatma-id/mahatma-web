@@ -128,7 +128,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION (FULL SIZE BACKGROUND) */}
+      {/* 1. HERO SECTION */}
       <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
@@ -137,7 +137,6 @@ export default function Home() {
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
                     <div className="absolute inset-0 z-0">
-                        {/* UKURAN ASLI (FULL COVER) */}
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                         <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
@@ -188,7 +187,6 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col-reverse lg:flex-row gap-10 md:gap-16 items-center">
                 
-                {/* BAGIAN KIRI: KARTU MISI SHUFFLE */}
                 <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px]">
                     {[1, 2, 3, 4].map((num, idx) => {
                         const desc = settings[`mission${num}Desc`];
@@ -215,7 +213,6 @@ export default function Home() {
                     })}
                 </div>
 
-                {/* BAGIAN KANAN: TEKS JUDUL */}
                 <div className="w-full lg:w-1/2 text-center lg:text-right">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
@@ -280,14 +277,12 @@ export default function Home() {
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4"></h2>
                 </div>
 
-                {/* GRID 4 KOLOM DI LAPTOP, 4 KOLOM KECIL DI HP (SCROLLABLE JIKA PERLU) */}
                 <div className="grid grid-cols-4 gap-2 md:gap-6">
                     {displayedTeams.map((member) => (
                         <div key={member.id} className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
                             <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 p-2 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
-                                {/* Di HP text lebih kecil */}
                                 <h3 className="text-[10px] md:text-lg font-bold mb-0.5 md:mb-1 text-white leading-tight">{member.name}</h3>
                                 <p className="text-yellow-400 text-[8px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
                             </div>
@@ -295,7 +290,6 @@ export default function Home() {
                     ))}
                 </div>
 
-                {/* TOMBOL SEE MORE JIKA LEBIH DARI 4 */}
                 {teams.length > 4 && (
                     <div className="mt-8 md:mt-12 text-center">
                         <Link href="/tim" className="inline-block px-8 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-500 transition shadow-lg text-xs md:text-sm uppercase tracking-widest">
@@ -371,7 +365,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">FAQ</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
@@ -408,7 +402,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER DINAMIS */}
+      {/* FOOTER DINAMIS (UPDATE LINK PRIVACY) */}
       <footer className="bg-white dark:bg-slate-950 pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
@@ -507,8 +501,8 @@ export default function Home() {
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
                 <p className="mb-3 md:mb-0">&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex justify-center gap-4 md:gap-6">
-                    <a href="#" className="hover:text-emerald-600 transition">Privacy Policy</a>
-                    <a href="#" className="hover:text-emerald-600 transition">Terms of Service</a>
+                    <Link href="/privacy-policy" className="hover:text-emerald-600 transition">Privacy Policy</Link>
+                    <Link href="/terms-of-service" className="hover:text-emerald-600 transition">Terms of Service</Link>
                 </div>
             </div>
         </div>
