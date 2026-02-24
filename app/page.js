@@ -16,10 +16,6 @@ export default function Home() {
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
   
-  // State untuk Carousel Tim & Logika Slide
-  const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
-  const [visibleTeamCards, setVisibleTeamCards] = useState(4); // Default Laptop 4
-
   const [testimonials, setTestimonials] = useState([]);
   const [faqs, setFaqs] = useState([]);
   
@@ -32,20 +28,6 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-
-    // Deteksi ukuran layar untuk menentukan jumlah kartu tim (HP=3, Laptop=4)
-    const handleResize = () => {
-        if (window.innerWidth < 768) {
-            setVisibleTeamCards(3);
-        } else {
-            setVisibleTeamCards(4);
-        }
-    };
-    
-    // Jalankan saat awal mount
-    handleResize();
-    
-    window.addEventListener('resize', handleResize);
 
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { if(snap.exists()) setSettings(snap.data()); });
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "asc")), snap => { setSliders(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
@@ -62,33 +44,15 @@ export default function Home() {
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => { setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
 
-    return () => { 
-        window.removeEventListener('resize', handleResize);
-        unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); 
-    };
+    return () => { unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); };
   }, []);
 
-  // SLIDER HERO (5 Detik)
+  // DURASI SLIDER HERO: 5 Detik
   useEffect(() => {
       if (sliders.length <= 1) return;
       const interval = setInterval(() => { setCurrentSlide(prev => (prev + 1) % sliders.length); }, 5000);
       return () => clearInterval(interval);
   }, [sliders.length]);
-
-  // SLIDER EXPERTS (5 Detik, hanya jika jumlah tim melebihi batas tampilan)
-  useEffect(() => {
-    // Jika jumlah tim kurang atau sama dengan yang ditampilkan, jangan slide
-    if (teams.length <= visibleTeamCards) {
-        setCurrentTeamIndex(0); // Reset ke posisi awal agar rapi
-        return;
-    }
-
-    const interval = setInterval(() => {
-        setCurrentTeamIndex(prev => (prev + 1) % teams.length);
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [teams.length, visibleTeamCards]);
 
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
@@ -96,8 +60,8 @@ export default function Home() {
       waNumber = '62' + waNumber.substring(1);
   }
 
-  // LOGIKA "CONTINUOUS SLIDE": Duplikasi array tim agar saat di slide terakhir ada data yang mengisi kekosongan di kanan
-  const displayTeams = teams.length > visibleTeamCards ? [...teams, ...teams.slice(0, visibleTeamCards)] : teams;
+  // LIMIT TAMPILAN TIM (HANYA 4 PERTAMA)
+  const displayedTeams = teams.slice(0, 4);
 
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
@@ -173,7 +137,7 @@ export default function Home() {
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
                     <div className="absolute inset-0 z-0">
-                        {/* UKURAN ASLI (FULL COVER) - TIDAK DIPAKSA ASPECT-VIDEO */}
+                        {/* UKURAN ASLI (FULL COVER) */}
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
                         <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
@@ -307,42 +271,38 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR (SLIDER OTOMATIS JIKA JUMLAH TIM > VISIBLE) */}
+      {/* 4. TIM PAKAR (GRID JEJER 4) */}
       {teams.length > 0 && (
-          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300 overflow-hidden">
-            <div className="container mx-auto max-w-7xl px-4 md:px-12 lg:px-16">
+          <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300">
+            <div className="container mx-auto max-w-7xl">
                 <div className="text-center mb-8 md:mb-12">
                     <span className="text-emerald-500 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Experts</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4"></h2>
                 </div>
-            </div>
-            
-            <div className="w-full overflow-hidden container mx-auto max-w-7xl">
-                <div 
-                    className={`flex gap-4 transition-transform duration-700 ease-in-out ${teams.length > visibleTeamCards ? '' : 'justify-center'}`}
-                    style={{ 
-                        transform: teams.length > visibleTeamCards ? `translateX(-${currentTeamIndex * (100 / visibleTeamCards)}%)` : 'none',
-                        width: teams.length > visibleTeamCards ? `${displayTeams.length * (100/visibleTeamCards)}%` : '100%'
-                    }}
-                >
-                    {(teams.length > visibleTeamCards ? displayTeams : teams).map((member, idx) => (
-                        <div 
-                            key={`${member.id}-${idx}`} 
-                            className="flex-shrink-0 px-2 box-border"
-                            style={{ width: `${100 / visibleTeamCards}%`, minWidth: `${100 / visibleTeamCards}%` }}
-                        >
-                            <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4] w-full">
-                                {/* FOTO DARI TENGAH (OBJECT-CENTER) */}
-                                <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
-                                <div className="absolute bottom-0 left-0 p-4 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
-                                    <h3 className="text-sm md:text-lg font-bold mb-1 text-white">{member.name}</h3>
-                                    <p className="text-yellow-400 text-[9px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
-                                </div>
+
+                {/* GRID 4 KOLOM DI LAPTOP, 4 KOLOM KECIL DI HP (SCROLLABLE JIKA PERLU) */}
+                <div className="grid grid-cols-4 gap-2 md:gap-6">
+                    {displayedTeams.map((member) => (
+                        <div key={member.id} className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
+                            <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
+                            <div className="absolute bottom-0 left-0 p-2 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
+                                {/* Di HP text lebih kecil */}
+                                <h3 className="text-[10px] md:text-lg font-bold mb-0.5 md:mb-1 text-white leading-tight">{member.name}</h3>
+                                <p className="text-yellow-400 text-[8px] md:text-[10px] font-bold tracking-widest uppercase line-clamp-1">{member.role}</p>
                             </div>
                         </div>
                     ))}
                 </div>
+
+                {/* TOMBOL SEE MORE JIKA LEBIH DARI 4 */}
+                {teams.length > 4 && (
+                    <div className="mt-8 md:mt-12 text-center">
+                        <Link href="/tim" className="inline-block px-8 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-500 transition shadow-lg text-xs md:text-sm uppercase tracking-widest">
+                            See More →
+                        </Link>
+                    </div>
+                )}
             </div>
           </section>
       )}
