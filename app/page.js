@@ -215,12 +215,11 @@ export default function Home() {
 
                 <div className="w-full lg:w-1/2 text-center lg:text-right">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
+                    {/* UPDATED: Ukuran Font Diperkecil */}
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
                         {settings.missionTitle || "Integrated Solution for Your Needs"}
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">
-                        {settings.missionDesc || "Kami memiliki misi untuk mendorong perubahan berkelanjutan dengan memberdayakan individu dan organisasi."}
-                    </p>
+                    {/* UPDATED: Deskripsi Misi DIHAPUS */}
                 </div>
 
             </div>
@@ -233,7 +232,8 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Service</span>
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
+                    {/* UPDATED: Ukuran Font Diperkecil */}
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
                 {settings.serviceImageUrl && (
@@ -365,7 +365,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">FAQ</span>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[20px] md:text-sm mb-3 block">FAQ</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
