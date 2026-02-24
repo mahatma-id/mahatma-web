@@ -1,22 +1,47 @@
 import { Merriweather } from "next/font/google";
 import "./globals.css";
-import Script from "next/script"; // <-- Tambahan Import Script untuk Analytics
-import FloatingWA from "@/components/FloatingWA"; // <-- TAMBAHAN IMPORT TOMBOL WA
-import { ThemeProvider } from "@/components/ThemeProvider"; // <-- TAMBAHAN IMPORT THEME PROVIDER
+import Script from "next/script"; 
+import FloatingWA from "@/components/FloatingWA"; 
+import { ThemeProvider } from "@/components/ThemeProvider"; 
 
 // Konfigurasi Font Merriweather
 const merriweather = Merriweather({ 
   subsets: ["latin"],
-  weight: ['300', '400', '700', '900'], // Mengambil ketebalan tipis hingga sangat tebal
-  style: ['normal', 'italic'],          // Mengambil gaya normal dan miring
+  weight: ['300', '400', '700', '900'], 
+  style: ['normal', 'italic'],          
   display: 'swap',
 });
 
+// PENGATURAN METADATA (SEO & BRANDING)
 export const metadata = {
-  title: "Mahatma Academy - Driving Transformation for Sustainable Education",
-  description: "Driving Transformation for Sustainable Education",
+  // Judul di Tab Browser
+  title: "Mahatma Academy - Beyond Excellent, Toward Sustainability",
+  
+  // Deskripsi di Google Search
+  description: "Guiding transformation for sustainable education. We empower institutions with data-driven strategies, AI integration, and visionary leadership to build sustainability.",
+  
+  // Nama Aplikasi (Muncul saat di-install/di-bookmark)
+  applicationName: "MASE",
+
+  // Verifikasi Google (Tetap dipertahankan)
   verification: {
     google: '-A5vyw3KREyo809TVLGK0L15oFsGtZ055M1hIB99L8Q',
+  },
+
+  // Pengaturan Logo / Favicon
+  // Pastikan Anda sudah upload file 'icon.png' ke dalam folder 'app/'
+  icons: {
+    icon: '/icon.png', 
+    apple: '/icon.png',
+  },
+
+  // Tampilan saat link dibagikan di Sosmed (WA/FB/Twitter)
+  openGraph: {
+    siteName: "MASE",
+    title: "Mahatma Academy - Beyond Excellent, Toward Sustainability",
+    description: "Guiding transformation for sustainable education. We empower institutions with data-driven strategies, AI integration, and visionary leadership to build sustainability.",
+    type: "website",
+    locale: "id_ID",
   },
 };
 
