@@ -25,6 +25,7 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false); // State baru untuk deteksi scroll
 
   useEffect(() => {
     setMounted(true);
@@ -44,7 +45,21 @@ export default function Home() {
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => { setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
 
-    return () => { unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); };
+    // Listener untuk mendeteksi scroll
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => { 
+        unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); 
+        window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   // DURASI SLIDER HERO: 5 Detik
@@ -66,45 +81,52 @@ export default function Home() {
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
 
-      <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
-        <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
+      {/* HEADER DIPERBARUI: Posisi absolute, transparan saat di atas, solid saat discroll */}
+      <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
+        <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
                 <img 
-                    src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
+                    src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl && isScrolled ? settings.logoDarkUrl : (isScrolled ? settings.logoUrl : settings.logoUrl)} // Anda mungkin ingin menggunakan versi logo terang/putih jika header transparan dan background gelap, silakan sesuaikan logika ini
                     alt="Logo" 
-                    className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
+                    className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
             ) : (
                 <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                    <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                    <span className={`font-extrabold text-base md:text-xl tracking-tight transition-colors ${isScrolled ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
                         Mahatma <span className="text-emerald-600">Academy</span>
                     </span>
-                    <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
+                    <span className={`text-[7px] md:text-[10px] font-bold tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0 ${isScrolled ? 'text-slate-500 dark:text-slate-400' : 'text-white/80 drop-shadow-md'}`}>
                         <span className="hidden md:inline">- </span>Driving Transformation
                     </span>
                 </div>
             )}
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase text-slate-600 dark:text-slate-300">
-            <a href="#layanan" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
-            <Link href="/tentang-kami" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
-            <a href="#tim" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</a>
-            <a href="#insight" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
+          {/* Navigasi Desktop */}
+          <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
+            <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
+            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
+            <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</a>
+            <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
-            <ThemeToggle />
-            <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
-            <a href="#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
+            {/* Theme Toggle - bisa disesuaikan warnanya jika diperlukan saat transparan */}
+            <div className={isScrolled ? '' : 'text-white'}>
+                 <ThemeToggle />
+            </div>
+            <Link href="/admin" className={`text-xs font-bold uppercase tracking-widest mr-4 transition ${isScrolled ? 'text-slate-400 hover:text-slate-800 dark:hover:text-white' : 'text-white/80 hover:text-white drop-shadow-md'}`}>Admin</Link>
+            <a href="#kontak" className={`px-6 py-2.5 font-bold text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]'}`}>
               Join Us
             </a>
           </div>
 
           <div className="lg:hidden flex items-center gap-3 z-50">
-            <ThemeToggle />
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-900 dark:text-white focus:outline-none p-2">
+            <div className={isScrolled || isMobileMenuOpen ? '' : 'text-white'}>
+                <ThemeToggle />
+            </div>
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`focus:outline-none p-2 ${isScrolled || isMobileMenuOpen ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}
                 </svg>
@@ -112,6 +134,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Menu Mobile */}
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
@@ -127,8 +150,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION */}
-      <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
+      {/* 1. HERO SECTION - Tinggi diubah jadi 100vh agar penuh */}
+      <section className="relative h-screen bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
@@ -137,17 +160,19 @@ export default function Home() {
                     
                     <div className="absolute inset-0 z-0">
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
-                        <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
+                        {/* Gradient dari atas agar teks logo tetap terbaca jika header transparan */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-10 md:pt-0">
+                    {/* Padding atas ditambah agar konten tidak tertutup header transparan */}
+                    <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-20">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             {slide.tagline && (
                                 <span className="text-yellow-400 font-bold tracking-widest uppercase text-sm md:text-lg mb-4 block drop-shadow-md">
                                     {slide.tagline}
                                 </span>
                             )}
-                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-xl">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-2xl">
                                 {slide.title || "Driving Change, Navigating Sustainable Future"}
                             </h1>
                             {slide.subtitle && (
@@ -181,12 +206,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION - LAYOUT BARU: Kiri Gambar, Kanan (Teks + Kartu) */}
+      {/* 2. OUR MISSION */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
                 
-                {/* --- KOLOM KIRI: GAMBAR MISI --- */}
                 <div className="w-full lg:w-5/12">
                     {settings.missionImageUrl ? (
                         <div className="relative w-full aspect-[3/4] md:aspect-square lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl group">
@@ -198,17 +222,14 @@ export default function Home() {
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
                         </div>
                     ) : (
-                        // Placeholder jika gambar belum diupload
                         <div className="w-full aspect-square rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400">
                             No Mission Image
                         </div>
                     )}
                 </div>
 
-                {/* --- KOLOM KANAN: TEKS + KARTU MISI --- */}
                 <div className="w-full lg:w-7/12 flex flex-col">
                     
-                    {/* Header Teks */}
                     <div className="text-left mb-10">
                         <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">
@@ -216,13 +237,11 @@ export default function Home() {
                         </h2>
                     </div>
 
-                    {/* Area Kartu Misi (Di bawah teks, tapi tetap di kolom kanan) */}
                     <div className="relative w-full h-[450px]">
                         {[1, 2, 3, 4].map((num, idx) => {
                             const desc = settings[`mission${num}Desc`];
                             if (!desc) return null; 
                             
-                            // Logika posisi bertumpuk (shuffling)
                             const positions = [
                                 "top-0 left-0 z-40 transform hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-xl",
                                 "top-12 left-4 md:left-8 z-30 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-lg",
@@ -256,7 +275,6 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Services</span>
-                    {/* Ukuran Font Diperkecil */}
                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
@@ -370,7 +388,7 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                     {testimonials.map(testi => (
-                        <div key={testi.id} className="bg-white dark:bg-slate-900 p-5 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-300">
+                        <div key={testi.id} className="bg-white dark:bg-slate-950 p-5 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-300">
                             <span className="absolute top-2 right-4 md:top-4 md:right-6 text-3xl md:text-5xl text-slate-100 dark:text-slate-800 font-serif group-hover:text-yellow-100 dark:group-hover:text-yellow-900 transition-colors">"</span>
                             <p className="text-slate-600 dark:text-slate-400 text-xs md:text-base italic leading-relaxed mb-4 md:mb-8 relative z-10">{testi.text}</p>
                             <div className="flex items-center gap-3 md:gap-4 border-t border-slate-100 dark:border-slate-800 pt-4 md:pt-6">
