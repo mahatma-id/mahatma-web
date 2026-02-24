@@ -70,7 +70,6 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
-                // LOGO LANDSCAPE 1x4 (Otomatis ganti Dark/Light)
                 <img 
                     src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
                     alt="Logo" 
@@ -182,44 +181,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. OUR MISSION */}
+      {/* 2. OUR MISSION - LAYOUT BARU: Kiri Gambar, Kanan (Teks + Kartu) */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
-            <div className="flex flex-col-reverse lg:flex-row gap-10 md:gap-16 items-center">
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
                 
-                <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px]">
-                    {[1, 2, 3, 4].map((num, idx) => {
-                        const desc = settings[`mission${num}Desc`];
-                        if (!desc) return null; 
-                        
-                        const positions = [
-                            "top-0 left-0 z-40 transform hover:scale-105 hover:-translate-y-4 hover:z-50",
-                            "top-12 left-6 md:left-12 z-30 transform rotate-2 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50",
-                            "top-24 left-12 md:left-24 z-20 transform -rotate-2 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50",
-                            "top-36 left-16 md:left-32 z-10 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-4 hover:z-50"
-                        ];
-
-                        return (
-                            <div key={num} className={`absolute w-full max-w-sm bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 transition-all duration-500 cursor-pointer ${positions[idx]}`}>
-                                <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-100 dark:bg-slate-700 group-hover:bg-emerald-500 transition-colors"></div>
-                                <div className="flex items-start gap-4">
-                                    <span className="text-3xl md:text-4xl font-black text-emerald-100 dark:text-slate-700">0{num}</span>
-                                    <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-semibold">
-                                        {desc}
-                                    </p>
-                                </div>
-                            </div>
-                        )
-                    })}
+                {/* --- KOLOM KIRI: GAMBAR MISI --- */}
+                <div className="w-full lg:w-5/12">
+                    {settings.missionImageUrl ? (
+                        <div className="relative w-full aspect-[3/4] md:aspect-square lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl group">
+                            <img 
+                                src={settings.missionImageUrl} 
+                                alt="Our Mission" 
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
+                        </div>
+                    ) : (
+                        // Placeholder jika gambar belum diupload
+                        <div className="w-full aspect-square rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                            No Mission Image
+                        </div>
+                    )}
                 </div>
 
-                <div className="w-full lg:w-1/2 text-center lg:text-right">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
-                    {/* UPDATED: Ukuran Font Diperkecil */}
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-6 leading-tight">
-                        {settings.missionTitle || "Integrated Solution for Your Needs"}
-                    </h2>
-                    {/* UPDATED: Deskripsi Misi DIHAPUS */}
+                {/* --- KOLOM KANAN: TEKS + KARTU MISI --- */}
+                <div className="w-full lg:w-7/12 flex flex-col">
+                    
+                    {/* Header Teks */}
+                    <div className="text-left mb-10">
+                        <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
+                        <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+                            {settings.missionTitle || "Integrated Solution for Your Needs"}
+                        </h2>
+                    </div>
+
+                    {/* Area Kartu Misi (Di bawah teks, tapi tetap di kolom kanan) */}
+                    <div className="relative w-full h-[450px]">
+                        {[1, 2, 3, 4].map((num, idx) => {
+                            const desc = settings[`mission${num}Desc`];
+                            if (!desc) return null; 
+                            
+                            // Logika posisi bertumpuk (shuffling)
+                            const positions = [
+                                "top-0 left-0 z-40 transform hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-xl",
+                                "top-12 left-4 md:left-8 z-30 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-lg",
+                                "top-24 left-8 md:left-16 z-20 transform -rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-md",
+                                "top-36 left-12 md:left-24 z-10 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-sm"
+                            ];
+
+                            return (
+                                <div key={num} className={`absolute w-full max-w-md bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 transition-all duration-500 cursor-pointer ${positions[idx]}`}>
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-100 dark:bg-slate-700 group-hover:bg-emerald-500 transition-colors"></div>
+                                    <div className="flex items-start gap-4">
+                                        <span className="text-3xl md:text-4xl font-black text-emerald-100 dark:text-slate-700">0{num}</span>
+                                        <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-semibold">
+                                            {desc}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
                 </div>
 
             </div>
@@ -232,7 +256,7 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
                     <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Service</span>
-                    {/* UPDATED: Ukuran Font Diperkecil */}
+                    {/* Ukuran Font Diperkecil */}
                     <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">{settings.serviceTitle || "Layanan Terbaik Untuk Anda."}</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">{settings.serviceDesc || "Jelajahi layanan konsultasi dan pelatihan kami yang dirancang untuk mengkatalisasi pertumbuhan."}</p>
                 </div>
@@ -346,7 +370,7 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                     {testimonials.map(testi => (
-                        <div key={testi.id} className="bg-white dark:bg-slate-950 p-5 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-300">
+                        <div key={testi.id} className="bg-white dark:bg-slate-900 p-5 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 relative group hover:-translate-y-2 transition-all duration-300">
                             <span className="absolute top-2 right-4 md:top-4 md:right-6 text-3xl md:text-5xl text-slate-100 dark:text-slate-800 font-serif group-hover:text-yellow-100 dark:group-hover:text-yellow-900 transition-colors">"</span>
                             <p className="text-slate-600 dark:text-slate-400 text-xs md:text-base italic leading-relaxed mb-4 md:mb-8 relative z-10">{testi.text}</p>
                             <div className="flex items-center gap-3 md:gap-4 border-t border-slate-100 dark:border-slate-800 pt-4 md:pt-6">
@@ -365,7 +389,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[20px] md:text-sm mb-3 block">FAQ</span>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
