@@ -153,7 +153,25 @@ export default function Home() {
       {/* 1. HERO SECTION - Tinggi diubah jadi 100vh agar penuh */}
       <section className="relative h-screen bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-50">
+                {settings.logoDarkUrl || settings.logoUrl ? (
+                    <img 
+                        src={settings.logoDarkUrl || settings.logoUrl} 
+                        alt="Loading..." 
+                        className="h-12 md:h-16 w-auto object-contain animate-pulse mb-6 drop-shadow-lg" 
+                    />
+                ) : (
+                    <span className="font-extrabold text-2xl md:text-3xl tracking-tight animate-pulse mb-6 text-emerald-500">
+                        Mahatma <span className="text-white">Academy</span>
+                    </span>
+                )}
+                {/* Animasi titik loading tambahan di bawah logo */}
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite_400ms]"></div>
+                </div>
+            </div>
         ) : (
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
