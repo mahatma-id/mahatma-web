@@ -376,7 +376,7 @@ export default function Home() {
 
             <div className="mt-10 md:mt-14 text-center">
                 <Link href="/berita" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 dark:hover:bg-slate-800 hover:text-white transition duration-300 shadow-sm border border-slate-200 dark:border-slate-800">
-                    Lihat Semua Berita &rarr;
+                    Lihat Semua Berita →
                 </Link>
             </div>
         </div>
