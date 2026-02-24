@@ -68,13 +68,15 @@ export default function AdminPage() {
     }
   }), []);
 
-  // STATE UMUM & FOOTER (DITAMBAH logoDarkUrl)
+  // STATE UMUM & FOOTER
   const [settings, setSettings] = useState({ 
-      logoUrl: '', logoDarkUrl: '', // <-- Tambahan Logo Dark
+      logoUrl: '', logoDarkUrl: '', 
       missionTitle: '', missionDesc: '', missionMainImg: '', 
       mission1Desc: '', mission2Desc: '', mission3Desc: '', mission4Desc: '',
       serviceTitle: '', serviceDesc: '', serviceImageUrl: '',
-      aboutTitle: '', aboutDesc: '', ctaTitle: '', ctaDesc: '', ctaLink: '',
+      // Setting About Us dipisah ke Tab sendiri, tapi state tetap disini
+      aboutTitle: '', aboutDesc: '', aboutImageUrl: '', 
+      ctaTitle: '', ctaDesc: '', ctaLink: '',
       footerDesc: '', phone: '', email: '', address: '', mapUrl: '', mapLink: '',
       linkedin: '', youtube: '', instagram: ''
   });
@@ -147,7 +149,7 @@ export default function AdminPage() {
         <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center"><div><h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1><p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p></div><button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
             <div><p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p><nav className="space-y-1">{[{ id: 'blog', label: 'Wawasan (Blog)' }, { id: 'layanan', label: 'Kelola Layanan' }, { id: 'mitra', label: 'Mitra & Klien' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav></div>
-            <div><p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p><nav className="space-y-1">{[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav></div>
+            <div><p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p><nav className="space-y-1">{[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'tentang', label: 'Halaman Tentang Kami' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav></div>
         </div>
         <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-2 pb-6 md:pb-4"><Link href="/" target="_blank" className="flex-1 text-center py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">WEB ↗</Link><button onClick={handleLogout} className="flex-1 py-2.5 bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white rounded text-[10px] font-bold transition">LOGOUT</button></div>
       </aside>
@@ -159,7 +161,7 @@ export default function AdminPage() {
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
                 
-                {/* UPLOAD LOGO UTAMA & LOGO DARK */}
+                {/* UPLOAD LOGO 2 MODE (LIGHT & DARK) */}
                 <div className="mb-4 bg-slate-50 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* LOGO TERANG (DEFAULT) */}
                     <div>
@@ -179,7 +181,6 @@ export default function AdminPage() {
                             {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1 w-fit" alt="logo"/>}
                         </div>
                         <p className="text-[9px] text-slate-400 mt-1">Muncul di latar putih.</p>
-                        <input type="text" value={settings.logoUrl || ''} onChange={e=>setSettings({...settings, logoUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-[10px] text-slate-400" placeholder="URL Logo..." />
                     </div>
 
                     {/* LOGO GELAP (DARK MODE) */}
@@ -200,7 +201,6 @@ export default function AdminPage() {
                             {settings.logoDarkUrl && <img src={settings.logoDarkUrl} className="h-12 object-contain bg-slate-900 rounded border p-1 w-fit" alt="logo dark"/>}
                         </div>
                         <p className="text-[9px] text-slate-400 mt-1">Muncul otomatis saat mode gelap (latar hitam).</p>
-                        <input type="text" value={settings.logoDarkUrl || ''} onChange={e=>setSettings({...settings, logoDarkUrl: e.target.value})} className="w-full border p-1 mt-1 rounded text-[10px] text-slate-400" placeholder="URL Logo Gelap..." />
                     </div>
                 </div>
                 
@@ -253,14 +253,6 @@ export default function AdminPage() {
                 </div>
 
                 <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-indigo-600 border-b pb-2 text-sm md:text-base">Halaman: Tentang Kami (About Us)</h3>
-                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Judul Utama (Hero)</label>
-                    <input type="text" value={settings.aboutTitle || ''} onChange={e=>setSettings({...settings, aboutTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Cth: Membangun Masa Depan yang Berkelanjutan." />
-                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
-                    <textarea value={settings.aboutDesc || ''} onChange={e=>setSettings({...settings, aboutDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi singkat..."></textarea>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-xl border">
                     <h3 className="font-bold mb-4 text-red-600 border-b pb-2 text-sm md:text-base">Bagian: Call To Action (Siap Untuk Berubah?)</h3>
                     <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Judul Call To Action</label>
                     <input type="text" value={settings.ctaTitle || ''} onChange={e=>setSettings({...settings, ctaTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Cth: Siap Untuk Berubah?" />
@@ -273,6 +265,42 @@ export default function AdminPage() {
                 
                 <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan</button>
             </form>
+        )}
+
+        {/* TAB TENTANG KAMI (KHUSUS HALAMAN ABOUT US) */}
+        {activeTab === 'tentang' && (
+            <div className="max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="font-bold mb-6 text-indigo-600 text-lg border-b pb-2">Pengaturan Halaman Tentang Kami</h3>
+                <form onSubmit={saveSettings} className="space-y-6">
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Gambar Sampul (Hero Image)</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, aboutImageUrl: url});
+                                    alert(`Gambar Sampul About Us Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-xs border p-2 rounded w-full" />
+                        {settings.aboutImageUrl && <img src={settings.aboutImageUrl} className="h-32 mt-2 object-cover rounded border" alt="about hero"/>}
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-bold block mb-1 text-slate-700">Judul Utama</label>
+                        <input type="text" value={settings.aboutTitle || ''} onChange={e=>setSettings({...settings, aboutTitle: e.target.value})} className="w-full border p-3 rounded-lg text-sm" placeholder="Cth: Membangun Masa Depan yang Berkelanjutan." />
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-bold block mb-1 text-slate-700">Deskripsi Lengkap</label>
+                        <textarea value={settings.aboutDesc || ''} onChange={e=>setSettings({...settings, aboutDesc: e.target.value})} className="w-full border p-3 rounded-lg text-sm" rows="6" placeholder="Tulis deskripsi lengkap tentang perusahaan..."></textarea>
+                    </div>
+
+                    <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Halaman Tentang Kami</button>
+                </form>
+            </div>
         )}
 
         {/* TAB FOOTER */}
