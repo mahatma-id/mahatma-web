@@ -85,9 +85,10 @@ export default function Home() {
       <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
+            {/* LOGIKA LOGO DIPERBARUI: Jika belum scroll (transparan), paksa pakai logoDark (putih). Jika sudah scroll, ikuti tema */}
             {settings.logoUrl ? (
                 <img 
-                    src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl && isScrolled ? settings.logoDarkUrl : (isScrolled ? settings.logoUrl : settings.logoUrl)} // Anda mungkin ingin menggunakan versi logo terang/putih jika header transparan dan background gelap, silakan sesuaikan logika ini
+                    src={mounted && ( (!isScrolled && settings.logoDarkUrl) || (resolvedTheme === 'dark' && settings.logoDarkUrl) ) ? settings.logoDarkUrl : settings.logoUrl} 
                     alt="Logo" 
                     className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
@@ -112,7 +113,6 @@ export default function Home() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
-            {/* Theme Toggle - bisa disesuaikan warnanya jika diperlukan saat transparan */}
             <div className={isScrolled ? '' : 'text-white'}>
                  <ThemeToggle />
             </div>
