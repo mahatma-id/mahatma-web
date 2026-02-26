@@ -10,6 +10,8 @@ export default function MitraPage() {
   const [partners, setPartners] = useState([]);
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // State untuk Header
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -35,33 +37,58 @@ export default function MitraPage() {
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
 
+  if (loading) {
+      return (
+          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
+              {settings.logoDarkUrl || settings.logoUrl ? (
+                  <img src={settings.logoDarkUrl || settings.logoUrl} alt="Loading..." className="h-12 md:h-16 w-auto object-contain animate-pulse mb-6 drop-shadow-lg" />
+              ) : (
+                  <span className="font-extrabold text-2xl md:text-3xl tracking-tight animate-pulse mb-6 text-emerald-500">Mahatma <span className="text-white">Academy</span></span>
+              )}
+              <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite_400ms]"></div>
+              </div>
+          </div>
+      );
+  }
+
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 min-h-screen flex flex-col transition-colors duration-300">
       
-      {/* NAVBAR (Sama persis dengan Home) */}
-      <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
-        <div className="container mx-auto px-4 md:px-12 lg:px-16 py-3 md:py-4 flex justify-between items-center max-w-7xl">
+      {/* HEADER: Solid (karena tidak ada hero image) */}
+      <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-[100] transition-all duration-300 py-3">
+        <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
             {settings.logoUrl ? (
                 <img 
                     src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
                     alt="Logo" 
-                    className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
+                    className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
             ) : (
-                <span className="font-extrabold text-base md:text-xl text-emerald-600">Mahatma Academy</span>
+                <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
+                    <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                        Mahatma <span className="text-emerald-600">Academy</span>
+                    </span>
+                    <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
+                        <span className="hidden md:inline">- </span>Driving Transformation
+                    </span>
+                </div>
             )}
           </Link>
 
           <nav className="hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase text-slate-600 dark:text-slate-300">
-            <Link href="/#layanan" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</Link>
-            <Link href="/tentang-kami" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
-            <Link href="/tim" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Experts</Link>
-            <Link href="/#insight" className="hover:text-emerald-600 dark:hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</Link>
+            <Link href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</Link>
+            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
+            <Link href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</Link>
+            <Link href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</Link>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
+            <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
             <Link href="/#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
               Join Us
             </Link>
@@ -76,17 +103,18 @@ export default function MitraPage() {
         </div>
         
         {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl py-4">
-                <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
-                    <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)}>Service</Link>
-                    <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-                    <Link href="/tim" onClick={() => setIsMobileMenuOpen(false)}>Our Experts</Link>
-                    <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</Link>
-                    <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white rounded-full">Join Us</Link>
-                </nav>
-            </div>
-        )}
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+            <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
+                <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</Link>
+                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
+                <Link href="/#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Our Team</Link>
+                <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</Link>
+                <div className="flex flex-col items-center gap-3 mt-2 w-full">
+                    <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
+                </div>
+            </nav>
+        </div>
       </header>
 
       {/* KONTEN MITRA */}
@@ -100,50 +128,47 @@ export default function MitraPage() {
                 </p>
             </div>
 
-            {loading ? (
-                <div className="text-center text-slate-400 animate-pulse font-bold tracking-widest mt-20 text-xs">MEMUAT DATA MITRA...</div>
-            ) : (
-                /* GRID RESPONSIF: 2 Kolom di HP, 5 Kolom di Laptop */
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
-                    {partners.map(p => (
-                        <div key={p.id} className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-emerald-900/20 hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center group cursor-pointer">
-                            
-                            {/* Tempat Logo */}
-                            <div className="h-16 md:h-24 w-full flex items-center justify-center mb-3 md:mb-4 bg-slate-50 dark:bg-slate-800 rounded-xl md:rounded-2xl p-2 md:p-4 group-hover:bg-white dark:group-hover:bg-slate-900 transition-colors">
-                                {p.imgUrl ? (
-                                    <img src={p.imgUrl} alt={p.name} className="max-h-full max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                ) : (
-                                    <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase line-clamp-2 leading-tight">{p.name}</span>
-                                )}
-                            </div>
-                            
-                            {/* Deskripsi */}
-                            <h3 className="text-xs md:text-sm font-bold text-slate-900 dark:text-white mb-1 line-clamp-1 group-hover:text-emerald-600 transition-colors">{p.name}</h3>
-                            <p className="text-[8px] md:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest line-clamp-1">{p.field || 'Partner'}</p>
+            {/* GRID RESPONSIF */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
+                {partners.map(p => (
+                    <div key={p.id} className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-emerald-900/20 hover:-translate-y-1 md:hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center group cursor-pointer">
+                        
+                        {/* Tempat Logo */}
+                        <div className="h-16 md:h-24 w-full flex items-center justify-center mb-3 md:mb-4 bg-slate-50 dark:bg-slate-800 rounded-xl md:rounded-2xl p-2 md:p-4 group-hover:bg-white dark:group-hover:bg-slate-900 transition-colors">
+                            {p.imgUrl ? (
+                                <img src={p.imgUrl} alt={p.name} className="max-h-full max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" />
+                            ) : (
+                                <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase line-clamp-2 leading-tight">{p.name}</span>
+                            )}
                         </div>
-                    ))}
-                </div>
-            )}
+                        
+                        {/* Deskripsi */}
+                        <h3 className="text-xs md:text-sm font-bold text-slate-900 dark:text-white mb-1 line-clamp-1 group-hover:text-emerald-600 transition-colors">{p.name}</h3>
+                        <p className="text-[8px] md:text-[10px] font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest line-clamp-1">{p.field || 'Partner'}</p>
+                    </div>
+                ))}
+            </div>
             
-            {partners.length === 0 && !loading && (
+            {partners.length === 0 && (
                 <p className="text-center text-slate-400 mt-10">Belum ada data mitra yang ditambahkan.</p>
             )}
         </div>
       </main>
 
-      {/* FOOTER (Sama persis dengan Home) */}
+      {/* FOOTER (Sama Persis dengan Home) */}
       <footer className="bg-white dark:bg-slate-950 pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
                         {settings.logoUrl ? (
-                            <img 
-                                src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
-                                alt="Logo" 
-                                className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
-                            />
-                        ) : <span className="font-extrabold text-xl text-emerald-600">Mahatma Academy</span>}
+                            <img src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
+                        ) : (
+                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
+                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white">Mahatma <span className="text-emerald-600">Academy</span></span>
+                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0"><span className="hidden md:inline">- </span>Driving Transformation</span>
+                            </div>
+                        )}
                     </Link>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-base leading-relaxed md:leading-loose mb-4 md:mb-8 max-w-xs md:max-w-none">
                         {settings.footerDesc || "Mempersiapkan diri menghadapi perubahan zaman dan membuat bisnis Anda tetap relevan di masa depan."}
@@ -187,6 +212,27 @@ export default function MitraPage() {
                          <div className="w-full aspect-square bg-slate-100 rounded-xl flex items-center justify-center text-xs text-slate-400">Maps belum diatur</div>
                     )}
                 </div>
+
+                <div className="lg:col-span-4">
+                    <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Mitra Kerja</h4>
+                    {partners.length > 0 ? (
+                        <div className="flex flex-col items-center md:items-start">
+                            <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 md:gap-3 opacity-80 w-full max-w-[200px] md:max-w-xs">
+                                {partners.slice(0, 12).map(p => (
+                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800 hover:border-emerald-200 p-1 md:p-2 transition-colors">
+                                        {p.imgUrl ? (
+                                            <img src={p.imgUrl} alt={p.name} title={p.name} className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition duration-300" />
+                                        ) : (
+                                            <span title={p.name} className="text-[6px] md:text-[9px] font-bold text-slate-400 uppercase w-full text-center truncate">{p.name.substring(0,3)}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>
+                    )}
+                </div>
             </div>
 
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
@@ -198,7 +244,6 @@ export default function MitraPage() {
             </div>
         </div>
       </footer>
-
     </div>
   );
 }
