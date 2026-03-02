@@ -205,7 +205,7 @@ export default function LayananDetail({ params }) {
                 <div className="mb-12 md:mb-20 pt-8 border-t border-slate-100 dark:border-slate-800">
                     <div className="text-center mb-10">
                         <span className="text-emerald-600 font-black tracking-widest uppercase text-[10px] md:text-xs mb-2 block">Pilihan Program</span>
-                        <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white">Sub-Kategori {service.name}</h2>
+                        <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white">Kategori {service.name}</h2>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
@@ -228,7 +228,7 @@ export default function LayananDetail({ params }) {
                                         target="_blank" 
                                         className="inline-flex items-center text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-widest text-[10px] hover:text-orange-600 transition mt-auto"
                                     >
-                                        Tanya Program Ini <span className="ml-2 transform group-hover:translate-x-2 transition-transform">→</span>
+                                        Ask This Program <span className="ml-2 transform group-hover:translate-x-2 transition-transform">→</span>
                                     </a>
                                 </div>
                             </div>
