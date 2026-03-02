@@ -139,7 +139,7 @@ export default function EventPage() {
             <Link href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</Link>
             <Link href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</Link>
             <Link href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</Link>
-            <Link href="/events" className="text-yellow-400 hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
+            <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
           </nav>
           <div className="hidden lg:flex items-center gap-4">
             <div className={isScrolled ? '' : 'text-white'}><ThemeToggle /></div>
