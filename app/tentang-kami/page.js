@@ -105,9 +105,9 @@ export default function TentangKami() {
           </Link>
 
           <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
-            <a href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <Link href="/tentang-kami" className="text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
-            <a href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</a>
+            <a href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
+            <a href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
 
@@ -133,7 +133,7 @@ export default function TentangKami() {
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <a href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
-                <a href="/#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Our Team</a>
+                <a href="/#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="/#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
                     <a href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
