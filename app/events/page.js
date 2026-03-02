@@ -69,7 +69,7 @@ export default function EventPage() {
             <Link href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</Link>
             <Link href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</Link>
             <Link href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</Link>
-            <Link href="/event" className="text-yellow-400 hover:text-emerald-500 hover:-translate-y-1 transition-all">Event</Link>
+            <Link href="/events" className="text-yellow-400 hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
           </nav>
           <div className="hidden lg:flex items-center gap-4">
             <div className={isScrolled ? '' : 'text-white'}><ThemeToggle /></div>
@@ -89,7 +89,7 @@ export default function EventPage() {
                     <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)}>Service</Link>
                     <Link href="/#tim" onClick={() => setIsMobileMenuOpen(false)}>Team</Link>
                     <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</Link>
-                    <Link href="/event" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Event</Link>
+                    <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Events</Link>
                     <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white rounded-full">Join Us</Link>
                 </nav>
             </div>
