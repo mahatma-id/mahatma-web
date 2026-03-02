@@ -109,6 +109,7 @@ export default function TentangKami() {
             <a href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <a href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
+            <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
@@ -135,6 +136,7 @@ export default function TentangKami() {
                 <a href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 <a href="/#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="/#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
+                <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="text-yellow-500 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
                     <a href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
