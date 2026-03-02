@@ -6,6 +6,55 @@ import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from 'next-themes';
 
+// --- FUNGSI PINTAR PENGHITUNG HARI OTOMATIS ---
+function getEventStatus(dateStr) {
+    if (!dateStr) return null;
+    
+    // Kamus bulan bahasa Indonesia
+    const months = {
+        januari: 0, jan: 0, februari: 1, feb: 1, maret: 2, mar: 2,
+        april: 3, apr: 3, mei: 4, juni: 5, jun: 5, juli: 6, jul: 6,
+        agustus: 7, agu: 7, september: 8, sep: 8, oktober: 9, okt: 9,
+        november: 10, nov: 10, desember: 11, des: 11
+    };
+
+    // Regex untuk menangkap format "15 Agustus 2026" atau "10-12 September 2026"
+    const regex = /(\d{1,2})(?:\s*-\s*(\d{1,2}))?\s+([a-zA-Z]+)\s+(\d{4})/;
+    const match = dateStr.match(regex);
+
+    if (!match) return null;
+
+    const startDay = parseInt(match[1]);
+    const endDay = match[2] ? parseInt(match[2]) : startDay;
+    const monthStr = match[3].toLowerCase();
+    const year = parseInt(match[4]);
+
+    if (months[monthStr] === undefined) return null;
+    const month = months[monthStr];
+
+    // Waktu hari ini (dinormalkan ke jam 00:00)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(year, month, startDay);
+    const endDate = new Date(year, month, endDay);
+
+    // Hitung selisih hari
+    const diffTimeStart = startDate.getTime() - today.getTime();
+    const diffDaysStart = Math.ceil(diffTimeStart / (1000 * 60 * 60 * 24));
+    
+    const diffTimeEnd = endDate.getTime() - today.getTime();
+    const diffDaysEnd = Math.ceil(diffTimeEnd / (1000 * 60 * 60 * 24));
+
+    if (diffDaysStart > 0) {
+        return { state: 'upcoming', text: `H-${diffDaysStart}`, color: 'bg-blue-600 text-white shadow-blue-500/50' };
+    } else if (diffDaysStart <= 0 && diffDaysEnd >= 0) {
+        return { state: 'ongoing', text: 'Sedang Berlangsung', color: 'bg-emerald-500 text-white animate-pulse shadow-emerald-500/50' };
+    } else {
+        return { state: 'completed', text: 'Sudah Selesai', color: 'bg-slate-700 text-white opacity-90' };
+    }
+}
+
 export default function EventPage() {
   const [events, setEvents] = useState([]);
   const [settings, setSettings] = useState({});
@@ -124,37 +173,61 @@ export default function EventPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                    {events.map(ev => (
-                        <div key={ev.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group">
-                            <div className="relative h-48 md:h-60 overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                {ev.imgUrl ? (
-                                    <img src={ev.imgUrl} alt={ev.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-300">Tanpa Banner</div>
+                    {events.map(ev => {
+                        const status = getEventStatus(ev.date);
+
+                        return (
+                            <div key={ev.id} className={`bg-white dark:bg-slate-900 border ${status?.state === 'completed' ? 'border-slate-200 dark:border-slate-800 opacity-75' : 'border-slate-100 dark:border-slate-800'} rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative`}>
+                                
+                                {/* Indikator Status Dinamis */}
+                                {status && (
+                                    <div className={`absolute top-4 right-4 z-10 px-3 py-1.5 rounded-lg shadow-lg text-[9px] md:text-[11px] font-black uppercase tracking-widest ${status.color}`}>
+                                        {status.text}
+                                    </div>
                                 )}
-                                <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">Jadwal</span>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-white">{ev.date}</span>
+
+                                <div className="relative h-48 md:h-60 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                    {ev.imgUrl ? (
+                                        <img src={ev.imgUrl} alt={ev.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${status?.state === 'completed' ? 'grayscale' : ''}`} />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-slate-300">Tanpa Banner</div>
+                                    )}
+                                    <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900/90 to-transparent pt-10">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-0.5 drop-shadow-md">Jadwal</span>
+                                        <span className="text-sm font-bold text-white drop-shadow-md">{ev.date}</span>
+                                    </div>
+                                </div>
+                                <div className="p-6 md:p-8 flex flex-col flex-grow">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-emerald-600 transition-colors">{ev.name}</h3>
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-1.5">
+                                        📍 {ev.location}
+                                    </p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 leading-relaxed line-clamp-3 font-light flex-grow">
+                                        {ev.desc}
+                                    </p>
+                                    
+                                    {/* LOGIKA TOMBOL UPDATE: Disable jika Completed ATAU Ongoing */}
+                                    {status?.state === 'completed' ? (
+                                        <div className="w-full block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed mt-auto border border-transparent">
+                                            Event Berakhir
+                                        </div>
+                                    ) : status?.state === 'ongoing' ? (
+                                        <div className="w-full block text-center px-6 py-3.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600/70 dark:text-emerald-500/70 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed mt-auto border border-emerald-500/30">
+                                            Sedang Berlangsung
+                                        </div>
+                                    ) : (
+                                        <a 
+                                            href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20mengikuti%20event%20*${ev.name}*%20pada%20${ev.date}.%20Mohon%20info%20pendaftarannya.`} 
+                                            target="_blank" 
+                                            className="w-full block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-slate-900 dark:text-white hover:text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 mt-auto shadow-sm"
+                                        >
+                                            Daftar Sekarang
+                                        </a>
+                                    )}
                                 </div>
                             </div>
-                            <div className="p-6 md:p-8 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-emerald-600 transition-colors">{ev.name}</h3>
-                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-1.5">
-                                    📍 {ev.location}
-                                </p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 leading-relaxed line-clamp-3 font-light flex-grow">
-                                    {ev.desc}
-                                </p>
-                                <a 
-                                    href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20mengikuti%20event%20*${ev.name}*%20pada%20${ev.date}.%20Mohon%20info%20pendaftarannya.`} 
-                                    target="_blank" 
-                                    className="w-full block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-slate-900 dark:text-white hover:text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 mt-auto"
-                                >
-                                    Daftar Sekarang
-                                </a>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
         </div>
