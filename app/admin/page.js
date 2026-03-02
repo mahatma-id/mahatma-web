@@ -27,7 +27,7 @@ export default function AdminPage() {
     formData.append('upload_preset', 'mahatma_upload'); 
     const cloudName = 'dgexjl9sf'; 
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: formData });
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, { method: 'POST', body: formData });
     const data = await res.json();
     if (data.secure_url) return data.secure_url;
     throw new Error(data.error?.message || "Gagal upload gambar");
