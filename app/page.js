@@ -106,8 +106,8 @@ export default function Home() {
 
           {/* Navigasi Desktop */}
           <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
-            <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
+            <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Our Team</a>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
           </nav>
