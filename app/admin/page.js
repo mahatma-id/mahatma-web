@@ -93,9 +93,13 @@ export default function AdminPage() {
   const [testimonials, setTestimonials] = useState([]); const [editTestiId, setEditTestiId] = useState(null); const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
   const [faqs, setFaqs] = useState([]); const [editFaqId, setEditFaqId] = useState(null); const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
-  
-  // STATE BARU: EVENT / JADWAL
   const [events, setEvents] = useState([]); const [editEventId, setEditEventId] = useState(null); const [eventName, setEventName] = useState(''); const [eventDate, setEventDate] = useState(''); const [eventLocation, setEventLocation] = useState(''); const [eventDesc, setEventDesc] = useState(''); const [eventImgFile, setEventImgFile] = useState(null); const [eventImgUrl, setEventImgUrl] = useState('');
+
+  // --- STATE BARU UNTUK PORTAL ISO ---
+  const [clients, setClients] = useState([]); // Daftar Lembaga/Klien
+  const [docMasters, setDocMasters] = useState([]); // Master Syarat Dokumen
+  const [newDocMasterName, setNewDocMasterName] = useState('');
+  const [newDocMasterDesc, setNewDocMasterDesc] = useState('');
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -108,11 +112,13 @@ export default function AdminPage() {
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => setTestimonials(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => setFaqs(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => setPosts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-    
-    // FETCH EVENT
     const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    
+    // FETCH DATA PORTAL ISO
+    const unsubClients = onSnapshot(query(collection(db, "clients"), orderBy("createdAt", "desc")), snap => setClients(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubDocMasters = onSnapshot(query(collection(db, "doc_masters"), orderBy("createdAt", "asc")), snap => setDocMasters(snap.docs.map(d => ({id: d.id, ...d.data()}))));
 
-    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); };
+    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); };
   }, []);
 
   const handleLogin = async (e) => { e.preventDefault(); setLoading(true); try { await signInWithEmailAndPassword(auth, email, password); alert("Login Berhasil!"); } catch (err) { alert("Email/Password salah!"); } setLoading(false); };
@@ -147,23 +153,36 @@ export default function AdminPage() {
   const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
   const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const savePost = async (e) => { e.preventDefault(); setLoading(true); try { if (editPostId) { await updateDoc(doc(db, "posts", editPostId), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, isDraft: isDraft }); alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); } else { let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); if (!slug) slug = 'berita-' + Date.now(); const docSnap = await getDoc(doc(db, "posts", slug)); if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft }); alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); } cancelEditPost(); } catch(err) { alert(err.message); } setLoading(false); };
-
-  // CRUD EVENT BARU
   const cancelEditEvent = () => { setEditEventId(null); setEventName(''); setEventDate(''); setEventLocation(''); setEventDesc(''); setEventImgUrl(''); setEventImgFile(null); };
   const handleEditEvent = (e) => { setEditEventId(e.id); setEventName(e.name||''); setEventDate(e.date||''); setEventLocation(e.location||''); setEventDesc(e.desc||''); setEventImgUrl(e.imgUrl||''); setEventImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveEvent = async (e) => { 
-      e.preventDefault(); 
-      setLoading(true); 
-      try { 
-          let finalImg = eventImgUrl; 
-          if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); 
-          const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; 
-          if (editEventId) await updateDoc(doc(db, "events", editEventId), data); 
-          else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); 
-          alert('Agenda/Event Berhasil Disimpan!'); 
-          cancelEditEvent(); 
-      } catch(err) { alert(err.message); } 
-      setLoading(false); 
+  const saveEvent = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventImgUrl; if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; if (editEventId) await updateDoc(doc(db, "events", editEventId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Event Berhasil Disimpan!'); cancelEditEvent(); } catch(err) { alert(err.message); } setLoading(false); };
+
+  // --- FUNGSI BARU UNTUK PORTAL ISO ---
+  const updateClientStatus = async (id, newStatus) => {
+      if(!confirm(`Ubah status klien menjadi ${newStatus}?`)) return;
+      try {
+          await updateDoc(doc(db, "clients", id), { status: newStatus });
+          alert(`Status klien berhasil diubah!`);
+      } catch (err) {
+          alert("Gagal merubah status: " + err.message);
+      }
+  };
+
+  const saveDocMaster = async (e) => {
+      e.preventDefault();
+      if(!newDocMasterName) return alert("Nama dokumen harus diisi!");
+      try {
+          await addDoc(collection(db, "doc_masters"), {
+              name: newDocMasterName,
+              desc: newDocMasterDesc,
+              createdAt: serverTimestamp()
+          });
+          setNewDocMasterName('');
+          setNewDocMasterDesc('');
+          alert("Master Dokumen berhasil ditambahkan!");
+      } catch (err) {
+          alert("Gagal: " + err.message);
+      }
   };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
@@ -173,13 +192,28 @@ export default function AdminPage() {
     <div className="flex h-screen bg-slate-50 font-sans text-slate-800 overflow-hidden relative">
       <div className="md:hidden absolute top-0 left-0 w-full bg-slate-950 text-white p-4 flex justify-between items-center z-20 shadow-md"><h1 className="text-sm font-black text-orange-500 tracking-widest uppercase">Admin Panel</h1><button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="focus:outline-none bg-slate-800 p-2 rounded"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isSidebarOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16m-7 6h7"}></path></svg></button></div>
       {isSidebarOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-20" onClick={() => setIsSidebarOpen(false)}></div>}
+      
+      {/* SIDEBAR */}
       <aside className={`fixed md:relative top-0 left-0 w-64 h-full bg-slate-900 text-slate-300 flex flex-col shadow-xl z-30 transition-transform duration-300 border-r border-slate-800 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}>
         <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center"><div><h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1><p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p></div><button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+            
+            {/* MENU PORTAL KLIEN (BARU) */}
+            <div>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-emerald-500 mb-2 px-2">Sistem Portal ISO</p>
+                <nav className="space-y-1">
+                    {[
+                        { id: 'clients', label: 'Kelola Pendaftar / Klien' }, 
+                        { id: 'docmasters', label: 'Master Syarat Dokumen' }
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
+                    ))}
+                </nav>
+            </div>
+
             <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p>
                 <nav className="space-y-1">
-                    {/* TAB EVENT DITAMBAHKAN DI SINI */}
                     {[
                         { id: 'blog', label: 'Wawasan (Blog)' }, 
                         { id: 'event', label: 'Jadwal / Event' }, 
@@ -202,6 +236,90 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
         <div className="mb-6 border-b border-slate-200 pb-4"><h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">{activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : `Kelola ${activeTab}`}</h2></div>
         
+        {/* --- TAB BARU: KELOLA KLIEN (ACC PENDAFTARAN) --- */}
+        {activeTab === 'clients' && (
+            <div className="max-w-6xl">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
+                    <h3 className="font-bold text-lg mb-2">Daftar Pendaftar Portal ISO</h3>
+                    <p className="text-xs text-slate-500 mb-6">Pendaftar baru akan berstatus "Pending". Anda harus klik "Setujui" agar mereka bisa login.</p>
+                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                                    <th className="p-3 border-b">Nama Lembaga</th>
+                                    <th className="p-3 border-b">PIC & Kontak</th>
+                                    <th className="p-3 border-b">Email Login</th>
+                                    <th className="p-3 border-b text-center">Status</th>
+                                    <th className="p-3 border-b text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {clients.length === 0 ? (
+                                    <tr><td colSpan="5" className="p-4 text-center text-slate-400">Belum ada klien yang mendaftar.</td></tr>
+                                ) : clients.map(c => (
+                                    <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
+                                        <td className="p-3 font-bold text-sm">{c.lembagaName}</td>
+                                        <td className="p-3 text-xs">
+                                            <div className="font-semibold">{c.picName}</div>
+                                            <div className="text-slate-500">{c.phone}</div>
+                                        </td>
+                                        <td className="p-3 text-xs text-slate-600">{c.email}</td>
+                                        <td className="p-3 text-center">
+                                            {c.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase tracking-widest">Menunggu</span>}
+                                            {c.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Disetujui</span>}
+                                            {c.status === 'rejected' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-widest">Ditolak</span>}
+                                        </td>
+                                        <td className="p-3 text-right space-x-2">
+                                            {c.status === 'pending' && (
+                                                <>
+                                                    <button onClick={() => updateClientStatus(c.id, 'approved')} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-xs font-bold transition">Setujui</button>
+                                                    <button onClick={() => updateClientStatus(c.id, 'rejected')} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-bold transition">Tolak</button>
+                                                </>
+                                            )}
+                                            {c.status === 'approved' && (
+                                                <button onClick={() => alert('Fitur lihat dokumen klien akan hadir di Tahap 4!')} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition">Lihat Dokumen</button>
+                                            )}
+                                            <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB BARU: MASTER DOKUMEN --- */}
+        {activeTab === 'docmasters' && (
+            <div className="max-w-4xl">
+                <form onSubmit={saveDocMaster} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border mb-8">
+                    <h3 className="font-bold text-lg mb-2">Buat Syarat Dokumen Baru</h3>
+                    <p className="text-xs text-slate-500 mb-4">Dokumen yang Anda buat di sini WAJIB diupload oleh klien yang sudah di-ACC.</p>
+                    
+                    <input type="text" placeholder="Nama Dokumen (Cth: Akta Pendirian Perusahaan)" value={newDocMasterName} onChange={e=>setNewDocMasterName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm mb-3" required/>
+                    <textarea rows="2" placeholder="Deskripsi Singkat (Cth: Upload dalam format PDF maksimal 5MB)" value={newDocMasterDesc} onChange={e=>setNewDocMasterDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-3"></textarea>
+                    
+                    <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah Syarat Dokumen</button>
+                </form>
+
+                <h3 className="font-bold text-lg mb-4">Daftar Syarat Dokumen Saat Ini</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    {docMasters.length === 0 ? (
+                        <p className="text-slate-400 text-sm">Belum ada syarat dokumen yang dibuat.</p>
+                    ) : docMasters.map((doc, idx) => (
+                        <div key={doc.id} className="bg-white p-4 rounded-xl border flex flex-col relative">
+                            <span className="absolute -top-3 -left-3 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm border-4 border-slate-50">{idx + 1}</span>
+                            <h4 className="font-bold text-slate-800 mb-1">{doc.name}</h4>
+                            <p className="text-xs text-slate-500 mb-4">{doc.desc || 'Tidak ada deskripsi'}</p>
+                            <button onClick={() => deleteItem('doc_masters', doc.id)} className="text-red-500 text-xs font-bold mt-auto self-start hover:underline">Hapus Syarat Ini</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
         {/* TAB UMUM */}
         {activeTab === 'umum' && (
             <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">

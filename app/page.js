@@ -99,20 +99,22 @@ export default function Home() {
             )}
           </Link>
 
-          {/* UPDATE: Navigasi Desktop ditambah menu Event */}
           <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
             <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
             <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
-            <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
+            <Link href="/event" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
             <div className={isScrolled ? '' : 'text-white'}>
                  <ThemeToggle />
             </div>
-            <Link href="/admin" className={`text-xs font-bold uppercase tracking-widest mr-4 transition ${isScrolled ? 'text-slate-400 hover:text-slate-800 dark:hover:text-white' : 'text-white/80 hover:text-white drop-shadow-md'}`}>Admin</Link>
+            {/* UPDATE: LINK PORTAL ISO DITAMBAHKAN */}
+            <Link href="/portal" className={`text-xs font-bold uppercase tracking-widest mr-2 transition ${isScrolled ? 'text-orange-600 hover:text-orange-700' : 'text-orange-400 hover:text-orange-300 drop-shadow-md'}`}>
+                Portal ISO
+            </Link>
             <a href="#kontak" className={`px-6 py-2.5 font-bold text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]'}`}>
               Join Us
             </a>
@@ -130,61 +132,46 @@ export default function Home() {
           </div>
         </div>
 
-        {/* UPDATE: Menu Mobile ditambah menu Event */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        {/* Menu Mobile */}
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
-                <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
+                <Link href="/event" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Event</Link>
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
+                    {/* UPDATE: Link Portal Mobile */}
+                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 font-bold text-xs rounded-full border border-orange-200 transition-all tracking-widest uppercase">Login Portal ISO</Link>
                     <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Admin Panel</Link>
                 </div>
             </nav>
         </div>
       </header>
 
       {/* 1. HERO SECTION */}
-      <section className="relative h-screen bg-slate-900 overflow-hidden">
+      <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-50">
-                {settings.logoDarkUrl || settings.logoUrl ? (
-                    <img 
-                        src={settings.logoDarkUrl || settings.logoUrl} 
-                        alt="Loading..." 
-                        className="h-12 md:h-16 w-auto object-contain animate-pulse mb-6 drop-shadow-lg" 
-                    />
-                ) : (
-                    <span className="font-extrabold text-2xl md:text-3xl tracking-tight animate-pulse mb-6 text-emerald-500">
-                        Mahatma <span className="text-white">Academy</span>
-                    </span>
-                )}
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite_400ms]"></div>
-                </div>
-            </div>
+            <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
             sliders.map((slide, index) => (
                 <div key={slide.id} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${currentSlide === index ? 'opacity-100 z-20' : 'opacity-0 pointer-events-none z-0'}`}>
                     
                     <div className="absolute inset-0 z-0">
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60"></div>
+                        <div className="absolute inset-0 bg-black/60 md:bg-black/50"></div>
                     </div>
                     
-                    <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-20">
+                    <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-10 md:pt-0">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             {slide.tagline && (
                                 <span className="text-yellow-400 font-bold tracking-widest uppercase text-sm md:text-lg mb-4 block drop-shadow-md">
                                     {slide.tagline}
                                 </span>
                             )}
-                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-2xl">
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-extrabold text-white leading-tight md:leading-[1.2] mb-4 md:mb-6 drop-shadow-xl">
                                 {slide.title || "Driving Change, Navigating Sustainable Future"}
                             </h1>
                             {slide.subtitle && (
@@ -419,7 +406,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[30px] md:text-sm mb-3 block">FAQ</span>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
@@ -528,7 +515,7 @@ export default function Home() {
                         <div className="flex flex-col items-center md:items-start">
                             <div className="grid grid-cols-4 lg:grid-cols-3 gap-2 md:gap-3 opacity-80 w-full max-w-[200px] md:max-w-xs">
                                 {partners.slice(0, 12).map(p => (
-                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-900 rounded border border-slate-100 dark:border-slate-800 hover:border-emerald-200 p-1 md:p-2 transition-colors">
+                                    <div key={p.id} className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-950 rounded border border-slate-100 dark:border-slate-800 hover:border-emerald-200 p-1 md:p-2 transition-colors">
                                         {p.imgUrl ? (
                                             <img src={p.imgUrl} alt={p.name} title={p.name} className="max-w-full max-h-full object-contain grayscale hover:grayscale-0 transition duration-300" />
                                         ) : (
