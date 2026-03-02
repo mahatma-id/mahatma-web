@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc, updateDoc, where } from 'firebase/firestore';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
 import 'react-quill-new/dist/quill.snow.css';
@@ -95,11 +95,16 @@ export default function AdminPage() {
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
   const [events, setEvents] = useState([]); const [editEventId, setEditEventId] = useState(null); const [eventName, setEventName] = useState(''); const [eventDate, setEventDate] = useState(''); const [eventLocation, setEventLocation] = useState(''); const [eventDesc, setEventDesc] = useState(''); const [eventImgFile, setEventImgFile] = useState(null); const [eventImgUrl, setEventImgUrl] = useState('');
 
-  // --- STATE BARU UNTUK PORTAL ISO ---
-  const [clients, setClients] = useState([]); // Daftar Lembaga/Klien
-  const [docMasters, setDocMasters] = useState([]); // Master Syarat Dokumen
+  // --- STATE UNTUK PORTAL ISO ---
+  const [clients, setClients] = useState([]); 
+  const [docMasters, setDocMasters] = useState([]); 
   const [newDocMasterName, setNewDocMasterName] = useState('');
   const [newDocMasterDesc, setNewDocMasterDesc] = useState('');
+  
+  // STATE TAHAP 4: UNTUK REVIEW DOKUMEN KLIEN
+  const [selectedClient, setSelectedClient] = useState(null); 
+  const [selectedClientDocs, setSelectedClientDocs] = useState([]); 
+  const [docComments, setDocComments] = useState({}); 
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -121,11 +126,22 @@ export default function AdminPage() {
     return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); };
   }, []);
 
+  // --- EFEK KHUSUS TAHAP 4: Mengambil dokumen dari klien yang di-klik ---
+  useEffect(() => {
+      if (selectedClient) {
+          const q = query(collection(db, "client_docs"), where("clientId", "==", selectedClient.id));
+          const unsubSelectedDocs = onSnapshot(q, snap => {
+              setSelectedClientDocs(snap.docs.map(d => ({id: d.id, ...d.data()})));
+          });
+          return () => unsubSelectedDocs();
+      }
+  }, [selectedClient]);
+
   const handleLogin = async (e) => { e.preventDefault(); setLoading(true); try { await signInWithEmailAndPassword(auth, email, password); alert("Login Berhasil!"); } catch (err) { alert("Email/Password salah!"); } setLoading(false); };
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvent(); };
+  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvent(); setSelectedClient(null); };
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
@@ -157,7 +173,7 @@ export default function AdminPage() {
   const handleEditEvent = (e) => { setEditEventId(e.id); setEventName(e.name||''); setEventDate(e.date||''); setEventLocation(e.location||''); setEventDesc(e.desc||''); setEventImgUrl(e.imgUrl||''); setEventImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveEvent = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventImgUrl; if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; if (editEventId) await updateDoc(doc(db, "events", editEventId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Event Berhasil Disimpan!'); cancelEditEvent(); } catch(err) { alert(err.message); } setLoading(false); };
 
-  // --- FUNGSI BARU UNTUK PORTAL ISO ---
+  // --- FUNGSI TAHAP 4: ACC / REVISI DOKUMEN ---
   const updateClientStatus = async (id, newStatus) => {
       if(!confirm(`Ubah status klien menjadi ${newStatus}?`)) return;
       try {
@@ -165,6 +181,28 @@ export default function AdminPage() {
           alert(`Status klien berhasil diubah!`);
       } catch (err) {
           alert("Gagal merubah status: " + err.message);
+      }
+  };
+
+  const handleReviewDoc = async (clientDocId, status) => {
+      const comment = docComments[clientDocId] || '';
+      
+      // Jika Admin klik "Revisi", wajib isi komentar agar Klien tau salahnya dimana
+      if (status === 'revision' && !comment.trim()) {
+          return alert("Wajib mengisi kolom komentar jika meminta revisi!");
+      }
+
+      if(!confirm(`Apakah Anda yakin mengubah dokumen ini menjadi ${status.toUpperCase()}?`)) return;
+
+      try {
+          await updateDoc(doc(db, "client_docs", clientDocId), {
+              status: status, // 'approved' atau 'revision'
+              adminComment: status === 'approved' ? 'Dokumen Sesuai' : comment,
+              updatedAt: serverTimestamp()
+          });
+          alert(`Dokumen berhasil di-${status === 'approved' ? 'ACC' : 'REVISI'}!`);
+      } catch (err) {
+          alert("Gagal menyimpan review: " + err.message);
       }
   };
 
@@ -198,7 +236,6 @@ export default function AdminPage() {
         <div className="p-5 border-b border-slate-800 bg-slate-950 mt-14 md:mt-0 flex justify-between items-center"><div><h1 className="text-lg font-black text-orange-500 tracking-widest uppercase hidden md:block">Admin Panel</h1><p className="text-[10px] font-bold text-slate-500 mt-1 tracking-widest truncate">{user.email}</p></div><button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-white"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
             
-            {/* MENU PORTAL KLIEN (BARU) */}
             <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-emerald-500 mb-2 px-2">Sistem Portal ISO</p>
                 <nav className="space-y-1">
@@ -234,64 +271,156 @@ export default function AdminPage() {
       </aside>
 
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
-        <div className="mb-6 border-b border-slate-200 pb-4"><h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">{activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : `Kelola ${activeTab}`}</h2></div>
+        <div className="mb-6 border-b border-slate-200 pb-4">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
+                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Portal Klien ISO' : `Kelola ${activeTab}`}
+            </h2>
+        </div>
         
-        {/* --- TAB BARU: KELOLA KLIEN (ACC PENDAFTARAN) --- */}
+        {/* --- TAB BARU: KELOLA KLIEN (ACC & REVIEW) --- */}
         {activeTab === 'clients' && (
             <div className="max-w-6xl">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
-                    <h3 className="font-bold text-lg mb-2">Daftar Pendaftar Portal ISO</h3>
-                    <p className="text-xs text-slate-500 mb-6">Pendaftar baru akan berstatus "Pending". Anda harus klik "Setujui" agar mereka bisa login.</p>
-                    
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
-                                    <th className="p-3 border-b">Nama Lembaga</th>
-                                    <th className="p-3 border-b">PIC & Kontak</th>
-                                    <th className="p-3 border-b">Email Login</th>
-                                    <th className="p-3 border-b text-center">Status</th>
-                                    <th className="p-3 border-b text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {clients.length === 0 ? (
-                                    <tr><td colSpan="5" className="p-4 text-center text-slate-400">Belum ada klien yang mendaftar.</td></tr>
-                                ) : clients.map(c => (
-                                    <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
-                                        <td className="p-3 font-bold text-sm">{c.lembagaName}</td>
-                                        <td className="p-3 text-xs">
-                                            <div className="font-semibold">{c.picName}</div>
-                                            <div className="text-slate-500">{c.phone}</div>
-                                        </td>
-                                        <td className="p-3 text-xs text-slate-600">{c.email}</td>
-                                        <td className="p-3 text-center">
-                                            {c.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase tracking-widest">Menunggu</span>}
-                                            {c.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Disetujui</span>}
-                                            {c.status === 'rejected' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-widest">Ditolak</span>}
-                                        </td>
-                                        <td className="p-3 text-right space-x-2">
-                                            {c.status === 'pending' && (
-                                                <>
-                                                    <button onClick={() => updateClientStatus(c.id, 'approved')} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-xs font-bold transition">Setujui</button>
-                                                    <button onClick={() => updateClientStatus(c.id, 'rejected')} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-bold transition">Tolak</button>
-                                                </>
-                                            )}
-                                            {c.status === 'approved' && (
-                                                <button onClick={() => alert('Fitur lihat dokumen klien akan hadir di Tahap 4!')} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition">Lihat Dokumen</button>
-                                            )}
-                                            <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
-                                        </td>
+                {!selectedClient ? (
+                    // TAMPILAN 1: TABEL DAFTAR KLIEN
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
+                        <h3 className="font-bold text-lg mb-2">Daftar Pendaftar Portal ISO</h3>
+                        <p className="text-xs text-slate-500 mb-6">Pendaftar baru akan berstatus "Pending". Anda harus klik "Setujui" agar mereka bisa login.</p>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[700px]">
+                                <thead>
+                                    <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                                        <th className="p-3 border-b">Nama Lembaga</th>
+                                        <th className="p-3 border-b">PIC & Kontak</th>
+                                        <th className="p-3 border-b">Email Login</th>
+                                        <th className="p-3 border-b text-center">Status</th>
+                                        <th className="p-3 border-b text-right">Aksi</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {clients.length === 0 ? (
+                                        <tr><td colSpan="5" className="p-4 text-center text-slate-400">Belum ada klien yang mendaftar.</td></tr>
+                                    ) : clients.map(c => (
+                                        <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
+                                            <td className="p-3 font-bold text-sm text-emerald-700">{c.lembagaName}</td>
+                                            <td className="p-3 text-xs">
+                                                <div className="font-semibold">{c.picName}</div>
+                                                <div className="text-slate-500">{c.phone}</div>
+                                            </td>
+                                            <td className="p-3 text-xs text-slate-600">{c.email}</td>
+                                            <td className="p-3 text-center">
+                                                {c.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase tracking-widest">Menunggu</span>}
+                                                {c.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Disetujui</span>}
+                                                {c.status === 'rejected' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-widest">Ditolak</span>}
+                                            </td>
+                                            <td className="p-3 text-right space-x-2">
+                                                {c.status === 'pending' && (
+                                                    <>
+                                                        <button onClick={() => updateClientStatus(c.id, 'approved')} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-xs font-bold transition">Setujui</button>
+                                                        <button onClick={() => updateClientStatus(c.id, 'rejected')} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-bold transition">Tolak</button>
+                                                    </>
+                                                )}
+                                                {c.status === 'approved' && (
+                                                    <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">
+                                                        🔍 Cek Dokumen
+                                                    </button>
+                                                )}
+                                                <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    // TAMPILAN 2: REVIEW DOKUMEN SPESIFIK 1 KLIEN
+                    <div className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-slate-200 mb-8 animate-in fade-in zoom-in duration-300">
+                        <button onClick={() => setSelectedClient(null)} className="mb-6 px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-bold flex items-center gap-2 transition">
+                            ← Kembali ke Daftar Klien
+                        </button>
+                        
+                        <div className="border-b border-slate-200 pb-4 mb-6">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Ruang Review Audit</p>
+                            <h3 className="font-black text-2xl md:text-3xl text-slate-900">{selectedClient.lembagaName}</h3>
+                            <p className="text-sm text-slate-500 mt-1">Penanggung Jawab: <b>{selectedClient.picName}</b> | Kontak: <b>{selectedClient.phone}</b></p>
+                        </div>
+
+                        <div className="space-y-4">
+                            {docMasters.length === 0 ? (
+                                <p className="text-sm text-slate-400 italic">Belum ada master dokumen yang di-setting.</p>
+                            ) : docMasters.map((master, idx) => {
+                                // Cek dokumen yang sesuai dari array `selectedClientDocs`
+                                const cDoc = selectedClientDocs.find(d => d.masterId === master.id);
+                                
+                                return (
+                                    <div key={master.id} className={`p-4 md:p-6 border rounded-xl flex flex-col md:flex-row gap-4 justify-between md:items-center transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-white'}`}>
+                                        
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold">{idx + 1}</span>
+                                                <h4 className="font-bold text-sm md:text-base text-slate-800">{master.name}</h4>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-3 ml-7">{master.desc}</p>
+                                            
+                                            <div className="ml-7 flex items-center gap-3">
+                                                {cDoc ? (
+                                                    <>
+                                                        {cDoc.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase border border-yellow-200 animate-pulse">Menunggu Cek Admin</span>}
+                                                        {cDoc.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase border border-emerald-200">✅ Disetujui</span>}
+                                                        {cDoc.status === 'revision' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase border border-red-200">❌ Menunggu Revisi</span>}
+                                                        
+                                                        <a href={cDoc.fileUrl} target="_blank" className="text-xs px-3 py-1 bg-slate-900 text-white rounded font-bold hover:bg-slate-700 transition">
+                                                            Lihat Dokumen ↗
+                                                        </a>
+                                                    </>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-slate-100 text-slate-400 rounded text-[10px] font-bold uppercase">Klien Belum Upload</span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* FORM REVIEW ADMIN (Hanya muncul jika klien sudah upload file) */}
+                                        {cDoc && (
+                                            <div className="w-full md:w-72 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aksi Review:</p>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi (wajib jika tolak)..."}
+                                                    value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')}
+                                                    onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})}
+                                                    className="text-xs border p-2.5 rounded-lg w-full outline-none focus:border-indigo-500"
+                                                    disabled={cDoc.status === 'approved'}
+                                                />
+                                                <div className="flex gap-2 mt-1">
+                                                    <button 
+                                                        onClick={() => handleReviewDoc(cDoc.id, 'approved')} 
+                                                        disabled={cDoc.status === 'approved'}
+                                                        className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm"
+                                                    >
+                                                        ACC Dokumen
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleReviewDoc(cDoc.id, 'revision')} 
+                                                        disabled={cDoc.status === 'approved'}
+                                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 border border-red-200 px-3 py-2 rounded-lg text-xs font-bold transition"
+                                                    >
+                                                        Minta Revisi
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
         )}
 
-        {/* --- TAB BARU: MASTER DOKUMEN --- */}
+        {/* --- TAB MASTER DOKUMEN --- */}
         {activeTab === 'docmasters' && (
             <div className="max-w-4xl">
                 <form onSubmit={saveDocMaster} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border mb-8">
