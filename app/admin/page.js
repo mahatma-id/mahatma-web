@@ -88,14 +88,14 @@ export default function AdminPage() {
   // STATE LAINNYA
   const [partners, setPartners] = useState([]); const [editPartnerId, setEditPartnerId] = useState(null); const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
   const [services, setServices] = useState([]); const [editServiceId, setEditServiceId] = useState(null); const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState(''); const [serviceImgFile, setServiceImgFile] = useState(null); const [serviceImgUrl, setServiceImgUrl] = useState('');
-  
-  // STATE BARU: SUB-LAYANAN
   const [subServices, setSubServices] = useState([]); const [editSubServiceId, setEditSubServiceId] = useState(null); const [subParentId, setSubParentId] = useState(''); const [subTitle, setSubTitle] = useState(''); const [subDesc, setSubDesc] = useState(''); const [subImgFile, setSubImgFile] = useState(null); const [subImgUrl, setSubImgUrl] = useState('');
-
   const [teams, setTeams] = useState([]); const [editTeamId, setEditTeamId] = useState(null); const [teamName, setTeamName] = useState(''); const [teamRole, setTeamRole] = useState(''); const [teamImgFile, setTeamImgFile] = useState(null); const [teamImgUrl, setTeamImgUrl] = useState('');
   const [testimonials, setTestimonials] = useState([]); const [editTestiId, setEditTestiId] = useState(null); const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
   const [faqs, setFaqs] = useState([]); const [editFaqId, setEditFaqId] = useState(null); const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
+  
+  // STATE BARU: EVENT / JADWAL
+  const [events, setEvents] = useState([]); const [editEventId, setEditEventId] = useState(null); const [eventName, setEventName] = useState(''); const [eventDate, setEventDate] = useState(''); const [eventLocation, setEventLocation] = useState(''); const [eventDesc, setEventDesc] = useState(''); const [eventImgFile, setEventImgFile] = useState(null); const [eventImgUrl, setEventImgUrl] = useState('');
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -103,57 +103,38 @@ export default function AdminPage() {
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "desc")), snap => setSliders(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => setPartners(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubServices = onSnapshot(query(collection(db, "services"), orderBy("createdAt", "desc")), snap => setServices(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-    
-    // FETCH SUB-LAYANAN BARU
     const unsubSubServices = onSnapshot(query(collection(db, "subservices"), orderBy("createdAt", "desc")), snap => setSubServices(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-
     const unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("createdAt", "asc")), snap => setTeams(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => setTestimonials(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => setFaqs(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => setPosts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    
+    // FETCH EVENT
+    const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
 
-    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); };
+    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); };
   }, []);
 
   const handleLogin = async (e) => { e.preventDefault(); setLoading(true); try { await signInWithEmailAndPassword(auth, email, password); alert("Login Berhasil!"); } catch (err) { alert("Email/Password salah!"); } setLoading(false); };
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); };
+  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvent(); };
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
   const cancelEditSlider = () => { setEditSliderId(null); setSlideTagline(''); setSlideTitle(''); setSlideSubtitle(''); setSlideBtn1Text(''); setSlideBtn1Link(''); setSlideBtn2Text(''); setSlideBtn2Link(''); setSlideImageUrl(''); setSlideImageFile(null); };
   const handleEditSlider = (s) => { setEditSliderId(s.id); setSlideTagline(s.tagline || ''); setSlideTitle(s.title || ''); setSlideSubtitle(s.subtitle || ''); setSlideBtn1Text(s.btn1Text || s.btnText || ''); setSlideBtn1Link(s.btn1Link || s.btnLink || ''); setSlideBtn2Text(s.btn2Text || ''); setSlideBtn2Link(s.btn2Link || ''); setSlideImageUrl(s.imageUrl || ''); setSlideImageFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveSlider = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = slideImageUrl; if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile); if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; } const data = { tagline: slideTagline, title: slideTitle, subtitle: slideSubtitle, btn1Text: slideBtn1Text, btn1Link: slideBtn1Link, btn2Text: slideBtn2Text, btn2Link: slideBtn2Link, imageUrl: finalImg }; if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditSlider(); } catch(err) { alert(err.message); } setLoading(false); };
-  
   const cancelEditPartner = () => { setEditPartnerId(null); setPartnerName(''); setPartnerField(''); setPartnerImgUrl(''); setPartnerImgFile(null); if(document.getElementById('partnerFileInput')) document.getElementById('partnerFileInput').value = ''; };
   const handleEditPartner = (p) => { setEditPartnerId(p.id); setPartnerName(p.name||''); setPartnerField(p.field||''); setPartnerImgUrl(p.imgUrl||''); setPartnerImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const savePartner = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = partnerImgUrl; if (partnerImgFile) finalImg = await uploadToCloudinary(partnerImgFile); const data = { name: partnerName, imgUrl: finalImg, field: partnerField }; if (editPartnerId) await updateDoc(doc(db, "partners", editPartnerId), data); else await addDoc(collection(db, "partners"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditPartner(); } catch(err) { alert(err.message); } setLoading(false); };
-  
   const cancelEditService = () => { setEditServiceId(null); setServiceName(''); setServiceDesc(''); setServiceLink(''); setServiceImgUrl(''); setServiceImgFile(null); };
   const handleEditService = (s) => { setEditServiceId(s.id); setServiceName(s.name||''); setServiceDesc(s.desc||''); setServiceLink(s.link||''); setServiceImgUrl(s.imgUrl||''); setServiceImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveService = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = serviceImgUrl; if (serviceImgFile) finalImg = await uploadToCloudinary(serviceImgFile); const data = { name: serviceName, desc: serviceDesc, link: serviceLink || "#", imgUrl: finalImg }; if (editServiceId) await updateDoc(doc(db, "services", editServiceId), data); else await addDoc(collection(db, "services"), { ...data, createdAt: serverTimestamp() }); alert('Berhasil!'); cancelEditService(); } catch(err) { alert(err.message); } setLoading(false); };
-  
-  // FUNGSI CRUD SUB-LAYANAN BARU
   const cancelEditSub = () => { setEditSubServiceId(null); setSubParentId(''); setSubTitle(''); setSubDesc(''); setSubImgUrl(''); setSubImgFile(null); };
   const handleEditSub = (s) => { setEditSubServiceId(s.id); setSubParentId(s.parentId||''); setSubTitle(s.title||''); setSubDesc(s.desc||''); setSubImgUrl(s.imgUrl||''); setSubImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveSubService = async (e) => { 
-      e.preventDefault(); 
-      if(!subParentId) return alert("Harap pilih Layanan Utama terlebih dahulu!");
-      setLoading(true); 
-      try { 
-          let finalImg = subImgUrl; 
-          if (subImgFile) finalImg = await uploadToCloudinary(subImgFile); 
-          const data = { parentId: subParentId, title: subTitle, desc: subDesc, imgUrl: finalImg }; 
-          if (editSubServiceId) await updateDoc(doc(db, "subservices", editSubServiceId), data); 
-          else await addDoc(collection(db, "subservices"), { ...data, createdAt: serverTimestamp() }); 
-          alert('Sub-Layanan Tersimpan!'); 
-          cancelEditSub(); 
-      } catch(err) { alert(err.message); } 
-      setLoading(false); 
-  };
-
+  const saveSubService = async (e) => { e.preventDefault(); if(!subParentId) return alert("Harap pilih Layanan Utama terlebih dahulu!"); setLoading(true); try { let finalImg = subImgUrl; if (subImgFile) finalImg = await uploadToCloudinary(subImgFile); const data = { parentId: subParentId, title: subTitle, desc: subDesc, imgUrl: finalImg }; if (editSubServiceId) await updateDoc(doc(db, "subservices", editSubServiceId), data); else await addDoc(collection(db, "subservices"), { ...data, createdAt: serverTimestamp() }); alert('Sub-Layanan Tersimpan!'); cancelEditSub(); } catch(err) { alert(err.message); } setLoading(false); };
   const cancelEditTeam = () => { setEditTeamId(null); setTeamName(''); setTeamRole(''); setTeamImgUrl(''); setTeamImgFile(null); };
   const handleEditTeam = (t) => { setEditTeamId(t.id); setTeamName(t.name||''); setTeamRole(t.role||''); setTeamImgUrl(t.img||''); setTeamImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveTeam = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = teamImgUrl; if (teamImgFile) finalImg = await uploadToCloudinary(teamImgFile); if (!finalImg && !editTeamId) { alert("Pilih foto!"); setLoading(false); return; } const data = { name: teamName, role: teamRole, img: finalImg }; if (editTeamId) await updateDoc(doc(db, "teams", editTeamId), data); else await addDoc(collection(db, "teams"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditTeam(); } catch(err) { alert(err.message); } setLoading(false); };
@@ -166,6 +147,24 @@ export default function AdminPage() {
   const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
   const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const savePost = async (e) => { e.preventDefault(); setLoading(true); try { if (editPostId) { await updateDoc(doc(db, "posts", editPostId), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, isDraft: isDraft }); alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); } else { let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); if (!slug) slug = 'berita-' + Date.now(); const docSnap = await getDoc(doc(db, "posts", slug)); if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft }); alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); } cancelEditPost(); } catch(err) { alert(err.message); } setLoading(false); };
+
+  // CRUD EVENT BARU
+  const cancelEditEvent = () => { setEditEventId(null); setEventName(''); setEventDate(''); setEventLocation(''); setEventDesc(''); setEventImgUrl(''); setEventImgFile(null); };
+  const handleEditEvent = (e) => { setEditEventId(e.id); setEventName(e.name||''); setEventDate(e.date||''); setEventLocation(e.location||''); setEventDesc(e.desc||''); setEventImgUrl(e.imgUrl||''); setEventImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveEvent = async (e) => { 
+      e.preventDefault(); 
+      setLoading(true); 
+      try { 
+          let finalImg = eventImgUrl; 
+          if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); 
+          const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; 
+          if (editEventId) await updateDoc(doc(db, "events", editEventId), data); 
+          else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); 
+          alert('Agenda/Event Berhasil Disimpan!'); 
+          cancelEditEvent(); 
+      } catch(err) { alert(err.message); } 
+      setLoading(false); 
+  };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
   if (!user) return (<div className="min-h-screen flex items-center justify-center bg-slate-900 p-4"><form onSubmit={handleLogin} className="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full max-w-md"><h1 className="text-2xl font-black text-slate-900 mb-2">Admin Login</h1><div className="space-y-4 mt-6"><div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Email</label><input type="email" required value={email} onChange={(e)=>setEmail(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div><div><label className="text-xs font-bold uppercase tracking-widest text-slate-400">Password</label><input type="password" required value={password} onChange={(e)=>setPassword(e.target.value)} className="w-full border-2 p-3 rounded-xl focus:border-orange-500 outline-none" /></div><button disabled={loading} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition">{loading ? 'Loading...' : 'MASUK'}</button></div></form></div>);
@@ -180,8 +179,16 @@ export default function AdminPage() {
             <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Konten Utama</p>
                 <nav className="space-y-1">
-                    {/* MENU SUB-LAYANAN DITAMBAHKAN DI SINI */}
-                    {[{ id: 'blog', label: 'Wawasan (Blog)' }, { id: 'layanan', label: 'Kelola Layanan' }, { id: 'sublayanan', label: 'Sub-Layanan (Baru)' }, { id: 'mitra', label: 'Mitra & Klien' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}
+                    {/* TAB EVENT DITAMBAHKAN DI SINI */}
+                    {[
+                        { id: 'blog', label: 'Wawasan (Blog)' }, 
+                        { id: 'event', label: 'Jadwal / Event' }, 
+                        { id: 'layanan', label: 'Kelola Layanan' }, 
+                        { id: 'sublayanan', label: 'Sub-Layanan' }, 
+                        { id: 'mitra', label: 'Mitra & Klien' }
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
+                    ))}
                 </nav>
             </div>
             <div>
@@ -393,7 +400,7 @@ export default function AdminPage() {
             <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
         )}
 
-        {/* TAB BARU: SUB-LAYANAN */}
+        {/* TAB SUB-LAYANAN */}
         {activeTab === 'sublayanan' && (
             <div className="max-w-4xl">
                 <form onSubmit={saveSubService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -428,10 +435,8 @@ export default function AdminPage() {
                 <h3 className="font-bold text-lg mb-4">Daftar Sub-Layanan</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     {subServices.map(sub => {
-                        // Cari nama parent service untuk ditampilkan di UI Admin
                         const parentService = services.find(s => s.id === sub.parentId);
                         const parentName = parentService ? parentService.name : 'Layanan Terhapus';
-
                         return (
                             <div key={sub.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editSubServiceId === sub.id ? 'ring-2 ring-indigo-500' : ''}`}>
                                 <div className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-2 border-b pb-2">Bagian: {parentName}</div>
@@ -445,6 +450,68 @@ export default function AdminPage() {
                             </div>
                         );
                     })}
+                </div>
+            </div>
+        )}
+
+        {/* TAB BARU: EVENT / JADWAL */}
+        {activeTab === 'event' && (
+            <div className="max-w-4xl">
+                <form onSubmit={saveEvent} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editEventId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Agenda / Event</span>
+                            <button type="button" onClick={cancelEditEvent} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    
+                    <label className="text-xs font-bold text-slate-700 block">Nama Event / Pelatihan</label>
+                    <input type="text" placeholder="Cth: Public Speaking Masterclass" value={eventName} onChange={e=>setEventName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Tanggal Pelaksanaan</label>
+                            <input type="text" placeholder="Cth: 15-16 Agustus 2026" value={eventDate} onChange={e=>setEventDate(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Lokasi / Platform</label>
+                            <input type="text" placeholder="Cth: Zoom Meeting / Hotel Mulia" value={eventLocation} onChange={e=>setEventLocation(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                        </div>
+                    </div>
+                    
+                    <label className="text-xs font-bold text-slate-700 block mt-2">Deskripsi Singkat</label>
+                    <textarea rows="3" placeholder="Deskripsi acara..." value={eventDesc} onChange={e=>setEventDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    
+                    <label className="text-xs font-bold text-slate-700 block mt-2">Upload Banner/Poster Event (Opsional)</label>
+                    <input type="file" onChange={e=>setEventImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />
+                    {eventImgUrl && !eventImgFile && <img src={eventImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}
+                    
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">{editEventId ? 'Perbarui Event' : 'Tambah Event'}</button>
+                </form>
+
+                <h3 className="font-bold text-lg mb-4">Daftar Agenda & Event</h3>
+                <div className="grid grid-cols-1 gap-3 md:gap-4">
+                    {events.map(ev => (
+                        <div key={ev.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row items-center gap-4 ${editEventId === ev.id ? 'ring-2 ring-indigo-500' : ''}`}>
+                            {ev.imgUrl ? (
+                                <img src={ev.imgUrl} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-lg" alt="Banner"/>
+                            ) : (
+                                <div className="w-full md:w-32 h-32 md:h-24 bg-slate-100 flex items-center justify-center rounded-lg text-xs text-slate-400">No Image</div>
+                            )}
+                            <div className="flex-grow text-center md:text-left">
+                                <h4 className="font-bold text-base md:text-lg text-slate-900">{ev.name}</h4>
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-emerald-600">
+                                    <span>📅 {ev.date}</span>
+                                    <span>📍 {ev.location}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{ev.desc}</p>
+                            </div>
+                            <div className="flex md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
+                                <button onClick={() => handleEditEvent(ev)} className="flex-1 text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button>
+                                <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         )}

@@ -25,7 +25,7 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false); // State baru untuk deteksi scroll
+  const [isScrolled, setIsScrolled] = useState(false); 
 
   useEffect(() => {
     setMounted(true);
@@ -45,7 +45,6 @@ export default function Home() {
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => { setFaqs(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
 
-    // Listener untuk mendeteksi scroll
     const handleScroll = () => {
       if (window.scrollY > 50) {
         setIsScrolled(true);
@@ -62,7 +61,6 @@ export default function Home() {
     };
   }, []);
 
-  // DURASI SLIDER HERO: 5 Detik
   useEffect(() => {
       if (sliders.length <= 1) return;
       const interval = setInterval(() => { setCurrentSlide(prev => (prev + 1) % sliders.length); }, 5000);
@@ -75,17 +73,14 @@ export default function Home() {
       waNumber = '62' + waNumber.substring(1);
   }
 
-  // LIMIT TAMPILAN TIM (HANYA 4 PERTAMA)
   const displayedTeams = teams.slice(0, 4);
 
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
 
-      {/* HEADER DIPERBARUI: Posisi absolute, transparan saat di atas, solid saat discroll */}
       <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
-            {/* LOGIKA LOGO DIPERBARUI: Jika belum scroll (transparan), paksa pakai logoDark (putih). Jika sudah scroll, ikuti tema */}
             {settings.logoUrl ? (
                 <img 
                     src={mounted && ( (!isScrolled && settings.logoDarkUrl) || (resolvedTheme === 'dark' && settings.logoDarkUrl) ) ? settings.logoDarkUrl : settings.logoUrl} 
@@ -104,12 +99,13 @@ export default function Home() {
             )}
           </Link>
 
-          {/* Navigasi Desktop */}
+          {/* UPDATE: Navigasi Desktop ditambah menu Event */}
           <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
             <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
             <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
+            <Link href="/event" className="hover:text-emerald-500 hover:-translate-y-1 transition-all text-yellow-400">Event</Link> {/* MENU BARU */}
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
@@ -134,13 +130,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Menu Mobile */}
+        {/* UPDATE: Menu Mobile ditambah menu Event */}
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
+                <Link href="/event" onClick={() => setIsMobileMenuOpen(false)} className="text-yellow-500 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Event</Link> {/* MENU BARU */}
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
                     <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
@@ -150,7 +147,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 1. HERO SECTION - Tinggi diubah jadi 100vh agar penuh */}
+      {/* 1. HERO SECTION */}
       <section className="relative h-screen bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-50">
@@ -165,7 +162,6 @@ export default function Home() {
                         Mahatma <span className="text-white">Academy</span>
                     </span>
                 )}
-                {/* Animasi titik loading tambahan di bawah logo */}
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
@@ -178,11 +174,9 @@ export default function Home() {
                     
                     <div className="absolute inset-0 z-0">
                         <img src={slide.imageUrl} className="w-full h-full object-cover object-center transform scale-105 animate-[kenburns_20s_ease-out_infinite]" alt="Hero Background"/>
-                        {/* Gradient dari atas agar teks logo tetap terbaca jika header transparan */}
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60"></div>
                     </div>
                     
-                    {/* Padding atas ditambah agar konten tidak tertutup header transparan */}
                     <div className="relative z-10 w-full h-full flex flex-col justify-center items-center text-center px-4 md:px-12 lg:px-16 pt-20">
                         <div className="max-w-5xl mx-auto flex flex-col items-center">
                             {slide.tagline && (
