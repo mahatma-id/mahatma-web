@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, setDoc, getDoc, updateDoc, where, getDocs } from 'firebase/firestore';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { db, auth } from '@/lib/firebase';
 import 'react-quill-new/dist/quill.snow.css';
@@ -101,10 +101,17 @@ export default function AdminPage() {
   const [newDocMasterName, setNewDocMasterName] = useState('');
   const [newDocMasterDesc, setNewDocMasterDesc] = useState('');
   
-  // STATE TAHAP 4: UNTUK REVIEW DOKUMEN KLIEN
+  // STATE REVIEW DOKUMEN KLIEN
   const [selectedClient, setSelectedClient] = useState(null); 
   const [selectedClientDocs, setSelectedClientDocs] = useState([]); 
   const [docComments, setDocComments] = useState({}); 
+
+  // STATE BUAT KLIEN BARU OLEH ADMIN
+  const [newClientLembaga, setNewClientLembaga] = useState('');
+  const [newClientPic, setNewClientPic] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
+  const [newClientEmail, setNewClientEmail] = useState('');
+  const [newClientPassword, setNewClientPassword] = useState('');
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -126,7 +133,7 @@ export default function AdminPage() {
     return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); };
   }, []);
 
-  // --- EFEK KHUSUS TAHAP 4: Mengambil dokumen dari klien yang di-klik ---
+  // Mengambil dokumen dari klien yang di-klik
   useEffect(() => {
       if (selectedClient) {
           const q = query(collection(db, "client_docs"), where("clientId", "==", selectedClient.id));
@@ -173,21 +180,42 @@ export default function AdminPage() {
   const handleEditEvent = (e) => { setEditEventId(e.id); setEventName(e.name||''); setEventDate(e.date||''); setEventLocation(e.location||''); setEventDesc(e.desc||''); setEventImgUrl(e.imgUrl||''); setEventImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveEvent = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventImgUrl; if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; if (editEventId) await updateDoc(doc(db, "events", editEventId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Event Berhasil Disimpan!'); cancelEditEvent(); } catch(err) { alert(err.message); } setLoading(false); };
 
-  // --- FUNGSI TAHAP 4: ACC / REVISI DOKUMEN ---
-  const updateClientStatus = async (id, newStatus) => {
-      if(!confirm(`Ubah status klien menjadi ${newStatus}?`)) return;
+  // --- FUNGSI TAHAP 4: ACC / REVISI DOKUMEN & BUAT AKUN KLIEN ---
+  const handleCreateClient = async (e) => {
+      e.preventDefault();
+      setLoading(true);
       try {
-          await updateDoc(doc(db, "clients", id), { status: newStatus });
-          alert(`Status klien berhasil diubah!`);
+          // Cek email apakah sudah ada
+          const q = query(collection(db, "clients"), where("email", "==", newClientEmail));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+              alert("Email sudah digunakan klien lain!");
+              setLoading(false);
+              return;
+          }
+          
+          // Langsung simpan dengan status 'approved'
+          await addDoc(collection(db, "clients"), {
+              lembagaName: newClientLembaga,
+              picName: newClientPic,
+              phone: newClientPhone,
+              email: newClientEmail,
+              password: newClientPassword,
+              status: 'approved',
+              createdAt: serverTimestamp()
+          });
+
+          alert("Akun Klien berhasil dibuat!");
+          setNewClientLembaga(''); setNewClientPic(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientPassword('');
       } catch (err) {
-          alert("Gagal merubah status: " + err.message);
+          alert("Gagal membuat akun klien: " + err.message);
       }
+      setLoading(false);
   };
 
   const handleReviewDoc = async (clientDocId, status) => {
       const comment = docComments[clientDocId] || '';
       
-      // Jika Admin klik "Revisi", wajib isi komentar agar Klien tau salahnya dimana
       if (status === 'revision' && !comment.trim()) {
           return alert("Wajib mengisi kolom komentar jika meminta revisi!");
       }
@@ -196,7 +224,7 @@ export default function AdminPage() {
 
       try {
           await updateDoc(doc(db, "client_docs", clientDocId), {
-              status: status, // 'approved' atau 'revision'
+              status: status, 
               adminComment: status === 'approved' ? 'Dokumen Sesuai' : comment,
               updatedAt: serverTimestamp()
           });
@@ -240,7 +268,7 @@ export default function AdminPage() {
                 <p className="text-[10px] font-bold tracking-widest uppercase text-emerald-500 mb-2 px-2">Sistem Portal ISO</p>
                 <nav className="space-y-1">
                     {[
-                        { id: 'clients', label: 'Kelola Pendaftar / Klien' }, 
+                        { id: 'clients', label: 'Kelola Akun Klien' }, 
                         { id: 'docmasters', label: 'Master Syarat Dokumen' }
                     ].map(tab => (
                         <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
@@ -273,66 +301,84 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
         <div className="mb-6 border-b border-slate-200 pb-4">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
-                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Portal Klien ISO' : `Kelola ${activeTab}`}
+                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Kelola Akun Klien ISO' : `Kelola ${activeTab}`}
             </h2>
         </div>
         
-        {/* --- TAB BARU: KELOLA KLIEN (ACC & REVIEW) --- */}
+        {/* --- TAB KELOLA KLIEN (BUAT AKUN & REVIEW) --- */}
         {activeTab === 'clients' && (
             <div className="max-w-6xl">
                 {!selectedClient ? (
-                    // TAMPILAN 1: TABEL DAFTAR KLIEN
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
-                        <h3 className="font-bold text-lg mb-2">Daftar Pendaftar Portal ISO</h3>
-                        <p className="text-xs text-slate-500 mb-6">Pendaftar baru akan berstatus "Pending". Anda harus klik "Setujui" agar mereka bisa login.</p>
-                        
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse min-w-[700px]">
-                                <thead>
-                                    <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
-                                        <th className="p-3 border-b">Nama Lembaga</th>
-                                        <th className="p-3 border-b">PIC & Kontak</th>
-                                        <th className="p-3 border-b">Email Login</th>
-                                        <th className="p-3 border-b text-center">Status</th>
-                                        <th className="p-3 border-b text-right">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {clients.length === 0 ? (
-                                        <tr><td colSpan="5" className="p-4 text-center text-slate-400">Belum ada klien yang mendaftar.</td></tr>
-                                    ) : clients.map(c => (
-                                        <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
-                                            <td className="p-3 font-bold text-sm text-emerald-700">{c.lembagaName}</td>
-                                            <td className="p-3 text-xs">
-                                                <div className="font-semibold">{c.picName}</div>
-                                                <div className="text-slate-500">{c.phone}</div>
-                                            </td>
-                                            <td className="p-3 text-xs text-slate-600">{c.email}</td>
-                                            <td className="p-3 text-center">
-                                                {c.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase tracking-widest">Menunggu</span>}
-                                                {c.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase tracking-widest">Disetujui</span>}
-                                                {c.status === 'rejected' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-widest">Ditolak</span>}
-                                            </td>
-                                            <td className="p-3 text-right space-x-2">
-                                                {c.status === 'pending' && (
-                                                    <>
-                                                        <button onClick={() => updateClientStatus(c.id, 'approved')} className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-xs font-bold transition">Setujui</button>
-                                                        <button onClick={() => updateClientStatus(c.id, 'rejected')} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-xs font-bold transition">Tolak</button>
-                                                    </>
-                                                )}
-                                                {c.status === 'approved' && (
+                    <>
+                        {/* FORM BUAT AKUN KLIEN OLEH ADMIN */}
+                        <form onSubmit={handleCreateClient} className="bg-white p-6 rounded-2xl shadow-sm border mb-8 border-emerald-100">
+                            <h3 className="font-bold text-lg mb-2 text-emerald-700">Daftarkan Klien Baru</h3>
+                            <p className="text-xs text-slate-500 mb-6">Akun yang dibuat di sini bisa langsung digunakan oleh klien untuk login ke Portal ISO.</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama Lembaga</label>
+                                    <input type="text" required value={newClientLembaga} onChange={e=>setNewClientLembaga(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Cth: PT Sukses Bersama" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama PIC</label>
+                                    <input type="text" required value={newClientPic} onChange={e=>setNewClientPic(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Nama Lengkap Penanggung Jawab" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">No WhatsApp</label>
+                                    <input type="text" required value={newClientPhone} onChange={e=>setNewClientPhone(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="0812..." />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Email Login</label>
+                                    <input type="email" required value={newClientEmail} onChange={e=>setNewClientEmail(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="email@lembaga.com" />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Password Login</label>
+                                    <input type="text" required value={newClientPassword} onChange={e=>setNewClientPassword(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Buat password untuk klien..." />
+                                </div>
+                            </div>
+                            <button disabled={loading} className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto hover:bg-emerald-700 transition">
+                                {loading ? 'Memproses...' : 'Buat Akun Klien'}
+                            </button>
+                        </form>
+
+                        {/* TABEL DAFTAR KLIEN YANG SUDAH DIBUAT */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
+                            <h3 className="font-bold text-lg mb-4">Daftar Akun Klien</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse min-w-[700px]">
+                                    <thead>
+                                        <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                                            <th className="p-3 border-b">Nama Lembaga</th>
+                                            <th className="p-3 border-b">PIC & Kontak</th>
+                                            <th className="p-3 border-b">Email / User</th>
+                                            <th className="p-3 border-b text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {clients.length === 0 ? (
+                                            <tr><td colSpan="4" className="p-4 text-center text-slate-400">Belum ada akun klien yang dibuat.</td></tr>
+                                        ) : clients.map(c => (
+                                            <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
+                                                <td className="p-3 font-bold text-sm text-emerald-700">{c.lembagaName}</td>
+                                                <td className="p-3 text-xs">
+                                                    <div className="font-semibold">{c.picName}</div>
+                                                    <div className="text-slate-500">{c.phone}</div>
+                                                </td>
+                                                <td className="p-3 text-xs text-slate-600">{c.email}</td>
+                                                <td className="p-3 text-right space-x-2">
                                                     <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">
                                                         🔍 Cek Dokumen
                                                     </button>
-                                                )}
-                                                <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                    <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus Akun</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
+                    </>
                 ) : (
                     // TAMPILAN 2: REVIEW DOKUMEN SPESIFIK 1 KLIEN
                     <div className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-slate-200 mb-8 animate-in fade-in zoom-in duration-300">
