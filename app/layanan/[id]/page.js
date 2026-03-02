@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, use } from 'react';
-import { doc, getDoc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, collection, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -11,12 +11,12 @@ export default function LayananDetail({ params }) {
   const id = resolvedParams.id;
   
   const [service, setService] = useState(null);
+  const [subServices, setSubServices] = useState([]); // STATE BARU UNTUK SUB-LAYANAN
   const [loading, setLoading] = useState(true);
   
   const [settings, setSettings] = useState({});
-  const [partners, setPartners] = useState([]); // Untuk Footer
+  const [partners, setPartners] = useState([]); 
   
-  // State untuk Header dinamis
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -25,17 +25,15 @@ export default function LayananDetail({ params }) {
   useEffect(() => {
     setMounted(true);
     
-    // Ambil data pengaturan (logo, footer, WA)
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => { 
         if(snap.exists()) setSettings(snap.data()); 
     });
 
-    // Ambil data mitra (untuk Footer)
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => {
         setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // Ambil detail layanan berdasarkan ID
+    // Ambil detail layanan utama (Parent)
     const fetchService = async () => {
       try {
         const docRef = doc(db, "services", id);
@@ -53,25 +51,32 @@ export default function LayananDetail({ params }) {
     };
     fetchService();
 
-    // Listener untuk scroll header
+    // Ambil daftar Sub-Layanan berdasarkan ID Layanan Utama
+    const subServicesQuery = query(collection(db, "subservices"), where("parentId", "==", id));
+    const unsubSubServices = onSnapshot(subServicesQuery, snap => {
+        // Karena orderBy tidak bisa dipakai bersamaan dengan where di Firebase tanpa index, kita sort manual di client
+        const subs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        subs.sort((a, b) => b.createdAt - a.createdAt); 
+        setSubServices(subs);
+    });
+
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
 
     return () => { 
         unsubSettings(); 
         unsubPartners();
+        unsubSubServices();
         window.removeEventListener('scroll', handleScroll);
     };
   }, [id]);
 
-  // Format Nomor WA
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) {
       waNumber = '62' + waNumber.substring(1);
   }
 
-  // Tampilan Loading
   if (loading) {
       return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
@@ -89,7 +94,6 @@ export default function LayananDetail({ params }) {
       );
   }
 
-  // Tampilan Jika Layanan Tidak Ditemukan (404)
   if (!service) {
       return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-center px-4 transition-colors duration-300">
@@ -105,7 +109,7 @@ export default function LayananDetail({ params }) {
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
       
-      {/* HEADER DINAMIS (Sama Persis dengan Home) */}
+      {/* HEADER DINAMIS */}
       <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
@@ -171,9 +175,9 @@ export default function LayananDetail({ params }) {
       <section className="bg-slate-900 text-white pt-32 pb-16 md:pt-40 md:pb-20 px-4 md:px-12 lg:px-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-10 -mt-10 md:-mr-20 md:-mt-20 w-40 h-40 md:w-80 md:h-80 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-yellow-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
+        <div className="container mx-auto max-w-5xl text-center relative z-10">
             <span className="inline-block px-3 py-1 md:px-4 md:py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[9px] md:text-xs font-bold uppercase tracking-widest mb-4 md:mb-6 border border-emerald-500/30">
-                Detail Layanan
+                Detail Layanan Utama
             </span>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 md:mb-6 drop-shadow-lg">
                 {service.name}
@@ -181,31 +185,71 @@ export default function LayananDetail({ params }) {
         </div>
       </section>
 
-      {/* DESKRIPSI LAYANAN - Card menumpuk di atas background gelap */}
+      {/* KONTEN LAYANAN & SUB-LAYANAN */}
       <main className="flex-grow py-10 md:py-16 px-4 md:px-12 lg:px-16 -mt-10 md:-mt-12 relative z-20">
-        <div className="container mx-auto max-w-4xl bg-white dark:bg-slate-900 p-6 md:p-12 lg:p-16 rounded-2xl md:rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 transition-colors duration-300">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-50 dark:bg-slate-800 text-emerald-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 transition-colors">
-                <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <div className="container mx-auto max-w-6xl bg-white dark:bg-slate-900 p-6 md:p-12 lg:p-16 rounded-2xl md:rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 transition-colors duration-300">
+            
+            {/* Bagian Deskripsi Utama */}
+            <div className="max-w-4xl mx-auto text-center mb-12 md:mb-16">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-50 dark:bg-slate-800 text-emerald-600 rounded-xl md:rounded-2xl flex items-center justify-center mb-6 md:mb-8 mx-auto transition-colors">
+                    <svg className="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 transition-colors">Tentang Program Utama</h2>
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-lg leading-relaxed md:leading-loose font-light whitespace-pre-line transition-colors">
+                    {service.desc}
+                </p>
             </div>
-            
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 transition-colors">Tentang Program Ini</h2>
-            
-            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-lg leading-relaxed md:leading-loose font-light whitespace-pre-line mb-8 md:mb-12 transition-colors">
-                {service.desc}
-            </p>
 
-            {/* CALL TO ACTION KHUSUS LAYANAN INI */}
-            <div className="bg-slate-50 dark:bg-slate-950 p-6 md:p-8 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 text-center transition-colors duration-300">
-                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">Tertarik dengan program ini?</h3>
+            {/* --- GRID KARTU SUB-LAYANAN --- */}
+            {subServices.length > 0 && (
+                <div className="mb-12 md:mb-20 pt-8 border-t border-slate-100 dark:border-slate-800">
+                    <div className="text-center mb-10">
+                        <span className="text-emerald-600 font-black tracking-widest uppercase text-[10px] md:text-xs mb-2 block">Pilihan Program</span>
+                        <h2 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white">Sub-Kategori {service.name}</h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                        {subServices.map(sub => (
+                            <div key={sub.id} className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
+                                {sub.imgUrl ? (
+                                    <div className="w-full h-40 md:h-52 overflow-hidden bg-slate-200 dark:bg-slate-800">
+                                        <img src={sub.imgUrl} alt={sub.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    </div>
+                                ) : (
+                                    <div className="w-full h-2 bg-emerald-500"></div> // Garis warna jika tidak ada gambar
+                                )}
+                                <div className="p-6 md:p-8 flex flex-col flex-grow">
+                                    <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 transition-colors">{sub.title}</h3>
+                                    <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed flex-grow font-light">
+                                        {sub.desc}
+                                    </p>
+                                    <a 
+                                        href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20ingin%20info%20lebih%20lanjut%20tentang%20program%20*${sub.title}*%20(Kategori:%20${service.name}).`} 
+                                        target="_blank" 
+                                        className="inline-flex items-center text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-widest text-[10px] hover:text-orange-600 transition mt-auto"
+                                    >
+                                        Tanya Program Ini <span className="ml-2 transform group-hover:translate-x-2 transition-transform">→</span>
+                                    </a>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* CALL TO ACTION UMUM */}
+            <div className="bg-slate-50 dark:bg-slate-950 p-6 md:p-10 rounded-xl md:rounded-2xl border border-slate-100 dark:border-slate-800 text-center transition-colors duration-300">
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">Butuh program yang disesuaikan?</h3>
                 <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm mb-5 md:mb-6">Tim pakar kami siap mendiskusikan kebutuhan spesifik organisasi Anda.</p>
                 <a 
                     href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20untuk%20berdiskusi%20lebih%20lanjut%20mengenai%20layanan%20*${service.name}*.`} 
                     target="_blank" 
                     className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-emerald-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-emerald-500 hover:-translate-y-1 transition duration-300 shadow-md"
                 >
-                    Konsultasi via WA
+                    Konsultasi via WhatsApp
                 </a>
             </div>
+            
         </div>
       </main>
 
@@ -294,6 +338,7 @@ export default function LayananDetail({ params }) {
                         <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>
                     )}
                 </div>
+
             </div>
 
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
