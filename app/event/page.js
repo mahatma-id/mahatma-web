@@ -105,7 +105,7 @@ export default function EventPage() {
                 Agenda Terdekat
             </span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 drop-shadow-lg">
-                Jadwal Event & Pelatihan
+                Jadwal Pelatihan
             </h1>
             <p className="text-slate-300 md:text-lg max-w-2xl mx-auto font-light">
                 Tingkatkan kompetensi Anda dengan mengikuti berbagai program pelatihan eksklusif dari Mahatma Academy.
