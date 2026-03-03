@@ -30,7 +30,7 @@ export default function AdminPage() {
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, { method: 'POST', body: formData });
     const data = await res.json();
     if (data.secure_url) return data.secure_url;
-    throw new Error(data.error?.message || "Gagal upload gambar");
+    throw new Error(data.error?.message || "Gagal upload file");
   };
 
   const imageHandler = () => {
@@ -80,12 +80,10 @@ export default function AdminPage() {
       linkedin: '', youtube: '', instagram: ''
   });
   
-  // STATE SLIDER
+  // STATE SLIDER & LAINNYA
   const [sliders, setSliders] = useState([]);
   const [editSliderId, setEditSliderId] = useState(null);
   const [slideTagline, setSlideTagline] = useState(''); const [slideTitle, setSlideTitle] = useState(''); const [slideSubtitle, setSlideSubtitle] = useState(''); const [slideBtn1Text, setSlideBtn1Text] = useState(''); const [slideBtn1Link, setSlideBtn1Link] = useState(''); const [slideBtn2Text, setSlideBtn2Text] = useState(''); const [slideBtn2Link, setSlideBtn2Link] = useState(''); const [slideImageFile, setSlideImageFile] = useState(null); const [slideImageUrl, setSlideImageUrl] = useState('');
-
-  // STATE LAINNYA
   const [partners, setPartners] = useState([]); const [editPartnerId, setEditPartnerId] = useState(null); const [partnerName, setPartnerName] = useState(''); const [partnerImgFile, setPartnerImgFile] = useState(null); const [partnerField, setPartnerField] = useState(''); const [partnerImgUrl, setPartnerImgUrl] = useState('');
   const [services, setServices] = useState([]); const [editServiceId, setEditServiceId] = useState(null); const [serviceName, setServiceName] = useState(''); const [serviceDesc, setServiceDesc] = useState(''); const [serviceLink, setServiceLink] = useState(''); const [serviceImgFile, setServiceImgFile] = useState(null); const [serviceImgUrl, setServiceImgUrl] = useState('');
   const [subServices, setSubServices] = useState([]); const [editSubServiceId, setEditSubServiceId] = useState(null); const [subParentId, setSubParentId] = useState(''); const [subTitle, setSubTitle] = useState(''); const [subDesc, setSubDesc] = useState(''); const [subImgFile, setSubImgFile] = useState(null); const [subImgUrl, setSubImgUrl] = useState('');
@@ -95,12 +93,21 @@ export default function AdminPage() {
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
   const [events, setEvents] = useState([]); const [editEventsId, setEditEventsId] = useState(null); const [eventsName, setEventsName] = useState(''); const [eventsDate, setEventsDate] = useState(''); const [eventsLocation, setEventsLocation] = useState(''); const [eventsDesc, setEventsDesc] = useState(''); const [eventsImgFile, setEventsImgFile] = useState(null); const [eventsImgUrl, setEventsImgUrl] = useState('');
 
-  // --- STATE UNTUK PORTAL ISO ---
-  const [clients, setClients] = useState([]); 
+  // --- STATE HIERARKI ISO BARU ---
+  const [isoTypes, setIsoTypes] = useState([]);
+  const [isoFolders, setIsoFolders] = useState([]);
   const [docMasters, setDocMasters] = useState([]); 
-  const [newDocMasterName, setNewDocMasterName] = useState('');
-  const [newDocMasterDesc, setNewDocMasterDesc] = useState('');
+  const [clients, setClients] = useState([]); 
   
+  // State Form ISO & Folder
+  const [newIsoName, setNewIsoName] = useState('');
+  const [newFolderName, setNewFolderName] = useState('');
+  const [selectedIsoForFolder, setSelectedIsoForFolder] = useState('');
+  
+  // State Form Dokumen
+  const [newDocMasterName, setNewDocMasterName] = useState('');
+  const [selectedFolderForDoc, setSelectedFolderForDoc] = useState('');
+
   // STATE REVIEW DOKUMEN KLIEN
   const [selectedClient, setSelectedClient] = useState(null); 
   const [selectedClientDocs, setSelectedClientDocs] = useState([]); 
@@ -112,6 +119,8 @@ export default function AdminPage() {
   const [newClientPhone, setNewClientPhone] = useState('');
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPassword, setNewClientPassword] = useState('');
+  const [selectedIsoForClient, setSelectedIsoForClient] = useState('');
+  const [selectedFoldersForClient, setSelectedFoldersForClient] = useState([]);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
@@ -126,11 +135,13 @@ export default function AdminPage() {
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => setPosts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     
-    // FETCH DATA PORTAL ISO
-    const unsubClients = onSnapshot(query(collection(db, "clients"), orderBy("createdAt", "desc")), snap => setClients(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    // FETCH DATA PORTAL ISO BARU (HIERARKI)
+    const unsubIsoTypes = onSnapshot(query(collection(db, "iso_types"), orderBy("createdAt", "asc")), snap => setIsoTypes(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubIsoFolders = onSnapshot(query(collection(db, "iso_folders"), orderBy("createdAt", "asc")), snap => setIsoFolders(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubDocMasters = onSnapshot(query(collection(db, "doc_masters"), orderBy("createdAt", "asc")), snap => setDocMasters(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubClients = onSnapshot(query(collection(db, "clients"), orderBy("createdAt", "desc")), snap => setClients(snap.docs.map(d => ({id: d.id, ...d.data()}))));
 
-    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); };
+    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); unsubIsoTypes(); unsubIsoFolders(); };
   }, []);
 
   // Mengambil dokumen dari klien yang di-klik
@@ -180,46 +191,73 @@ export default function AdminPage() {
   const handleEditEvents = (e) => { setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveEvents = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventsImgUrl; if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile); const data = { name: eventsName, date: eventsDate, location: eventsLocation, desc: eventsDesc, imgUrl: finalImg }; if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Events Berhasil Disimpan!'); cancelEditEvents(); } catch(err) { alert(err.message); } setLoading(false); };
 
-  // --- FUNGSI TAHAP 4: ACC / REVISI DOKUMEN & BUAT AKUN KLIEN ---
+  // --- FUNGSI MASTER ISO (TAHAP BARU) ---
+  const saveIsoType = async (e) => {
+      e.preventDefault();
+      if(!newIsoName) return;
+      try {
+          await addDoc(collection(db, "iso_types"), { name: newIsoName, createdAt: serverTimestamp() });
+          setNewIsoName(''); alert("Jenis ISO berhasil ditambahkan!");
+      } catch (err) { alert(err.message); }
+  };
+
+  const saveIsoFolder = async (e) => {
+      e.preventDefault();
+      if(!newFolderName || !selectedIsoForFolder) return alert("Pilih ISO dan isi nama folder!");
+      try {
+          await addDoc(collection(db, "iso_folders"), { isoId: selectedIsoForFolder, name: newFolderName, createdAt: serverTimestamp() });
+          setNewFolderName(''); alert("Folder berhasil ditambahkan!");
+      } catch (err) { alert(err.message); }
+  };
+
+  const saveDocMaster = async (e) => {
+      e.preventDefault();
+      if(!newDocMasterName || !selectedFolderForDoc) return alert("Pilih Folder dan isi nama dokumen!");
+      try {
+          await addDoc(collection(db, "doc_masters"), { folderId: selectedFolderForDoc, name: newDocMasterName, createdAt: serverTimestamp() });
+          setNewDocMasterName(''); alert("Syarat Dokumen berhasil ditambahkan!");
+      } catch (err) { alert(err.message); }
+  };
+
+
+  // --- FUNGSI BUAT & REVIEW KLIEN ---
+  const toggleFolderForClient = (folderId) => {
+      setSelectedFoldersForClient(prev => 
+          prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
+      );
+  };
+
   const handleCreateClient = async (e) => {
       e.preventDefault();
+      if(selectedFoldersForClient.length === 0) return alert("Pilih minimal 1 folder kebutuhan klien!");
       setLoading(true);
       try {
-          // Cek email apakah sudah ada
           const q = query(collection(db, "clients"), where("email", "==", newClientEmail));
           const querySnapshot = await getDocs(q);
-          if (!querySnapshot.empty) {
-              alert("Email sudah digunakan klien lain!");
-              setLoading(false);
-              return;
-          }
+          if (!querySnapshot.empty) { alert("Email sudah digunakan klien lain!"); setLoading(false); return; }
           
-          // Langsung simpan dengan status 'approved'
           await addDoc(collection(db, "clients"), {
               lembagaName: newClientLembaga,
               picName: newClientPic,
               phone: newClientPhone,
               email: newClientEmail,
               password: newClientPassword,
+              isoId: selectedIsoForClient,
+              assignedFolders: selectedFoldersForClient,
               status: 'approved',
               createdAt: serverTimestamp()
           });
 
           alert("Akun Klien berhasil dibuat!");
           setNewClientLembaga(''); setNewClientPic(''); setNewClientPhone(''); setNewClientEmail(''); setNewClientPassword('');
-      } catch (err) {
-          alert("Gagal membuat akun klien: " + err.message);
-      }
+          setSelectedIsoForClient(''); setSelectedFoldersForClient([]);
+      } catch (err) { alert("Gagal membuat akun: " + err.message); }
       setLoading(false);
   };
 
   const handleReviewDoc = async (clientDocId, status) => {
       const comment = docComments[clientDocId] || '';
-      
-      if (status === 'revision' && !comment.trim()) {
-          return alert("Wajib mengisi kolom komentar jika meminta revisi!");
-      }
-
+      if (status === 'revision' && !comment.trim()) return alert("Wajib mengisi komentar revisi!");
       if(!confirm(`Apakah Anda yakin mengubah dokumen ini menjadi ${status.toUpperCase()}?`)) return;
 
       try {
@@ -229,26 +267,7 @@ export default function AdminPage() {
               updatedAt: serverTimestamp()
           });
           alert(`Dokumen berhasil di-${status === 'approved' ? 'ACC' : 'REVISI'}!`);
-      } catch (err) {
-          alert("Gagal menyimpan review: " + err.message);
-      }
-  };
-
-  const saveDocMaster = async (e) => {
-      e.preventDefault();
-      if(!newDocMasterName) return alert("Nama dokumen harus diisi!");
-      try {
-          await addDoc(collection(db, "doc_masters"), {
-              name: newDocMasterName,
-              desc: newDocMasterDesc,
-              createdAt: serverTimestamp()
-          });
-          setNewDocMasterName('');
-          setNewDocMasterDesc('');
-          alert("Master Dokumen berhasil ditambahkan!");
-      } catch (err) {
-          alert("Gagal: " + err.message);
-      }
+      } catch (err) { alert("Gagal menyimpan review: " + err.message); }
   };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
@@ -269,7 +288,7 @@ export default function AdminPage() {
                 <nav className="space-y-1">
                     {[
                         { id: 'clients', label: 'Kelola Akun Klien' }, 
-                        { id: 'docmasters', label: 'Master Syarat Dokumen' }
+                        { id: 'docmasters', label: 'Master ISO & Folder' } // <-- NAMA MENU DIUBAH
                     ].map(tab => (
                         <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
                     ))}
@@ -301,7 +320,7 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
         <div className="mb-6 border-b border-slate-200 pb-4">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
-                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Kelola Akun Klien ISO' : `Kelola ${activeTab}`}
+                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Kelola Akun Klien ISO' : activeTab === 'docmasters' ? 'Hierarki Dokumen ISO' : `Kelola ${activeTab}`}
             </h2>
         </div>
         
@@ -337,8 +356,42 @@ export default function AdminPage() {
                                     <input type="text" required value={newClientPassword} onChange={e=>setNewClientPassword(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Buat password untuk klien..." />
                                 </div>
                             </div>
-                            <button disabled={loading} className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto hover:bg-emerald-700 transition">
-                                {loading ? 'Memproses...' : 'Buat Akun Klien'}
+
+                            {/* PILIH KEBUTUHAN ISO & FOLDER KLIEN */}
+                            <div className="border-t border-slate-100 pt-4 mt-2">
+                                <h4 className="font-bold text-sm mb-3">Tentukan Kebutuhan Dokumen Klien</h4>
+                                <select 
+                                    className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm bg-slate-50 mb-4"
+                                    value={selectedIsoForClient} 
+                                    onChange={(e) => { setSelectedIsoForClient(e.target.value); setSelectedFoldersForClient([]); }}
+                                >
+                                    <option value="">-- Pilih Jenis Sertifikasi ISO --</option>
+                                    {isoTypes.map(iso => <option key={iso.id} value={iso.id}>{iso.name}</option>)}
+                                </select>
+
+                                {selectedIsoForClient && (
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Pilih Folder Kebutuhan untuk Klien Ini:</p>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {isoFolders.filter(f => f.isoId === selectedIsoForClient).map(folder => (
+                                                <label key={folder.id} className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border shadow-sm">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        checked={selectedFoldersForClient.includes(folder.id)}
+                                                        onChange={() => toggleFolderForClient(folder.id)}
+                                                        className="w-4 h-4 text-emerald-600"
+                                                    />
+                                                    <span className="text-xs font-bold text-slate-700 line-clamp-1">{folder.name}</span>
+                                                </label>
+                                            ))}
+                                            {isoFolders.filter(f => f.isoId === selectedIsoForClient).length === 0 && <p className="text-xs text-slate-400">Belum ada folder di ISO ini.</p>}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <button disabled={loading} className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold text-sm w-full md:w-auto hover:bg-emerald-700 transition mt-6 shadow-md">
+                                {loading ? 'Memproses...' : 'Simpan & Buat Akun Klien'}
                             </button>
                         </form>
 
@@ -350,7 +403,7 @@ export default function AdminPage() {
                                     <thead>
                                         <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
                                             <th className="p-3 border-b">Nama Lembaga</th>
-                                            <th className="p-3 border-b">PIC & Kontak</th>
+                                            <th className="p-3 border-b">ISO & Folder</th>
                                             <th className="p-3 border-b">Email / User</th>
                                             <th className="p-3 border-b text-right">Aksi</th>
                                         </tr>
@@ -358,22 +411,28 @@ export default function AdminPage() {
                                     <tbody>
                                         {clients.length === 0 ? (
                                             <tr><td colSpan="4" className="p-4 text-center text-slate-400">Belum ada akun klien yang dibuat.</td></tr>
-                                        ) : clients.map(c => (
-                                            <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
-                                                <td className="p-3 font-bold text-sm text-emerald-700">{c.lembagaName}</td>
-                                                <td className="p-3 text-xs">
-                                                    <div className="font-semibold">{c.picName}</div>
-                                                    <div className="text-slate-500">{c.phone}</div>
-                                                </td>
-                                                <td className="p-3 text-xs text-slate-600">{c.email}</td>
-                                                <td className="p-3 text-right space-x-2">
-                                                    <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">
-                                                        🔍 Cek Dokumen
-                                                    </button>
-                                                    <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus Akun</button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        ) : clients.map(c => {
+                                            const isoName = isoTypes.find(i => i.id === c.isoId)?.name || 'Unknown ISO';
+                                            return (
+                                                <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
+                                                    <td className="p-3 font-bold text-sm text-emerald-700">
+                                                        {c.lembagaName}
+                                                        <div className="text-[10px] font-normal text-slate-500 mt-1">PIC: {c.picName} ({c.phone})</div>
+                                                    </td>
+                                                    <td className="p-3 text-xs">
+                                                        <div className="font-bold text-slate-800">{isoName}</div>
+                                                        <div className="text-[10px] text-slate-500 mt-1">{c.assignedFolders?.length || 0} Folder Ditugaskan</div>
+                                                    </td>
+                                                    <td className="p-3 text-xs text-slate-600">{c.email}</td>
+                                                    <td className="p-3 text-right space-x-2">
+                                                        <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">
+                                                            🔍 Cek Dokumen
+                                                        </button>
+                                                        <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
@@ -389,74 +448,59 @@ export default function AdminPage() {
                         <div className="border-b border-slate-200 pb-4 mb-6">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Ruang Review Audit</p>
                             <h3 className="font-black text-2xl md:text-3xl text-slate-900">{selectedClient.lembagaName}</h3>
-                            <p className="text-sm text-slate-500 mt-1">Penanggung Jawab: <b>{selectedClient.picName}</b> | Kontak: <b>{selectedClient.phone}</b></p>
+                            <p className="text-sm text-slate-500 mt-1">ISO: <b>{isoTypes.find(i => i.id === selectedClient.isoId)?.name}</b></p>
                         </div>
 
-                        <div className="space-y-4">
-                            {docMasters.length === 0 ? (
-                                <p className="text-sm text-slate-400 italic">Belum ada master dokumen yang di-setting.</p>
-                            ) : docMasters.map((master, idx) => {
-                                // Cek dokumen yang sesuai dari array `selectedClientDocs`
-                                const cDoc = selectedClientDocs.find(d => d.masterId === master.id);
-                                
+                        <div className="space-y-6">
+                            {/* Render folder-folder yang ditugaskan ke klien ini */}
+                            {selectedClient.assignedFolders?.map(folderId => {
+                                const folder = isoFolders.find(f => f.id === folderId);
+                                const docsInFolder = docMasters.filter(d => d.folderId === folderId);
+                                if (!folder) return null;
+
                                 return (
-                                    <div key={master.id} className={`p-4 md:p-6 border rounded-xl flex flex-col md:flex-row gap-4 justify-between md:items-center transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-white'}`}>
-                                        
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold">{idx + 1}</span>
-                                                <h4 className="font-bold text-sm md:text-base text-slate-800">{master.name}</h4>
-                                            </div>
-                                            <p className="text-xs text-slate-500 mb-3 ml-7">{master.desc}</p>
-                                            
-                                            <div className="ml-7 flex items-center gap-3">
-                                                {cDoc ? (
-                                                    <>
-                                                        {cDoc.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase border border-yellow-200 animate-pulse">Menunggu Cek Admin</span>}
-                                                        {cDoc.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase border border-emerald-200">✅ Disetujui</span>}
-                                                        {cDoc.status === 'revision' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase border border-red-200">❌ Menunggu Revisi</span>}
-                                                        
-                                                        <a href={cDoc.fileUrl} target="_blank" className="text-xs px-3 py-1 bg-slate-900 text-white rounded font-bold hover:bg-slate-700 transition">
-                                                            Lihat Dokumen ↗
-                                                        </a>
-                                                    </>
-                                                ) : (
-                                                    <span className="px-2 py-1 bg-slate-100 text-slate-400 rounded text-[10px] font-bold uppercase">Klien Belum Upload</span>
-                                                )}
-                                            </div>
+                                    <div key={folder.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                                        <div className="bg-slate-50 p-4 border-b border-slate-200">
+                                            <h4 className="font-bold text-slate-800">📁 {folder.name}</h4>
                                         </div>
+                                        <div className="p-4 space-y-4 bg-white">
+                                            {docsInFolder.length === 0 ? (
+                                                <p className="text-xs text-slate-400 italic">Belum ada dokumen di folder ini.</p>
+                                            ) : docsInFolder.map((master, idx) => {
+                                                const cDoc = selectedClientDocs.find(d => d.masterId === master.id);
+                                                return (
+                                                    <div key={master.id} className={`p-4 border rounded-xl flex flex-col md:flex-row gap-4 justify-between transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-slate-50'}`}>
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold">{idx + 1}</span>
+                                                                <h4 className="font-bold text-sm text-slate-800">{master.name}</h4>
+                                                            </div>
+                                                            <div className="ml-7 mt-2 flex items-center gap-3">
+                                                                {cDoc ? (
+                                                                    <>
+                                                                        {cDoc.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase border border-yellow-200 animate-pulse">Menunggu Cek</span>}
+                                                                        {cDoc.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase border border-emerald-200">✅ Disetujui</span>}
+                                                                        {cDoc.status === 'revision' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase border border-red-200">❌ Direvisi</span>}
+                                                                        <a href={cDoc.fileUrl} target="_blank" className="text-xs px-3 py-1 bg-slate-900 text-white rounded font-bold hover:bg-slate-700 transition">Lihat File ↗</a>
+                                                                    </>
+                                                                ) : (<span className="px-2 py-1 bg-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase">Belum Upload</span>)}
+                                                            </div>
+                                                        </div>
 
-                                        {/* FORM REVIEW ADMIN (Hanya muncul jika klien sudah upload file) */}
-                                        {cDoc && (
-                                            <div className="w-full md:w-72 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aksi Review:</p>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi (wajib jika tolak)..."}
-                                                    value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')}
-                                                    onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})}
-                                                    className="text-xs border p-2.5 rounded-lg w-full outline-none focus:border-indigo-500"
-                                                    disabled={cDoc.status === 'approved'}
-                                                />
-                                                <div className="flex gap-2 mt-1">
-                                                    <button 
-                                                        onClick={() => handleReviewDoc(cDoc.id, 'approved')} 
-                                                        disabled={cDoc.status === 'approved'}
-                                                        className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-bold transition shadow-sm"
-                                                    >
-                                                        ACC Dokumen
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleReviewDoc(cDoc.id, 'revision')} 
-                                                        disabled={cDoc.status === 'approved'}
-                                                        className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 border border-red-200 px-3 py-2 rounded-lg text-xs font-bold transition"
-                                                    >
-                                                        Minta Revisi
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
+                                                        {/* FORM REVIEW */}
+                                                        {cDoc && (
+                                                            <div className="w-full md:w-72 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+                                                                <input type="text" placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi..."} value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')} onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})} className="text-xs border p-2.5 rounded-lg w-full outline-none focus:border-indigo-500" disabled={cDoc.status === 'approved'}/>
+                                                                <div className="flex gap-2 mt-1">
+                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'approved')} disabled={cDoc.status === 'approved'} className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-2 py-2 rounded-lg text-xs font-bold transition shadow-sm">ACC</button>
+                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'revision')} disabled={cDoc.status === 'approved'} className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 border border-red-200 px-2 py-2 rounded-lg text-xs font-bold transition">Revisi</button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
                                 )
                             })}
@@ -466,32 +510,91 @@ export default function AdminPage() {
             </div>
         )}
 
-        {/* --- TAB MASTER DOKUMEN --- */}
+        {/* --- TAB MASTER DOKUMEN & FOLDER (HIERARKI) --- */}
         {activeTab === 'docmasters' && (
-            <div className="max-w-4xl">
-                <form onSubmit={saveDocMaster} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border mb-8">
-                    <h3 className="font-bold text-lg mb-2">Buat Syarat Dokumen Baru</h3>
-                    <p className="text-xs text-slate-500 mb-4">Dokumen yang Anda buat di sini WAJIB diupload oleh klien yang sudah di-ACC.</p>
-                    
-                    <input type="text" placeholder="Nama Dokumen (Cth: Akta Pendirian Perusahaan)" value={newDocMasterName} onChange={e=>setNewDocMasterName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm mb-3" required/>
-                    <textarea rows="2" placeholder="Deskripsi Singkat (Cth: Upload dalam format PDF maksimal 5MB)" value={newDocMasterDesc} onChange={e=>setNewDocMasterDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-3"></textarea>
-                    
-                    <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Tambah Syarat Dokumen</button>
-                </form>
-
-                <h3 className="font-bold text-lg mb-4">Daftar Syarat Dokumen Saat Ini</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                    {docMasters.length === 0 ? (
-                        <p className="text-slate-400 text-sm">Belum ada syarat dokumen yang dibuat.</p>
-                    ) : docMasters.map((doc, idx) => (
-                        <div key={doc.id} className="bg-white p-4 rounded-xl border flex flex-col relative">
-                            <span className="absolute -top-3 -left-3 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm border-4 border-slate-50">{idx + 1}</span>
-                            <h4 className="font-bold text-slate-800 mb-1">{doc.name}</h4>
-                            <p className="text-xs text-slate-500 mb-4">{doc.desc || 'Tidak ada deskripsi'}</p>
-                            <button onClick={() => deleteItem('doc_masters', doc.id)} className="text-red-500 text-xs font-bold mt-auto self-start hover:underline">Hapus Syarat Ini</button>
-                        </div>
-                    ))}
+            <div className="max-w-4xl space-y-8">
+                
+                {/* 1. BUAT JENIS ISO */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 className="font-bold text-lg mb-4 text-slate-800 border-b pb-2">1. Buat Jenis Sertifikasi ISO</h3>
+                    <form onSubmit={saveIsoType} className="flex gap-3 mb-4">
+                        <input type="text" placeholder="Cth: ISO 9001:2015" value={newIsoName} onChange={e=>setNewIsoName(e.target.value)} className="flex-1 border p-3 rounded-lg text-sm" required/>
+                        <button className="bg-slate-900 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-slate-800 transition">Tambah ISO</button>
+                    </form>
+                    <div className="flex flex-wrap gap-2">
+                        {isoTypes.map(iso => (
+                            <span key={iso.id} className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold flex items-center gap-2">
+                                {iso.name} <button onClick={() => deleteItem('iso_types', iso.id)} className="text-red-500 hover:text-red-700">✖</button>
+                            </span>
+                        ))}
+                    </div>
                 </div>
+
+                {/* 2. BUAT FOLDER KEBUTUHAN */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200">
+                    <h3 className="font-bold text-lg mb-4 text-emerald-800 border-b pb-2">2. Buat Folder Dokumen</h3>
+                    <form onSubmit={saveIsoFolder} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                        <select value={selectedIsoForFolder} onChange={e=>setSelectedIsoForFolder(e.target.value)} className="border p-3 rounded-lg text-sm bg-slate-50" required>
+                            <option value="">-- Pilih ISO --</option>
+                            {isoTypes.map(iso => <option key={iso.id} value={iso.id}>{iso.name}</option>)}
+                        </select>
+                        <input type="text" placeholder="Nama Folder (Cth: Folder Universitas)" value={newFolderName} onChange={e=>setNewFolderName(e.target.value)} className="border p-3 rounded-lg text-sm" required/>
+                        <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 transition shadow-md">Buat Folder</button>
+                    </form>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {isoFolders.map(folder => {
+                            const isoName = isoTypes.find(i => i.id === folder.isoId)?.name;
+                            return (
+                                <div key={folder.id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl relative group">
+                                    <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1 line-clamp-1">{isoName}</p>
+                                    <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">📁 {folder.name}</h4>
+                                    <button onClick={() => deleteItem('iso_folders', folder.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">✖</button>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                {/* 3. BUAT SYARAT DOKUMEN DALAM FOLDER */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-200">
+                    <h3 className="font-bold text-lg mb-4 text-indigo-800 border-b pb-2">3. Buat Syarat Dokumen (Isi Folder)</h3>
+                    <form onSubmit={saveDocMaster} className="space-y-3 mb-6">
+                        <select value={selectedFolderForDoc} onChange={e=>setSelectedFolderForDoc(e.target.value)} className="w-full border p-3 rounded-lg text-sm bg-slate-50" required>
+                            <option value="">-- Pilih Folder --</option>
+                            {isoFolders.map(f => {
+                                const isoName = isoTypes.find(i => i.id === f.isoId)?.name;
+                                return <option key={f.id} value={f.id}>{f.name} ({isoName})</option>
+                            })}
+                        </select>
+                        <input type="text" placeholder="Nama Dokumen (Cth: SK Pendirian)" value={newDocMasterName} onChange={e=>setNewDocMasterName(e.target.value)} className="w-full border p-3 rounded-lg font-bold text-sm" required/>
+                        <button className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto hover:bg-indigo-700 transition shadow-md">Tambah Dokumen ke Folder</button>
+                    </form>
+
+                    <div className="space-y-4">
+                        {isoFolders.map(folder => {
+                            const docsInFolder = docMasters.filter(d => d.folderId === folder.id);
+                            if (docsInFolder.length === 0) return null;
+                            const isoName = isoTypes.find(i => i.id === folder.isoId)?.name;
+
+                            return (
+                                <div key={folder.id} className="border rounded-xl overflow-hidden shadow-sm">
+                                    <div className="bg-indigo-50 p-3 flex justify-between items-center border-b border-indigo-100">
+                                        <h4 className="font-bold text-indigo-900 text-sm">📁 {folder.name} <span className="text-[10px] bg-white px-2 py-0.5 rounded-full ml-2">{isoName}</span></h4>
+                                    </div>
+                                    <div className="p-3 bg-white space-y-2">
+                                        {docsInFolder.map((doc, idx) => (
+                                            <div key={doc.id} className="flex justify-between items-center p-2 hover:bg-slate-50 rounded-lg">
+                                                <p className="text-sm font-semibold text-slate-700"><span className="text-slate-400 mr-2">{idx+1}.</span> {doc.name}</p>
+                                                <button onClick={() => deleteItem('doc_masters', doc.id)} className="text-[10px] font-bold text-red-500 hover:underline">Hapus</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
             </div>
         )}
 

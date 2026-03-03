@@ -111,13 +111,23 @@ export default function Home() {
             <div className={isScrolled ? '' : 'text-white'}>
                  <ThemeToggle />
             </div>
-            {/* UPDATE: LINK PORTAL ISO DITAMBAHKAN */}
-            <Link href="/portal" className={`text-xs font-bold uppercase tracking-widest mr-2 transition ${isScrolled ? 'text-orange-600 hover:text-orange-700' : 'text-orange-400 hover:text-orange-300 drop-shadow-md'}`}>
-                Portal ISO
+            
+            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
+            <div className="flex items-center gap-2 ml-2">
+                <Link href="/portal" className={`px-5 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm shadow-[0_0_10px_rgba(0,0,0,0.2)]'}`}>
+                    Portal ISO
+                </Link>
+                <a href="#kontak" className={`px-6 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]'}`}>
+                    Join Us
+                </a>
+            </div>
+
+            {/* UPDATE: Login Admin cuma Icon di ujung kanan */}
+            <Link href="/admin" title="Login Admin" className={`p-2 ml-1 rounded-full transition-all ${isScrolled ? 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/20'}`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
             </Link>
-            <a href="#kontak" className={`px-6 py-2.5 font-bold text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]'}`}>
-              Join Us
-            </a>
           </div>
 
           <div className="lg:hidden flex items-center gap-3 z-50">
@@ -141,11 +151,13 @@ export default function Home() {
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
                 <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
                 
-                <div className="flex flex-col items-center gap-3 mt-2 w-full">
-                    {/* UPDATE: Link Portal Mobile */}
-                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 font-bold text-xs rounded-full border border-orange-200 transition-all tracking-widest uppercase">Login Portal ISO</Link>
+                <div className="flex flex-col items-center gap-3 mt-4 w-full">
+                    {/* UPDATE: Menu Mobile Menyesuaikan Desain */}
+                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 font-bold text-xs rounded-full border border-orange-200 transition-all tracking-widest uppercase">Portal ISO</Link>
                     <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</a>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Admin Panel</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </Link>
                 </div>
             </nav>
         </div>
@@ -406,7 +418,7 @@ export default function Home() {
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">
                 <div className="text-center mb-8 md:mb-12">
-                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">F.A.Q</span>
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[30px] md:text-sm mb-3 block">FAQ</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white mb-2 md:mb-4"></h2>
                 </div>
                 <div className="space-y-3 md:space-y-4">
@@ -443,26 +455,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER DINAMIS (UPDATE LINK PRIVACY) */}
+      {/* FOOTER DINAMIS */}
       <footer className="bg-white dark:bg-slate-950 pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
                         {settings.logoUrl ? (
-                            <img 
-                                src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
-                                alt="Logo" 
-                                className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" 
-                            />
+                            <img src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
                         ) : (
                             <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                                    Mahatma <span className="text-emerald-600">Academy</span>
-                                </span>
-                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
-                                    <span className="hidden md:inline">- </span>Driving Transformation
-                                </span>
+                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">Mahatma <span className="text-emerald-600">Academy</span></span>
+                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0"><span className="hidden md:inline">- </span>Driving Transformation</span>
                             </div>
                         )}
                     </Link>

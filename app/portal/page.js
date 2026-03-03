@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, onSnapshot, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, serverTimestamp, doc, onSnapshot, updateDoc, orderBy, addDoc } from 'firebase/firestore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -18,19 +18,33 @@ export default function PortalClient() {
 
   // State Login Session & Data Dokumen (Khusus Klien)
   const [loggedInClient, setLoggedInClient] = useState(null);
+  const [isoTypes, setIsoTypes] = useState([]);
+  const [isoFolders, setIsoFolders] = useState([]);
   const [docMasters, setDocMasters] = useState([]);
   const [clientDocs, setClientDocs] = useState([]);
   const [uploadingDocId, setUploadingDocId] = useState(null);
+
+  // State UI Accordion Folder
+  const [openFolders, setOpenFolders] = useState([]);
+
+  const toggleFolder = (folderId) => {
+      setOpenFolders(prev => 
+          prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
+      );
+  };
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => {
         if(snap.exists()) setSettings(snap.data());
     });
     
-    // Cek apakah sudah login klien
+    // Cek apakah klien sudah pernah login di perangkat ini
     const storedClient = localStorage.getItem('mase_client');
     if (storedClient) {
-        setLoggedInClient(JSON.parse(storedClient));
+        const parsed = JSON.parse(storedClient);
+        setLoggedInClient(parsed);
+        // Otomatis buka semua folder yang ditugaskan (accordion terbuka)
+        if(parsed.assignedFolders) setOpenFolders(parsed.assignedFolders);
     }
 
     return () => unsubSettings();
@@ -38,19 +52,24 @@ export default function PortalClient() {
 
   useEffect(() => {
       if (loggedInClient) {
+          const unsubIsoTypes = onSnapshot(query(collection(db, "iso_types"), orderBy("createdAt", "asc")), snap => {
+              setIsoTypes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
+          const unsubFolders = onSnapshot(query(collection(db, "iso_folders"), orderBy("createdAt", "asc")), snap => {
+              setIsoFolders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          });
           const unsubMasters = onSnapshot(query(collection(db, "doc_masters"), orderBy("createdAt", "asc")), snap => {
               setDocMasters(snap.docs.map(d => ({ id: d.id, ...d.data() })));
           });
-
           const unsubClientDocs = onSnapshot(query(collection(db, "client_docs"), where("clientId", "==", loggedInClient.id)), snap => {
               setClientDocs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
           });
 
-          return () => { unsubMasters(); unsubClientDocs(); }
+          return () => { unsubIsoTypes(); unsubFolders(); unsubMasters(); unsubClientDocs(); }
       }
   }, [loggedInClient]);
 
-  // Fungsi Upload ke Cloudinary
+  // Fungsi Upload ke Cloudinary (Menggunakan 'auto' agar bisa terima PDF)
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -81,7 +100,7 @@ export default function PortalClient() {
           if (existingDoc) {
               await updateDoc(doc(db, "client_docs", existingDoc.id), {
                   fileUrl: fileUrl,
-                  status: 'pending',
+                  status: 'pending', // kembali ke pending jika re-upload
                   updatedAt: serverTimestamp()
               });
           } else {
@@ -94,7 +113,7 @@ export default function PortalClient() {
                   createdAt: serverTimestamp()
               });
           }
-          alert("Dokumen berhasil diunggah dan sedang menuggu peninjauan!");
+          alert("Dokumen berhasil diunggah dan sedang menunggu peninjauan Admin!");
       } catch (err) {
           alert("Gagal mengunggah dokumen: " + err.message);
       }
@@ -108,29 +127,32 @@ export default function PortalClient() {
     setLoading(true);
 
     if (loginMode === 'admin') {
-        // --- LOGIN ADMIN VIA FIREBASE AUTH ---
+        // LOGIN ADMIN via Firebase Auth
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            router.push('/admin'); // Jika sukses, lempar ke halaman admin
+            router.push('/admin'); 
         } catch (err) {
             alert("Login Admin Gagal! Email atau Password salah.");
         }
     } else {
-        // --- LOGIN KLIEN VIA KOLEKSI FIRESTORE ---
+        // LOGIN KLIEN (Mencocokkan email & pass di Firestore)
         try {
             const q = query(collection(db, "clients"), where("email", "==", email), where("password", "==", password));
             const querySnapshot = await getDocs(q);
             
             if (querySnapshot.empty) {
-                alert("Email atau Password salah!");
+                alert("Akun tidak ditemukan! Pastikan Email dan Password yang diberikan oleh Admin sudah benar.");
             } else {
                 const clientData = querySnapshot.docs[0].data();
                 const clientId = querySnapshot.docs[0].id;
                 
-                // Login Berhasil (Semua klien buatan admin pasti berstatus approved)
+                // Login Berhasil
                 const sessionData = { id: clientId, ...clientData };
                 localStorage.setItem('mase_client', JSON.stringify(sessionData));
                 setLoggedInClient(sessionData);
+                
+                // Buka otomatis folder yang ditugaskan
+                if(sessionData.assignedFolders) setOpenFolders(sessionData.assignedFolders);
             }
         } catch (err) {
             alert("Terjadi kesalahan: " + err.message);
@@ -148,7 +170,13 @@ export default function PortalClient() {
 
   // --- TAMPILAN DASHBOARD KLIEN ---
   if (loggedInClient) {
-      const totalDocs = docMasters.length;
+      // Dapatkan nama ISO dari ID yang tersimpan di Klien
+      const assignedIsoName = isoTypes.find(i => i.id === loggedInClient.isoId)?.name || 'Loading ISO...';
+
+      // Hitung total dokumen HANYA dari folder yang ditugaskan ke klien
+      const assignedMasterDocs = docMasters.filter(d => loggedInClient.assignedFolders?.includes(d.folderId));
+      const totalDocs = assignedMasterDocs.length;
+      
       const approvedDocs = clientDocs.filter(d => d.status === 'approved').length;
       const progressPercentage = totalDocs === 0 ? 0 : Math.round((approvedDocs / totalDocs) * 100);
 
@@ -158,9 +186,9 @@ export default function PortalClient() {
                   
                   <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 pb-6 border-b border-slate-100 gap-4">
                       <div>
-                          <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mb-1">Dashboard Klien ISO</p>
+                          <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400 mb-1">Portal Sertifikasi ISO</p>
                           <h1 className="text-2xl md:text-3xl font-black text-slate-900">{loggedInClient.lembagaName}</h1>
-                          <p className="text-sm text-emerald-600 font-bold mt-1">PIC: {loggedInClient.picName}</p>
+                          <p className="text-sm text-emerald-600 font-bold mt-1">PIC: {loggedInClient.picName} | Program: {assignedIsoName}</p>
                       </div>
                       <button onClick={handleLogout} className="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition w-full md:w-auto">
                           Keluar / Logout
@@ -169,7 +197,7 @@ export default function PortalClient() {
                   
                   <div className="mb-10 bg-slate-900 p-6 rounded-2xl text-white shadow-lg relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                      <h3 className="font-bold mb-2 relative z-10">Progress Kesiapan Audit</h3>
+                      <h3 className="font-bold mb-2 relative z-10">Progress Kesiapan Dokumen</h3>
                       <div className="w-full bg-slate-800 rounded-full h-4 mb-2 relative z-10 overflow-hidden">
                           <div className="bg-emerald-500 h-4 rounded-full transition-all duration-1000" style={{ width: `${progressPercentage}%` }}></div>
                       </div>
@@ -178,64 +206,94 @@ export default function PortalClient() {
 
                   <div className="mb-4">
                       <h2 className="text-lg font-black text-slate-800 mb-2">Persyaratan Dokumen</h2>
-                      <p className="text-xs text-slate-500 mb-6">Silakan unggah dokumen persyaratan di bawah ini. Dokumen akan diperiksa oleh tim Admin.</p>
+                      <p className="text-xs text-slate-500 mb-6">Berikut adalah daftar folder dan dokumen yang ditugaskan khusus untuk instansi Anda.</p>
                       
-                      <div className="grid grid-cols-1 gap-4">
-                          {docMasters.length === 0 ? (
-                              <div className="text-center py-10 bg-slate-50 rounded-xl text-slate-400 text-sm">Admin belum menetapkan syarat dokumen.</div>
-                          ) : docMasters.map((master, idx) => {
-                              const uploadedDoc = clientDocs.find(d => d.masterId === master.id);
+                      <div className="space-y-4">
+                          {!loggedInClient.assignedFolders || loggedInClient.assignedFolders.length === 0 ? (
+                              <div className="text-center py-10 bg-slate-50 rounded-xl text-slate-400 text-sm">Admin belum menugaskan folder dokumen untuk Anda.</div>
+                          ) : loggedInClient.assignedFolders.map(folderId => {
+                              const folder = isoFolders.find(f => f.id === folderId);
+                              if (!folder) return null;
                               
-                              let statusBadge = <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-widest">Belum Upload</span>;
-                              if (uploadedDoc) {
-                                  if (uploadedDoc.status === 'pending') statusBadge = <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-widest animate-pulse">Menunggu Review Admin</span>;
-                                  if (uploadedDoc.status === 'approved') statusBadge = <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-widest">Disetujui (ACC)</span>;
-                                  if (uploadedDoc.status === 'revision') statusBadge = <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase tracking-widest">Perlu Revisi</span>;
-                              }
+                              const docsInFolder = docMasters.filter(d => d.folderId === folder.id);
+                              const isFolderOpen = openFolders.includes(folder.id);
 
                               return (
-                                  <div key={master.id} className={`p-5 rounded-2xl border ${uploadedDoc?.status === 'approved' ? 'border-emerald-200 bg-emerald-50/30' : uploadedDoc?.status === 'revision' ? 'border-red-200 bg-red-50/30' : 'border-slate-200 bg-white'} shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all`}>
-                                      
-                                      <div className="flex-1">
-                                          <div className="flex items-center gap-3 mb-2">
-                                              <span className="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">{idx + 1}</span>
-                                              <h3 className="font-bold text-slate-800">{master.name}</h3>
+                                  <div key={folder.id} className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                      {/* HEADER FOLDER ACCORDION */}
+                                      <button onClick={() => toggleFolder(folder.id)} className="w-full bg-slate-50 p-4 md:p-5 flex justify-between items-center hover:bg-slate-100 transition-colors text-left">
+                                          <div className="flex items-center gap-3">
+                                              <span className="text-xl">📁</span>
+                                              <div>
+                                                  <h3 className="font-bold text-slate-800">{folder.name}</h3>
+                                                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">{docsInFolder.length} Dokumen Syarat</p>
+                                              </div>
                                           </div>
-                                          <p className="text-xs text-slate-500 ml-9 mb-3">{master.desc}</p>
-                                          
-                                          <div className="ml-9 flex flex-col items-start gap-2">
-                                              {statusBadge}
-                                              {uploadedDoc?.status === 'revision' && uploadedDoc?.adminComment && (
-                                                  <div className="mt-2 p-3 bg-red-100/50 border border-red-200 rounded-lg text-xs text-red-800">
-                                                      <strong>Komentar Admin:</strong> {uploadedDoc.adminComment}
-                                                  </div>
-                                              )}
-                                              {uploadedDoc && (
-                                                  <a href={uploadedDoc.fileUrl} target="_blank" className="text-[10px] text-indigo-600 font-bold hover:underline mt-1">
-                                                      Lihat File Terunggah ↗
-                                                  </a>
-                                              )}
-                                          </div>
-                                      </div>
+                                          <span className={`transform transition-transform ${isFolderOpen ? 'rotate-180' : ''}`}>▼</span>
+                                      </button>
 
-                                      <div className="md:w-64 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-4">
-                                          {uploadedDoc?.status !== 'approved' ? (
-                                              <div className="relative">
-                                                  <input 
-                                                      type="file" 
-                                                      accept=".pdf,image/*"
-                                                      onChange={(e) => handleFileUpload(e, master.id)}
-                                                      disabled={uploadingDocId === master.id}
-                                                      className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer disabled:opacity-50"
-                                                  />
-                                                  {uploadingDocId === master.id && <p className="text-[10px] text-orange-600 font-bold mt-2 animate-pulse">Mengunggah...</p>}
-                                              </div>
-                                          ) : (
-                                              <div className="flex items-center gap-2 text-emerald-600 justify-center h-full">
-                                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                  <span className="text-xs font-bold uppercase tracking-widest">Selesai</span>
-                                              </div>
-                                          )}
+                                      {/* ISI FOLDER */}
+                                      <div className={`transition-all duration-300 ease-in-out ${isFolderOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                          <div className="p-4 md:p-6 space-y-4 bg-white">
+                                              {docsInFolder.length === 0 ? (
+                                                  <p className="text-xs text-slate-400 italic">Belum ada syarat dokumen di dalam folder ini.</p>
+                                              ) : docsInFolder.map((master, idx) => {
+                                                  const uploadedDoc = clientDocs.find(d => d.masterId === master.id);
+                                                  
+                                                  let statusBadge = <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-200">Belum Upload</span>;
+                                                  if (uploadedDoc) {
+                                                      if (uploadedDoc.status === 'pending') statusBadge = <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold uppercase tracking-widest animate-pulse border border-yellow-200">Menunggu Review Admin</span>;
+                                                      if (uploadedDoc.status === 'approved') statusBadge = <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-200">Disetujui (ACC)</span>;
+                                                      if (uploadedDoc.status === 'revision') statusBadge = <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-red-200">Perlu Revisi</span>;
+                                                  }
+
+                                                  return (
+                                                      <div key={master.id} className={`p-4 rounded-xl border ${uploadedDoc?.status === 'approved' ? 'border-emerald-200 bg-emerald-50/30' : uploadedDoc?.status === 'revision' ? 'border-red-200 bg-red-50/30' : 'border-slate-100 bg-white'} flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all hover:shadow-md`}>
+                                                          <div className="flex-1">
+                                                              <div className="flex items-center gap-3 mb-1">
+                                                                  <span className="w-5 h-5 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">{idx + 1}</span>
+                                                                  <h4 className="font-bold text-sm text-slate-800">{master.name}</h4>
+                                                              </div>
+                                                              <p className="text-xs text-slate-500 ml-8 mb-3">{master.desc}</p>
+                                                              
+                                                              <div className="ml-8 flex flex-col items-start gap-2">
+                                                                  {statusBadge}
+                                                                  {uploadedDoc?.status === 'revision' && uploadedDoc?.adminComment && (
+                                                                      <div className="mt-2 p-3 bg-red-100/50 border border-red-200 rounded-lg text-xs text-red-800">
+                                                                          <strong>Komentar Admin:</strong> {uploadedDoc.adminComment}
+                                                                      </div>
+                                                                  )}
+                                                                  {uploadedDoc && (
+                                                                      <a href={uploadedDoc.fileUrl} target="_blank" className="text-[10px] text-indigo-600 font-bold hover:underline mt-1">
+                                                                          Lihat File Terunggah ↗
+                                                                      </a>
+                                                                  )}
+                                                              </div>
+                                                          </div>
+
+                                                          <div className="md:w-64 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-4 flex items-center justify-center">
+                                                              {uploadedDoc?.status !== 'approved' ? (
+                                                                  <div className="relative w-full">
+                                                                      <input 
+                                                                          type="file" 
+                                                                          accept=".pdf,image/*"
+                                                                          onChange={(e) => handleFileUpload(e, master.id)}
+                                                                          disabled={uploadingDocId === master.id}
+                                                                          className="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer disabled:opacity-50"
+                                                                      />
+                                                                      {uploadingDocId === master.id && <p className="text-[10px] text-orange-600 font-bold mt-2 animate-pulse text-center">Mengunggah...</p>}
+                                                                  </div>
+                                                              ) : (
+                                                                  <div className="flex items-center gap-2 text-emerald-600 h-full">
+                                                                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                                      <span className="text-xs font-bold uppercase tracking-widest">Selesai</span>
+                                                                  </div>
+                                                              )}
+                                                          </div>
+                                                      </div>
+                                                  )
+                                              })}
+                                          </div>
                                       </div>
                                   </div>
                               )
@@ -269,7 +327,7 @@ export default function PortalClient() {
             <p className="text-xs text-slate-500 mt-2">Sistem Verifikasi & Audit Dokumen</p>
         </div>
 
-        {/* Tab Toggle */}
+        {/* Tab Toggle Login */}
         <div className="flex border-b border-slate-100 bg-slate-50">
             <button onClick={() => setLoginMode('client')} className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${loginMode === 'client' ? 'bg-white text-emerald-600 border-b-2 border-emerald-600' : 'text-slate-400 hover:bg-slate-100'}`}>Login Klien</button>
             <button onClick={() => setLoginMode('admin')} className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${loginMode === 'admin' ? 'bg-white text-orange-600 border-b-2 border-orange-600' : 'text-slate-400 hover:bg-slate-100'}`}>Login Admin</button>
@@ -304,7 +362,7 @@ export default function PortalClient() {
                 </button>
                 {loginMode === 'client' && (
                     <p className="text-[9px] text-slate-400 text-center leading-relaxed mt-4">
-                        Hanya klien yang telah didaftarkan oleh Admin yang dapat masuk ke dalam Portal ini.
+                        Masukkan Email dan Password yang telah diberikan oleh pihak Admin MASE kepada Anda.
                     </p>
                 )}
             </form>
