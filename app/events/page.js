@@ -7,7 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from 'next-themes';
 
 // --- FUNGSI PINTAR PENGHITUNG HARI OTOMATIS ---
-function getEventStatus(dateStr) {
+function getEventsStatus(dateStr) {
     if (!dateStr) return null;
     
     // Kamus bulan bahasa Indonesia
@@ -55,7 +55,7 @@ function getEventStatus(dateStr) {
     }
 }
 
-export default function EventPage() {
+export default function EventsPage() {
   const [events, setEvents] = useState([]);
   const [settings, setSettings] = useState({});
   const [partners, setPartners] = useState([]);
@@ -76,7 +76,7 @@ export default function EventPage() {
         setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // Ambil Data Event
+    // Ambil Data Events
     const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => {
       setEvents(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoading(false);
@@ -97,12 +97,12 @@ export default function EventPage() {
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
 
-  // --- FUNGSI SHARE EVENT ---
-  const handleShare = async (eventTitle) => {
+  // --- FUNGSI SHARE EVENTS ---
+  const handleShare = async (eventsTitle) => {
     const shareData = {
-        title: `Ikuti ${eventTitle} di Mahatma Academy`,
-        text: `Yuk ikuti event/pelatihan ${eventTitle} bersama Mahatma Academy! Cek jadwal selengkapnya di sini:`,
-        url: window.location.href, // Akan share link halaman event ini
+        title: `Ikuti ${eventsTitle} di Mahatma Academy`,
+        text: `Yuk ikuti events/pelatihan ${eventsTitle} bersama Mahatma Academy! Cek jadwal selengkapnya di sini:`,
+        url: window.location.href, // Akan share link halaman events ini
     };
 
     try {
@@ -183,7 +183,7 @@ export default function EventPage() {
         </div>
       </section>
 
-      {/* KONTEN EVENT */}
+      {/* KONTEN EVENTS */}
       <main className="flex-grow py-16 px-4 md:px-12 lg:px-16 -mt-10 relative z-20">
         <div className="container mx-auto max-w-7xl">
             {loading ? (
@@ -195,7 +195,7 @@ export default function EventPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {events.map(ev => {
-                        const status = getEventStatus(ev.date);
+                        const status = getEventsStatus(ev.date);
 
                         return (
                             <div key={ev.id} className={`bg-white dark:bg-slate-900 border ${status?.state === 'completed' ? 'border-slate-200 dark:border-slate-800 opacity-75' : 'border-slate-100 dark:border-slate-800'} rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col group relative`}>
@@ -232,7 +232,7 @@ export default function EventPage() {
                                         {/* LOGIKA TOMBOL UPDATE: Disable jika Completed ATAU Ongoing */}
                                         {status?.state === 'completed' ? (
                                             <div className="flex-grow block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed border border-transparent">
-                                                Event Berakhir
+                                                Events Berakhir
                                             </div>
                                         ) : status?.state === 'ongoing' ? (
                                             <div className="flex-grow block text-center px-6 py-3.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600/70 dark:text-emerald-500/70 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed border border-emerald-500/30">
@@ -240,7 +240,7 @@ export default function EventPage() {
                                             </div>
                                         ) : (
                                             <a 
-                                                href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20mengikuti%20event%20*${ev.name}*%20pada%20${ev.date}.%20Mohon%20info%20pendaftarannya.`} 
+                                                href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20mengikuti%20events%20*${ev.name}*%20pada%20${ev.date}.%20Mohon%20info%20pendaftarannya.`} 
                                                 target="_blank" 
                                                 className="flex-grow block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-slate-900 dark:text-white hover:text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 shadow-sm"
                                             >
@@ -251,7 +251,7 @@ export default function EventPage() {
                                         {/* TOMBOL SHARE */}
                                         <button 
                                             onClick={() => handleShare(ev.name)}
-                                            title="Bagikan Event"
+                                            title="Bagikan Events"
                                             className="px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-slate-600 dark:text-slate-400 hover:text-emerald-600 rounded-xl transition-colors duration-300 border border-transparent shadow-sm"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

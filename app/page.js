@@ -104,7 +104,7 @@ export default function Home() {
             <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
             <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
-            <Link href="/event" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
+            <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
@@ -139,7 +139,7 @@ export default function Home() {
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
-                <Link href="/event" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Event</Link>
+                <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
                     {/* UPDATE: Link Portal Mobile */}

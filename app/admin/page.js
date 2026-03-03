@@ -93,7 +93,7 @@ export default function AdminPage() {
   const [testimonials, setTestimonials] = useState([]); const [editTestiId, setEditTestiId] = useState(null); const [testiName, setTestiName] = useState(''); const [testiCompany, setTestiCompany] = useState(''); const [testiText, setTestiText] = useState('');
   const [faqs, setFaqs] = useState([]); const [editFaqId, setEditFaqId] = useState(null); const [faqQ, setFaqQ] = useState(''); const [faqA, setFaqA] = useState('');
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
-  const [events, setEvents] = useState([]); const [editEventId, setEditEventId] = useState(null); const [eventName, setEventName] = useState(''); const [eventDate, setEventDate] = useState(''); const [eventLocation, setEventLocation] = useState(''); const [eventDesc, setEventDesc] = useState(''); const [eventImgFile, setEventImgFile] = useState(null); const [eventImgUrl, setEventImgUrl] = useState('');
+  const [events, setEvents] = useState([]); const [editEventsId, setEditEventsId] = useState(null); const [eventsName, setEventsName] = useState(''); const [eventsDate, setEventsDate] = useState(''); const [eventsLocation, setEventsLocation] = useState(''); const [eventsDesc, setEventsDesc] = useState(''); const [eventsImgFile, setEventsImgFile] = useState(null); const [eventsImgUrl, setEventsImgUrl] = useState('');
 
   // --- STATE UNTUK PORTAL ISO ---
   const [clients, setClients] = useState([]); 
@@ -148,7 +148,7 @@ export default function AdminPage() {
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvent(); setSelectedClient(null); };
+  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvents(); setSelectedClient(null); };
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
@@ -176,9 +176,9 @@ export default function AdminPage() {
   const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
   const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const savePost = async (e) => { e.preventDefault(); setLoading(true); try { if (editPostId) { await updateDoc(doc(db, "posts", editPostId), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, isDraft: isDraft }); alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); } else { let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); if (!slug) slug = 'berita-' + Date.now(); const docSnap = await getDoc(doc(db, "posts", slug)); if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft }); alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); } cancelEditPost(); } catch(err) { alert(err.message); } setLoading(false); };
-  const cancelEditEvent = () => { setEditEventId(null); setEventName(''); setEventDate(''); setEventLocation(''); setEventDesc(''); setEventImgUrl(''); setEventImgFile(null); };
-  const handleEditEvent = (e) => { setEditEventId(e.id); setEventName(e.name||''); setEventDate(e.date||''); setEventLocation(e.location||''); setEventDesc(e.desc||''); setEventImgUrl(e.imgUrl||''); setEventImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
-  const saveEvent = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventImgUrl; if (eventImgFile) finalImg = await uploadToCloudinary(eventImgFile); const data = { name: eventName, date: eventDate, location: eventLocation, desc: eventDesc, imgUrl: finalImg }; if (editEventId) await updateDoc(doc(db, "events", editEventId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Event Berhasil Disimpan!'); cancelEditEvent(); } catch(err) { alert(err.message); } setLoading(false); };
+  const cancelEditEvents = () => { setEditEventsId(null); setEventsName(''); setEventsDate(''); setEventsLocation(''); setEventsDesc(''); setEventsImgUrl(''); setEventsImgFile(null); };
+  const handleEditEvents = (e) => { setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveEvents = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventsImgUrl; if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile); const data = { name: eventsName, date: eventsDate, location: eventsLocation, desc: eventsDesc, imgUrl: finalImg }; if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Events Berhasil Disimpan!'); cancelEditEvents(); } catch(err) { alert(err.message); } setLoading(false); };
 
   // --- FUNGSI TAHAP 4: ACC / REVISI DOKUMEN & BUAT AKUN KLIEN ---
   const handleCreateClient = async (e) => {
@@ -281,7 +281,7 @@ export default function AdminPage() {
                 <nav className="space-y-1">
                     {[
                         { id: 'blog', label: 'Wawasan (Blog)' }, 
-                        { id: 'event', label: 'Jadwal / Event' }, 
+                        { id: 'events', label: 'Jadwal / Events' }, 
                         { id: 'layanan', label: 'Kelola Layanan' }, 
                         { id: 'sublayanan', label: 'Sub-Layanan' }, 
                         { id: 'mitra', label: 'Mitra & Klien' }
@@ -747,45 +747,45 @@ export default function AdminPage() {
             </div>
         )}
 
-        {/* TAB BARU: EVENT / JADWAL */}
-        {activeTab === 'event' && (
+        {/* TAB BARU: EVENTS / JADWAL */}
+        {activeTab === 'events' && (
             <div className="max-w-4xl">
-                <form onSubmit={saveEvent} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
-                    {editEventId && (
+                <form onSubmit={saveEvents} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editEventsId && (
                         <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
-                            <span>Sedang Mengedit Agenda / Event</span>
-                            <button type="button" onClick={cancelEditEvent} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                            <span>Sedang Mengedit Agenda / Events</span>
+                            <button type="button" onClick={cancelEditEvents} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
                         </div>
                     )}
                     
-                    <label className="text-xs font-bold text-slate-700 block">Nama Event / Pelatihan</label>
-                    <input type="text" placeholder="Cth: Public Speaking Masterclass" value={eventName} onChange={e=>setEventName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                    <label className="text-xs font-bold text-slate-700 block">Nama Events / Pelatihan</label>
+                    <input type="text" placeholder="Cth: Public Speaking Masterclass" value={eventsName} onChange={e=>setEventsName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Tanggal Pelaksanaan</label>
-                            <input type="text" placeholder="Cth: 15-16 Agustus 2026" value={eventDate} onChange={e=>setEventDate(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                            <input type="text" placeholder="Cth: 15-16 Agustus 2026" value={eventsDate} onChange={e=>setEventsDate(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
                         </div>
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Lokasi / Platform</label>
-                            <input type="text" placeholder="Cth: Zoom Meeting / Hotel Mulia" value={eventLocation} onChange={e=>setEventLocation(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                            <input type="text" placeholder="Cth: Zoom Meeting / Hotel Mulia" value={eventsLocation} onChange={e=>setEventsLocation(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
                         </div>
                     </div>
                     
                     <label className="text-xs font-bold text-slate-700 block mt-2">Deskripsi Singkat</label>
-                    <textarea rows="3" placeholder="Deskripsi acara..." value={eventDesc} onChange={e=>setEventDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    <textarea rows="3" placeholder="Deskripsi acara..." value={eventsDesc} onChange={e=>setEventsDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
                     
-                    <label className="text-xs font-bold text-slate-700 block mt-2">Upload Banner/Poster Event (Opsional)</label>
-                    <input type="file" onChange={e=>setEventImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />
-                    {eventImgUrl && !eventImgFile && <img src={eventImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}
+                    <label className="text-xs font-bold text-slate-700 block mt-2">Upload Banner/Poster Events (Opsional)</label>
+                    <input type="file" onChange={e=>setEventsImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />
+                    {eventsImgUrl && !eventsImgFile && <img src={eventsImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}
                     
-                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">{editEventId ? 'Perbarui Event' : 'Tambah Event'}</button>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">{editEventsId ? 'Perbarui Events' : 'Tambah Events'}</button>
                 </form>
 
-                <h3 className="font-bold text-lg mb-4">Daftar Agenda & Event</h3>
+                <h3 className="font-bold text-lg mb-4">Daftar Agenda & Events</h3>
                 <div className="grid grid-cols-1 gap-3 md:gap-4">
                     {events.map(ev => (
-                        <div key={ev.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row items-center gap-4 ${editEventId === ev.id ? 'ring-2 ring-indigo-500' : ''}`}>
+                        <div key={ev.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row items-center gap-4 ${editEventsId === ev.id ? 'ring-2 ring-indigo-500' : ''}`}>
                             {ev.imgUrl ? (
                                 <img src={ev.imgUrl} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-lg" alt="Banner"/>
                             ) : (
@@ -800,7 +800,7 @@ export default function AdminPage() {
                                 <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{ev.desc}</p>
                             </div>
                             <div className="flex md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
-                                <button onClick={() => handleEditEvent(ev)} className="flex-1 text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button>
+                                <button onClick={() => handleEditEvents(ev)} className="flex-1 text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button>
                                 <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
                             </div>
                         </div>
