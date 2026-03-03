@@ -95,9 +95,22 @@ export default function TimPage() {
 
           <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
-            <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
-            <Link href="/#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
-              Join Us
+            
+            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
+            <div className="flex items-center gap-2 ml-2">
+                <Link href="/portal" className="px-5 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/30 dark:hover:bg-orange-900/50">
+                    Portal ISO
+                </Link>
+                <Link href="/#kontak" className="px-6 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                    Join Us
+                </Link>
+            </div>
+
+            {/* UPDATE: Login Admin cuma Icon di ujung kanan */}
+            <Link href="/admin" title="Login Admin" className="p-2 ml-1 rounded-full transition-all text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
             </Link>
           </div>
 
@@ -110,16 +123,21 @@ export default function TimPage() {
         </div>
         
         {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</Link>
                 <Link href="/tim" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</Link>
                 <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</Link>
                 <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
+                
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
+                    {/* UPDATE: Menu Mobile Menyesuaikan Desain */}
+                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 font-bold text-xs rounded-full border border-orange-200 transition-all tracking-widest uppercase">Portal ISO</Link>
                     <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</Link>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </Link>
                 </div>
             </nav>
         </div>
@@ -184,7 +202,7 @@ export default function TimPage() {
                         </a>
                         {settings.email && (
                             <a href={`mailto:${settings.email}`} className="flex items-center justify-center md:justify-start gap-2 text-slate-500 hover:text-emerald-600 transition">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z"></path></svg>
                                 <span className="text-sm">{settings.email}</span>
                             </a>
                         )}

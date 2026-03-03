@@ -141,33 +141,46 @@ export default function LayananDetail({ params }) {
 
           <div className="hidden lg:flex items-center gap-4">
             <div className={isScrolled ? '' : 'text-white'}><ThemeToggle /></div>
-            <Link href="/admin" className={`text-xs font-bold uppercase tracking-widest mr-4 transition ${isScrolled ? 'text-slate-400 hover:text-slate-800 dark:hover:text-white' : 'text-white/80 hover:text-white drop-shadow-md'}`}>Admin</Link>
-            <Link href="/#kontak" className={`px-6 py-2.5 font-bold text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase ${isScrolled ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-emerald-600 dark:hover:bg-emerald-500' : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.3)]'}`}>
-              Join Us
+            
+            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
+            <div className={`flex items-center p-1 rounded-full border transition-all duration-300 ${isScrolled ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-white/10 border-white/20 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.2)]'}`}>
+                <Link href="/portal" className={`px-5 py-2 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full transition-all hover:bg-white hover:text-slate-900 ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white'}`}>
+                    Portal ISO
+                </Link>
+                <Link href="/#kontak" className="px-5 py-2 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
+                    Join Us
+                </Link>
+            </div>
+
+            {/* UPDATE: Login Admin jadi Icon di ujung */}
+            <Link href="/admin" title="Admin Panel" className={`p-2 rounded-full transition-all ${isScrolled ? 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/20'}`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
             </Link>
           </div>
 
           <div className="lg:hidden flex items-center gap-3 z-50">
             <div className={isScrolled || isMobileMenuOpen ? '' : 'text-white'}><ThemeToggle /></div>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`focus:outline-none p-2 ${isScrolled || isMobileMenuOpen ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}
-                </svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}</svg>
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
-                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
-                <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</Link>
-                <Link href="/#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</Link>
-                <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</Link>
-                <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
-                <div className="flex flex-col items-center gap-3 mt-2 w-full">
-                    <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</Link>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
+                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+                <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Service</Link>
+                <Link href="/#tim" onClick={() => setIsMobileMenuOpen(false)}>Team</Link>
+                <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</Link>
+                <Link href="/events" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
+                
+                <div className="flex flex-col items-center gap-2 mt-2 w-full">
+                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase">Portal ISO</Link>
+                    <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase">Join Us</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> Admin</Link>
                 </div>
             </nav>
         </div>
@@ -255,7 +268,7 @@ export default function LayananDetail({ params }) {
         </div>
       </main>
 
-      {/* FOOTER (Sama Persis dengan Home) */}
+      {/* FOOTER */}
       <footer className="bg-white dark:bg-slate-950 pt-12 pb-6 md:pt-20 md:pb-10 px-4 md:px-12 lg:px-16 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300 mt-auto">
         <div className="container mx-auto max-w-7xl">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
@@ -280,7 +293,7 @@ export default function LayananDetail({ params }) {
                         </a>
                         {settings.email && (
                             <a href={`mailto:${settings.email}`} className="flex items-center justify-center md:justify-start gap-2 text-slate-500 hover:text-emerald-600 transition">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z"></path></svg>
                                 <span className="text-sm">{settings.email}</span>
                             </a>
                         )}
@@ -292,7 +305,6 @@ export default function LayananDetail({ params }) {
                         )}
                     </div>
                 </div>
-
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Follow Us</h4>
                     <div className="flex justify-center md:justify-start gap-3 md:gap-4">
@@ -301,7 +313,6 @@ export default function LayananDetail({ params }) {
                         <a href={settings.instagram || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-pink-600 hover:text-pink-600 transition"><span className="text-xs md:text-sm font-bold">ig</span></a>
                     </div>
                 </div>
-
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Location</h4>
                     {settings.mapUrl ? (
@@ -312,7 +323,6 @@ export default function LayananDetail({ params }) {
                          <div className="w-full aspect-square bg-slate-100 rounded-xl flex items-center justify-center text-xs text-slate-400">Maps belum diatur</div>
                     )}
                 </div>
-
                 <div className="lg:col-span-4">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Mitra Kerja</h4>
                     {partners.length > 0 ? (
@@ -340,9 +350,7 @@ export default function LayananDetail({ params }) {
                         <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>
                     )}
                 </div>
-
             </div>
-
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
                 <p className="mb-3 md:mb-0">&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex justify-center gap-4 md:gap-6">
