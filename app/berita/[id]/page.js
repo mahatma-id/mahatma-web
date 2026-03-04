@@ -184,7 +184,7 @@ export default function BeritaDetail({ params }) {
         }
       `}</style>
 
-      {/* HEADER SOLID (Sama navigasinya dengan Home) */}
+      {/* HEADER SOLID (UPDATE DESAIN TOMBOL) */}
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-[100] transition-all duration-300 py-3">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
           <Link href="/" className="flex items-center gap-2 group z-50">
@@ -212,9 +212,22 @@ export default function BeritaDetail({ params }) {
 
           <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
-            <Link href="/admin" className="text-xs font-bold text-slate-400 hover:text-slate-800 dark:hover:text-white uppercase tracking-widest mr-4 transition">Admin</Link>
-            <Link href="/#kontak" className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase">
-              Join Us
+            
+            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
+            <div className="flex items-center gap-2 ml-2">
+                <Link href="/portal" className="px-5 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/30 dark:hover:bg-orange-900/50">
+                    Portal ISO
+                </Link>
+                <Link href="/#kontak" className="px-6 py-2.5 font-bold text-[10px] md:text-xs rounded-full hover:-translate-y-1 hover:shadow-lg transition-all tracking-widest uppercase bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+                    Join Us
+                </Link>
+            </div>
+
+            {/* UPDATE: Login Admin cuma Icon di ujung kanan */}
+            <Link href="/admin" title="Login Admin" className="p-2 ml-1 rounded-full transition-all text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
             </Link>
           </div>
 
@@ -231,9 +244,14 @@ export default function BeritaDetail({ params }) {
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/berita" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Semua Berita</Link>
                 <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</Link>
+                
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
+                    {/* UPDATE: Menu Mobile Menyesuaikan Desain */}
+                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 font-bold text-xs rounded-full border border-orange-200 transition-all tracking-widest uppercase">Portal ISO</Link>
                     <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full hover:bg-slate-900 transition-all tracking-widest uppercase">Join Us</Link>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Login</Link>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </Link>
                 </div>
             </nav>
         </div>
@@ -445,7 +463,7 @@ export default function BeritaDetail({ params }) {
                         </a>
                         {settings.email && (
                             <a href={`mailto:${settings.email}`} className="flex items-center justify-center md:justify-start gap-2 text-slate-500 hover:text-emerald-600 transition">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v10a2 2 0 002 2z"></path></svg>
                                 <span className="text-sm">{settings.email}</span>
                             </a>
                         )}
@@ -457,7 +475,6 @@ export default function BeritaDetail({ params }) {
                         )}
                     </div>
                 </div>
-
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Follow Us</h4>
                     <div className="flex justify-center md:justify-start gap-3 md:gap-4">
@@ -466,7 +483,6 @@ export default function BeritaDetail({ params }) {
                         <a href={settings.instagram || "#"} target="_blank" className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:border-pink-600 hover:text-pink-600 transition"><span className="text-xs md:text-sm font-bold">ig</span></a>
                     </div>
                 </div>
-
                 <div className="lg:col-span-2">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Location</h4>
                     {settings.mapUrl ? (
@@ -477,7 +493,6 @@ export default function BeritaDetail({ params }) {
                          <div className="w-full aspect-square bg-slate-100 rounded-xl flex items-center justify-center text-xs text-slate-400">Maps belum diatur</div>
                     )}
                 </div>
-
                 <div className="lg:col-span-4">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-3 md:mb-6 uppercase tracking-wider text-[10px] md:text-sm">Mitra Kerja</h4>
                     {partners.length > 0 ? (
@@ -495,18 +510,13 @@ export default function BeritaDetail({ params }) {
                             </div>
                             {partners.length > 12 && (
                                 <div className="mt-3 md:mt-5">
-                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">
-                                        Selengkapnya &rarr;
-                                    </Link>
+                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">Selengkapnya &rarr;</Link>
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>
-                    )}
+                    ) : (<p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>)}
                 </div>
             </div>
-
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
                 <p className="mb-3 md:mb-0">&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex justify-center gap-4 md:gap-6">
