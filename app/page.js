@@ -13,6 +13,7 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [services, setServices] = useState([]);
   
+  const [products, setProducts] = useState([]); // <-- STATE BARU UNTUK PRODUK
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
   
@@ -40,6 +41,7 @@ export default function Home() {
     });
     
     const unsubService = onSnapshot(query(collection(db, "services"), orderBy("createdAt", "desc")), snap => { setServices(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
+    const unsubProducts = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => { setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); // <-- AMBIL DATA PRODUK
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => { setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("createdAt", "asc")), snap => { setTeams(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
@@ -56,7 +58,7 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll);
 
     return () => { 
-        unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); 
+        unsubSettings(); unsubSliders(); unsubPost(); unsubService(); unsubProducts(); unsubPartners(); unsubTeams(); unsubTestimonials(); unsubFaqs(); 
         window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -99,9 +101,10 @@ export default function Home() {
             )}
           </Link>
 
-          <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
-            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
+          <nav className={`hidden lg:flex items-center gap-8 font-bold text-[11px] tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
+            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About</Link>
             <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
+            <a href="#produk" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Product</a> {/* <-- TAMBAH MENU PRODUCT */}
             <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
             <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
@@ -143,10 +146,11 @@ export default function Home() {
         </div>
 
         {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[550px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">About Us</Link>
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
+                <a href="#produk" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Product</a> {/* <-- TAMBAH MENU PRODUCT MOBILE */}
                 <a href="#tim" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Team</a>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Insight</a>
                 <Link href="/events" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Events</Link>
@@ -158,7 +162,7 @@ export default function Home() {
                         <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center px-4 py-3 bg-emerald-600 text-white font-bold text-[10px] rounded-full hover:bg-emerald-500 transition-all tracking-widest uppercase shadow-md">Join Us</a>
                     </div>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </Link>
                 </div>
             </nav>
@@ -195,8 +199,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ... [Sisa section Our Mission, Our Service, Insight, dll. Dibiarkan persis sama dengan milik Anda] ... */}
-      
       {/* 2. OUR MISSION */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
@@ -236,7 +238,7 @@ export default function Home() {
       </section>
 
       {/* 3. OUR SERVICE */}
-      <section id="layanan" className="py-12 md:py-24 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 transition-colors duration-300">
+      <section id="layanan" className="py-12 md:py-24 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-12 mb-10 md:mb-16">
                 <div className="lg:w-1/2 text-center lg:text-left">
@@ -271,7 +273,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. TIM PAKAR */}
+      {/* 4. OUR PRODUCT & PORTOFOLIO (SECTION BARU) */}
+      {products.length > 0 && (
+          <section id="produk" className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 transition-colors duration-300">
+            <div className="container mx-auto max-w-7xl">
+                <div className="text-center mb-10 md:mb-16">
+                    <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Products & Portfolio</span>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4 md:mb-6 leading-tight">Solusi & Karya Terbaik Kami</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed font-light">Temukan berbagai modul pelatihan, alat pendukung sertifikasi, serta rekam jejak keberhasilan kami dalam mendampingi klien.</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    {products.map(p => (
+                        <div key={p.id} className="bg-white dark:bg-slate-950 rounded-2xl md:rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 group flex flex-col">
+                            <div className="w-full h-48 md:h-56 bg-slate-200 dark:bg-slate-800 overflow-hidden relative">
+                                <img src={p.imgUrl || 'https://placehold.co/600x400?text=No+Image'} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                {p.label && (
+                                    <span className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm text-emerald-600 dark:text-emerald-400">
+                                        {p.label}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="p-6 md:p-8 flex flex-col flex-grow">
+                                <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-3 leading-snug group-hover:text-emerald-600 transition-colors">{p.name}</h3>
+                                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-6 flex-grow font-light leading-relaxed">{p.desc}</p>
+                                
+                                <a 
+                                    href={p.btnLink || `https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20dengan%20produk/portofolio%20*${p.name}*.%20Boleh%20minta%20info%20lebih%20lanjut?`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="block w-full text-center px-6 py-3 md:py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-[10px] md:text-xs uppercase tracking-widest rounded-xl hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-500 dark:hover:text-white transition-all duration-300"
+                                >
+                                    {p.btnText || 'Tanya Project Ini'}
+                                </a>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+          </section>
+      )}
+
+      {/* 5. TIM PAKAR */}
       {teams.length > 0 && (
           <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-7xl">
@@ -300,7 +343,7 @@ export default function Home() {
           </section>
       )}
 
-      {/* 5. OUR INSIGHT */}
+      {/* 6. OUR INSIGHT */}
       <section id="insight" className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
             <div className="mb-8 md:mb-12 text-center md:text-left">
@@ -332,7 +375,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. TESTIMONI */}
+      {/* 7. TESTIMONI */}
       {testimonials.length > 0 && (
           <section className="py-12 md:py-20 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 overflow-hidden transition-colors duration-300">
             <div className="container mx-auto max-w-7xl">
@@ -356,7 +399,7 @@ export default function Home() {
           </section>
       )}
 
-      {/* 7. FAQ */}
+      {/* 8. FAQ */}
       {faqs.length > 0 && (
           <section className="py-12 md:py-20 bg-white dark:bg-slate-950 px-4 md:px-12 lg:px-16 border-t border-slate-100 dark:border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-3xl">

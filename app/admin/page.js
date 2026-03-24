@@ -93,6 +93,17 @@ export default function AdminPage() {
   const [posts, setPosts] = useState([]); const [editPostId, setEditPostId] = useState(null); const [postTitle, setPostTitle] = useState(''); const [postContent, setPostContent] = useState(''); const [postCategory, setPostCategory] = useState('News'); const [postCoverUrl, setPostCoverUrl] = useState(''); const [postDateline, setPostDateline] = useState(''); const [postAuthor, setPostAuthor] = useState(''); const [postTags, setPostTags] = useState(''); const [isDraft, setIsDraft] = useState(false);
   const [events, setEvents] = useState([]); const [editEventsId, setEditEventsId] = useState(null); const [eventsName, setEventsName] = useState(''); const [eventsDate, setEventsDate] = useState(''); const [eventsLocation, setEventsLocation] = useState(''); const [eventsDesc, setEventsDesc] = useState(''); const [eventsImgFile, setEventsImgFile] = useState(null); const [eventsImgUrl, setEventsImgUrl] = useState('');
 
+  // --- STATE BARU: PRODUK & PORTOFOLIO ---
+  const [products, setProducts] = useState([]);
+  const [editProductId, setEditProductId] = useState(null);
+  const [productName, setProductName] = useState('');
+  const [productLabel, setProductLabel] = useState('');
+  const [productDesc, setProductDesc] = useState('');
+  const [productBtnText, setProductBtnText] = useState('');
+  const [productBtnLink, setProductBtnLink] = useState('');
+  const [productImgFile, setProductImgFile] = useState(null);
+  const [productImgUrl, setProductImgUrl] = useState('');
+
   // --- STATE HIERARKI ISO BARU ---
   const [isoTypes, setIsoTypes] = useState([]);
   const [isoFolders, setIsoFolders] = useState([]);
@@ -125,6 +136,8 @@ export default function AdminPage() {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { setUser(currentUser); setAuthLoading(false); });
     getDoc(doc(db, "settings", "general")).then(snap => { if(snap.exists()) setSettings(snap.data()); });
+    
+    // Load All Data
     const unsubSliders = onSnapshot(query(collection(db, "sliders"), orderBy("createdAt", "desc")), snap => setSliders(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => setPartners(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubServices = onSnapshot(query(collection(db, "services"), orderBy("createdAt", "desc")), snap => setServices(snap.docs.map(d => ({id: d.id, ...d.data()}))));
@@ -134,6 +147,7 @@ export default function AdminPage() {
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => setFaqs(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => setPosts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubProducts = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => setProducts(snap.docs.map(d => ({id: d.id, ...d.data()})))); // <-- LOAD PRODUCTS
     
     // FETCH DATA PORTAL ISO BARU (HIERARKI)
     const unsubIsoTypes = onSnapshot(query(collection(db, "iso_types"), orderBy("createdAt", "asc")), snap => setIsoTypes(snap.docs.map(d => ({id: d.id, ...d.data()}))));
@@ -141,7 +155,7 @@ export default function AdminPage() {
     const unsubDocMasters = onSnapshot(query(collection(db, "doc_masters"), orderBy("createdAt", "asc")), snap => setDocMasters(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubClients = onSnapshot(query(collection(db, "clients"), orderBy("createdAt", "desc")), snap => setClients(snap.docs.map(d => ({id: d.id, ...d.data()}))));
 
-    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubClients(); unsubDocMasters(); unsubIsoTypes(); unsubIsoFolders(); };
+    return () => { unsubscribeAuth(); unsubSliders(); unsubPartners(); unsubServices(); unsubSubServices(); unsubTeams(); unsubTestimonials(); unsubFaqs(); unsubPosts(); unsubEvents(); unsubProducts(); unsubClients(); unsubDocMasters(); unsubIsoTypes(); unsubIsoFolders(); };
   }, []);
 
   // Mengambil dokumen dari klien yang di-klik
@@ -159,7 +173,7 @@ export default function AdminPage() {
   const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
   const saveSettings = async (e) => { e.preventDefault(); setLoading(true); try { await setDoc(doc(db, "settings", "general"), settings, { merge: true }); alert("Tersimpan!"); } catch(err) { alert(err.message); } setLoading(false); };
   
-  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvents(); setSelectedClient(null); };
+  const cancelAllEdits = () => { cancelEditSlider(); cancelEditPartner(); cancelEditService(); cancelEditSub(); cancelEditTeam(); cancelEditTesti(); cancelEditFaq(); cancelEditPost(); cancelEditEvents(); cancelEditProduct(); setSelectedClient(null); };
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); cancelAllEdits(); };
   const deleteItem = async (col, id) => { if(confirm(`Hapus data ini permanen?`)) await deleteDoc(doc(db, col, id)); };
 
@@ -190,6 +204,25 @@ export default function AdminPage() {
   const cancelEditEvents = () => { setEditEventsId(null); setEventsName(''); setEventsDate(''); setEventsLocation(''); setEventsDesc(''); setEventsImgUrl(''); setEventsImgFile(null); };
   const handleEditEvents = (e) => { setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveEvents = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventsImgUrl; if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile); const data = { name: eventsName, date: eventsDate, location: eventsLocation, desc: eventsDesc, imgUrl: finalImg }; if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Events Berhasil Disimpan!'); cancelEditEvents(); } catch(err) { alert(err.message); } setLoading(false); };
+
+  // --- FUNGSI PRODUK & PORTOFOLIO ---
+  const cancelEditProduct = () => { setEditProductId(null); setProductName(''); setProductLabel(''); setProductDesc(''); setProductBtnText(''); setProductBtnLink(''); setProductImgUrl(''); setProductImgFile(null); };
+  const handleEditProduct = (p) => { setEditProductId(p.id); setProductName(p.name||''); setProductLabel(p.label||''); setProductDesc(p.desc||''); setProductBtnText(p.btnText||''); setProductBtnLink(p.btnLink||''); setProductImgUrl(p.imgUrl||''); setProductImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+  const saveProduct = async (e) => {
+      e.preventDefault(); setLoading(true);
+      try {
+          let finalImg = productImgUrl;
+          if (productImgFile) finalImg = await uploadToCloudinary(productImgFile);
+          
+          const data = { name: productName, label: productLabel, desc: productDesc, btnText: productBtnText, btnLink: productBtnLink, imgUrl: finalImg };
+          
+          if (editProductId) await updateDoc(doc(db, "products", editProductId), data);
+          else await addDoc(collection(db, "products"), { ...data, createdAt: serverTimestamp() });
+          
+          alert('Data Berhasil Disimpan!'); cancelEditProduct();
+      } catch(err) { alert(err.message); }
+      setLoading(false);
+  };
 
   // --- FUNGSI MASTER ISO (TAHAP BARU) ---
   const saveIsoType = async (e) => {
@@ -288,7 +321,7 @@ export default function AdminPage() {
                 <nav className="space-y-1">
                     {[
                         { id: 'clients', label: 'Kelola Akun Klien' }, 
-                        { id: 'docmasters', label: 'Master ISO & Folder' } // <-- NAMA MENU DIUBAH
+                        { id: 'docmasters', label: 'Master ISO & Folder' }
                     ].map(tab => (
                         <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
                     ))}
@@ -311,7 +344,20 @@ export default function AdminPage() {
             </div>
             <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2 px-2">Halaman Depan</p>
-                <nav className="space-y-1">{[{ id: 'umum', label: 'Teks & Logo Utama' }, { id: 'tentang', label: 'Halaman Tentang Kami' }, { id: 'slider', label: 'Hero Slider' }, { id: 'tim', label: 'Tim Pakar' }, { id: 'testimoni', label: 'Testimoni' }, { id: 'faq', label: 'F.A.Q' }, { id: 'footer', label: 'Pengaturan Footer' }].map(tab => (<button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>))}</nav>
+                <nav className="space-y-1">
+                    {[
+                        { id: 'umum', label: 'Teks & Logo Utama' }, 
+                        { id: 'tentang', label: 'Halaman Tentang Kami' }, 
+                        { id: 'slider', label: 'Hero Slider' }, 
+                        { id: 'products', label: 'Produk & Portofolio' }, // <-- MENU BARU
+                        { id: 'tim', label: 'Tim Pakar' }, 
+                        { id: 'testimoni', label: 'Testimoni' }, 
+                        { id: 'faq', label: 'F.A.Q' }, 
+                        { id: 'footer', label: 'Pengaturan Footer' }
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => switchTab(tab.id)} className={`w-full text-left px-3 py-2.5 rounded text-xs font-bold transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'hover:bg-slate-800 hover:text-white'}`}>{tab.label}</button>
+                    ))}
+                </nav>
             </div>
         </div>
         <div className="p-4 border-t border-slate-800 bg-slate-950 flex gap-2 pb-6 md:pb-4"><Link href="/" target="_blank" className="flex-1 text-center py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px] font-bold transition">WEB ↗</Link><button onClick={handleLogout} className="flex-1 py-2.5 bg-red-900/50 hover:bg-red-600 text-red-200 hover:text-white rounded text-[10px] font-bold transition">LOGOUT</button></div>
@@ -320,7 +366,7 @@ export default function AdminPage() {
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 overflow-y-auto h-full bg-slate-50">
         <div className="mb-6 border-b border-slate-200 pb-4">
             <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase">
-                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Kelola Akun Klien ISO' : activeTab === 'docmasters' ? 'Hierarki Dokumen ISO' : `Kelola ${activeTab}`}
+                {activeTab === 'blog' ? 'Kelola Wawasan (Blog)' : activeTab === 'clients' ? 'Kelola Akun Klien ISO' : activeTab === 'docmasters' ? 'Hierarki Dokumen ISO' : activeTab === 'products' ? 'Produk & Portofolio' : `Kelola ${activeTab}`}
             </h2>
         </div>
         
@@ -595,6 +641,75 @@ export default function AdminPage() {
                     </div>
                 </div>
 
+            </div>
+        )}
+
+        {/* TAB PRODUK & PORTOFOLIO (BARU) */}
+        {activeTab === 'products' && (
+            <div className="max-w-5xl">
+                <form onSubmit={saveProduct} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editProductId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Produk/Portofolio</span>
+                            <button type="button" onClick={cancelEditProduct} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Upload Gambar / Cover</label>
+                            <input type="file" onChange={e=>setProductImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {productImgUrl && !productImgFile && <img src={productImgUrl} className="h-32 mt-2 rounded-lg object-cover border" alt="Current" />}
+                        </div>
+                        
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Judul / Nama Produk</label>
+                            <input type="text" placeholder="Cth: Modul SOP ISO 9001" value={productName} onChange={e=>setProductName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Label Kategori (Opsional)</label>
+                            <input type="text" placeholder="Cth: E-Book / Template / Project" value={productLabel} onChange={e=>setProductLabel(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
+                            <textarea rows="3" placeholder="Jelaskan sedikit tentang produk/portofolio ini..." value={productDesc} onChange={e=>setProductDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Teks Tombol Aksi</label>
+                            <input type="text" placeholder="Cth: Beli Sekarang / Tanya Project" value={productBtnText} onChange={e=>setProductBtnText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                        </div>
+                        
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Link Tombol (Opsional)</label>
+                            <input type="text" placeholder="Link Shopee, Web, dll. Kosongkan = Arah ke WhatsApp." value={productBtnLink} onChange={e=>setProductBtnLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
+                        </div>
+                    </div>
+                    
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editProductId ? 'Perbarui Data' : 'Tambah ke Daftar')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {products.map(p => (
+                        <div key={p.id} className={`bg-white p-4 rounded-xl border flex gap-4 items-start ${editProductId === p.id ? 'ring-2 ring-indigo-500' : ''}`}>
+                            <img src={p.imgUrl || 'https://placehold.co/400x400?text=No+Image'} className="w-24 h-24 object-cover rounded-lg bg-slate-100" />
+                            <div className="flex-1">
+                                {p.label && <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-600 mb-1 block">{p.label}</span>}
+                                <h4 className="font-bold text-sm text-slate-900 leading-tight mb-1">{p.name}</h4>
+                                <p className="text-xs text-slate-500 line-clamp-2 mb-3">{p.desc}</p>
+                                <div className="flex gap-2 mt-auto">
+                                    <button onClick={() => handleEditProduct(p)} className="flex-1 text-indigo-600 text-[10px] font-bold px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                    <button onClick={()=>deleteItem('products', p.id)} className="flex-1 text-red-500 text-[10px] font-bold px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {products.length === 0 && <div className="col-span-1 md:col-span-2 text-center text-slate-400 py-10">Belum ada data produk/portofolio.</div>}
+                </div>
             </div>
         )}
 
