@@ -551,42 +551,69 @@ export default function AdminPage() {
                                             <h4 className="font-bold text-slate-800">📁 {folder.name}</h4>
                                         </div>
                                         <div className="p-4 space-y-4 bg-white">
+                                            
+                                            {/* AWAL BLOK YANG DIUBAH */}
                                             {docsInFolder.length === 0 ? (
                                                 <p className="text-xs text-slate-400 italic">Belum ada dokumen di folder ini.</p>
                                             ) : docsInFolder.map((master, idx) => {
                                                 const cDoc = selectedClientDocs.find(d => d.masterId === master.id);
+                                                
+                                                // Logika aman untuk membaca Array Files (Multiple Upload) atau File Lama (Single Upload)
+                                                let currentFiles = cDoc?.files || [];
+                                                if (cDoc?.fileUrl && currentFiles.length === 0) {
+                                                    currentFiles = [{ url: cDoc.fileUrl, name: 'Dokumen_Lama.pdf' }];
+                                                }
+
                                                 return (
-                                                    <div key={master.id} className={`p-4 border rounded-xl flex flex-col md:flex-row gap-4 justify-between transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-slate-50'}`}>
+                                                    <div key={master.id} className={`p-4 border rounded-xl flex flex-col gap-4 justify-between transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-slate-50'}`}>
                                                         <div className="flex-1">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold">{idx + 1}</span>
+                                                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                                <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold shrink-0">{idx + 1}</span>
                                                                 <h4 className="font-bold text-sm text-slate-800">{master.name}</h4>
-                                                            </div>
-                                                            <div className="ml-7 mt-2 flex items-center gap-3">
+                                                                
+                                                                {/* Badge Status */}
                                                                 {cDoc ? (
-                                                                    <>
+                                                                    <div className="ml-2 flex gap-2">
                                                                         {cDoc.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase border border-yellow-200 animate-pulse">Menunggu Cek</span>}
                                                                         {cDoc.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase border border-emerald-200">✅ Disetujui</span>}
                                                                         {cDoc.status === 'revision' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase border border-red-200">❌ Direvisi</span>}
-                                                                        <a href={cDoc.fileUrl} target="_blank" className="text-xs px-3 py-1 bg-slate-900 text-white rounded font-bold hover:bg-slate-700 transition">Lihat File ↗</a>
-                                                                    </>
-                                                                ) : (<span className="px-2 py-1 bg-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase">Belum Upload</span>)}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="px-2 py-1 ml-2 bg-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase">Belum Upload</span>
+                                                                )}
+                                                            </div>
+                                                            
+                                                            {/* List File Terlampir (Bisa Banyak) */}
+                                                            <div className="ml-7 mt-3">
+                                                                {currentFiles.length > 0 ? (
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                                        {currentFiles.map((f, i) => (
+                                                                            <a key={i} href={f.url} target="_blank" className="text-xs px-3 py-2 bg-white border border-slate-200 hover:border-indigo-400 text-slate-700 hover:text-indigo-600 rounded-lg font-bold transition flex items-center gap-2 shadow-sm truncate">
+                                                                                📄 {f.name || `Lampiran ${i+1}`} ↗
+                                                                            </a>
+                                                                        ))}
+                                                                    </div>
+                                                                ) : (
+                                                                    cDoc && <p className="text-[10px] text-slate-400 italic">Tidak ada file terlampir.</p>
+                                                                )}
                                                             </div>
                                                         </div>
 
-                                                        {/* FORM REVIEW */}
+                                                        {/* FORM REVIEW ADMIN */}
                                                         {cDoc && (
-                                                            <div className="w-full md:w-72 flex flex-col gap-2 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
-                                                                <input type="text" placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi..."} value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')} onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})} className="text-xs border p-2.5 rounded-lg w-full outline-none focus:border-indigo-500" disabled={cDoc.status === 'approved'}/>
-                                                                <div className="flex gap-2 mt-1">
-                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'approved')} disabled={cDoc.status === 'approved'} className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-2 py-2 rounded-lg text-xs font-bold transition shadow-sm">ACC</button>
-                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'revision')} disabled={cDoc.status === 'approved'} className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 border border-red-200 px-2 py-2 rounded-lg text-xs font-bold transition">Revisi</button>
+                                                            <div className="w-full flex flex-col md:flex-row gap-2 border-t border-slate-200 pt-4 mt-2">
+                                                                <input type="text" placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi..."} value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')} onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})} className="text-xs border p-2.5 rounded-lg flex-1 outline-none focus:border-indigo-500 bg-white" disabled={cDoc.status === 'approved'}/>
+                                                                <div className="flex gap-2 w-full md:w-auto shrink-0">
+                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'approved')} disabled={cDoc.status === 'approved'} className="flex-1 md:flex-none bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-6 py-2 rounded-lg text-xs font-bold transition shadow-sm">ACC</button>
+                                                                    <button onClick={() => handleReviewDoc(cDoc.id, 'revision')} disabled={cDoc.status === 'approved'} className="flex-1 md:flex-none bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 border border-red-200 px-4 py-2 rounded-lg text-xs font-bold transition">Revisi</button>
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
                                                 )
                                             })}
+                                            {/* AKHIR BLOK YANG DIUBAH */}
+
                                         </div>
                                     </div>
                                 )
