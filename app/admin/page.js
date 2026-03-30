@@ -147,7 +147,7 @@ export default function AdminPage() {
     const unsubFaqs = onSnapshot(query(collection(db, "faqs"), orderBy("createdAt", "asc")), snap => setFaqs(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubPosts = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snap => setPosts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     const unsubEvents = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
-    const unsubProducts = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => setProducts(snap.docs.map(d => ({id: d.id, ...d.data()})))); // <-- LOAD PRODUCTS
+    const unsubProducts = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), snap => setProducts(snap.docs.map(d => ({id: d.id, ...d.data()}))));
     
     // FETCH DATA PORTAL ISO BARU (HIERARKI)
     const unsubIsoTypes = onSnapshot(query(collection(db, "iso_types"), orderBy("createdAt", "asc")), snap => setIsoTypes(snap.docs.map(d => ({id: d.id, ...d.data()}))));
@@ -252,6 +252,47 @@ export default function AdminPage() {
       } catch (err) { alert(err.message); }
   };
 
+  // --- FUNGSI DUPLIKAT & RENAME FOLDER ---
+  const handleRenameFolder = async (folderId, oldName) => {
+      const newName = prompt("Masukkan nama folder baru:", oldName);
+      if (newName && newName.trim() !== "" && newName !== oldName) {
+          try {
+              await updateDoc(doc(db, "iso_folders", folderId), { name: newName });
+              alert("Nama folder berhasil diubah!");
+          } catch(err) { alert(err.message); }
+      }
+  };
+
+  const handleDuplicateFolder = async (folder) => {
+      const newName = prompt(`Duplikat folder "${folder.name}". Masukkan nama folder baru:`, `${folder.name} (Copy)`);
+      if (!newName || newName.trim() === "") return;
+
+      setLoading(true);
+      try {
+          // 1. Buat folder baru dengan nama yang baru diisi
+          const newFolderRef = await addDoc(collection(db, "iso_folders"), {
+              isoId: folder.isoId,
+              name: newName,
+              createdAt: serverTimestamp()
+          });
+
+          // 2. Ambil dokumen dari folder lama
+          const docsToCopy = docMasters.filter(d => d.folderId === folder.id);
+
+          // 3. Duplikat dokumen-dokumen tersebut dan masukkan ke folder baru
+          for (const docItem of docsToCopy) {
+              await addDoc(collection(db, "doc_masters"), {
+                  folderId: newFolderRef.id,
+                  name: docItem.name,
+                  createdAt: serverTimestamp()
+              });
+          }
+          alert(`Folder "${newName}" berhasil diduplikat beserta ${docsToCopy.length} Syarat Dokumen di dalamnya!`);
+      } catch(err) {
+          alert("Gagal menduplikat folder: " + err.message);
+      }
+      setLoading(false);
+  };
 
   // --- FUNGSI BUAT & REVIEW KLIEN ---
   const toggleFolderForClient = (folderId) => {
@@ -349,7 +390,7 @@ export default function AdminPage() {
                         { id: 'umum', label: 'Teks & Logo Utama' }, 
                         { id: 'tentang', label: 'Halaman Tentang Kami' }, 
                         { id: 'slider', label: 'Hero Slider' }, 
-                        { id: 'products', label: 'Produk & Portofolio' }, // <-- MENU BARU
+                        { id: 'products', label: 'Produk & Portofolio' }, 
                         { id: 'tim', label: 'Tim Pakar' }, 
                         { id: 'testimoni', label: 'Testimoni' }, 
                         { id: 'faq', label: 'F.A.Q' }, 
@@ -576,25 +617,36 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* 2. BUAT FOLDER KEBUTUHAN */}
+                {/* 2. BUAT FOLDER KEBUTUHAN & DUPLIKAT FOLDER */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200">
-                    <h3 className="font-bold text-lg mb-4 text-emerald-800 border-b pb-2">2. Buat Folder Dokumen</h3>
+                    <h3 className="font-bold text-lg mb-4 text-emerald-800 border-b pb-2">2. Kelola Folder Dokumen</h3>
                     <form onSubmit={saveIsoFolder} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                         <select value={selectedIsoForFolder} onChange={e=>setSelectedIsoForFolder(e.target.value)} className="border p-3 rounded-lg text-sm bg-slate-50" required>
                             <option value="">-- Pilih ISO --</option>
                             {isoTypes.map(iso => <option key={iso.id} value={iso.id}>{iso.name}</option>)}
                         </select>
-                        <input type="text" placeholder="Nama Folder (Cth: Folder Universitas)" value={newFolderName} onChange={e=>setNewFolderName(e.target.value)} className="border p-3 rounded-lg text-sm" required/>
-                        <button className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 transition shadow-md">Buat Folder</button>
+                        <input type="text" placeholder="Nama Folder Baru (Cth: BPM)" value={newFolderName} onChange={e=>setNewFolderName(e.target.value)} className="border p-3 rounded-lg text-sm" required/>
+                        <button disabled={loading} className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-emerald-700 transition shadow-md">Buat Folder</button>
                     </form>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {isoFolders.map(folder => {
                             const isoName = isoTypes.find(i => i.id === folder.isoId)?.name;
+                            const docCount = docMasters.filter(d => d.folderId === folder.id).length;
+                            
                             return (
-                                <div key={folder.id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl relative group">
-                                    <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1 line-clamp-1">{isoName}</p>
-                                    <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">📁 {folder.name}</h4>
-                                    <button onClick={() => deleteItem('iso_folders', folder.id)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">✖</button>
+                                <div key={folder.id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl relative flex flex-col justify-between">
+                                    <div>
+                                        <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mb-1 line-clamp-1">{isoName}</p>
+                                        <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">📁 {folder.name}</h4>
+                                        <p className="text-[10px] text-slate-500 mt-1">{docCount} Dokumen</p>
+                                    </div>
+                                    
+                                    <div className="flex gap-2 mt-3 pt-2 border-t border-emerald-200/50">
+                                        <button onClick={() => handleDuplicateFolder(folder)} title="Duplikat Folder beserta isinya" className="flex-1 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[10px] font-bold py-1 rounded transition">Copy</button>
+                                        <button onClick={() => handleRenameFolder(folder.id, folder.name)} title="Ganti Nama" className="flex-1 bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 text-[10px] font-bold py-1 rounded transition">Rename</button>
+                                        <button onClick={() => deleteItem('iso_folders', folder.id)} title="Hapus" className="bg-white text-red-500 border border-red-200 hover:bg-red-50 text-[10px] font-bold px-2 py-1 rounded transition">✖</button>
+                                    </div>
                                 </div>
                             )
                         })}
@@ -644,7 +696,7 @@ export default function AdminPage() {
             </div>
         )}
 
-        {/* TAB PRODUK & PORTOFOLIO (BARU) */}
+        {/* TAB PRODUK & PORTOFOLIO */}
         {activeTab === 'products' && (
             <div className="max-w-5xl">
                 <form onSubmit={saveProduct} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -878,175 +930,67 @@ export default function AdminPage() {
                     <label className="text-xs md:text-sm font-bold text-slate-700">Link Google Maps (Saat gambar diklik)</label>
                     <input type="text" value={settings.mapLink || ''} onChange={e=>setSettings({...settings, mapLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://maps.google.com/..." />
                 </div>
-                <div className="p-4 bg-slate-50 rounded-xl border"><h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Social Media</h3><label className="text-xs md:text-sm font-bold text-slate-700">LinkedIn</label><input type="url" value={settings.linkedin || ''} onChange={e=>setSettings({...settings, linkedin: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" /><label className="text-xs md:text-sm font-bold text-slate-700">YouTube</label><input type="url" value={settings.youtube || ''} onChange={e=>setSettings({...settings, youtube: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" /><label className="text-xs md:text-sm font-bold text-slate-700">Instagram</label><input type="url" value={settings.instagram || ''} onChange={e=>setSettings({...settings, instagram: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" /></div>
+                <div className="p-4 bg-slate-50 rounded-xl border"><h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Media Sosial</h3>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">LinkedIn URL</label>
+                    <input type="text" value={settings.linkedin || ''} onChange={e=>setSettings({...settings, linkedin: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://linkedin.com/in/..." />
+                    
+                    <label className="text-xs md:text-sm font-bold text-slate-700">YouTube URL</label>
+                    <input type="text" value={settings.youtube || ''} onChange={e=>setSettings({...settings, youtube: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://youtube.com/..." />
+                    
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Instagram URL</label>
+                    <input type="text" value={settings.instagram || ''} onChange={e=>setSettings({...settings, instagram: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://instagram.com/..." />
+                </div>
+                
                 <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan Footer</button>
             </form>
         )}
 
-        {/* TAB SLIDER */}
-        {activeTab === 'slider' && (
-            <div className="max-w-4xl">
-                <form onSubmit={saveSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
-                    {editSliderId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Slider</span><button type="button" onClick={cancelEditSlider} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}
-                    <p className="text-xs md:text-sm text-slate-500 mb-2">Upload gambar (Kosongkan jika tidak ingin mengganti gambar lama).</p>
-                    <input type="file" onChange={e=>setSlideImageFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
-                    {slideImageUrl && !slideImageFile && <img src={slideImageUrl} className="h-20 rounded object-cover border" alt="Current" />}
-                    <input type="text" placeholder="Tagline Kecil (Cth: REACH THE FUTURE)" value={slideTagline} onChange={e=>setSlideTagline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm text-orange-600" />
-                    <input type="text" placeholder="Judul Slider Utama" value={slideTitle} onChange={e=>setSlideTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
-                    <input type="text" placeholder="Deskripsi Pendek" value={slideSubtitle} onChange={e=>setSlideSubtitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 p-4 border rounded bg-slate-50"><div><label className="text-xs font-bold block mb-1">Tombol 1 (Outline / Kiri)</label><input type="text" placeholder="Teks Tombol 1 (Cth: Preview)" value={slideBtn1Text} onChange={e=>setSlideBtn1Text(e.target.value)} className="w-full border p-2 rounded text-sm mb-2" /><input type="text" placeholder="Link Tombol 1" value={slideBtn1Link} onChange={e=>setSlideBtn1Link(e.target.value)} className="w-full border p-2 rounded text-sm" /></div><div><label className="text-xs font-bold block mb-1">Tombol 2 (Solid / Kanan)</label><input type="text" placeholder="Teks Tombol 2 (Cth: Buy)" value={slideBtn2Text} onChange={e=>setSlideBtn2Text(e.target.value)} className="w-full border p-2 rounded text-sm mb-2" /><input type="text" placeholder="Link Tombol 2" value={slideBtn2Link} onChange={e=>setSlideBtn2Link(e.target.value)} className="w-full border p-2 rounded text-sm" /></div></div>
-                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editSliderId ? 'Perbarui Slider' : 'Tambah Slider'}</button>
-                </form>
-                <div className="grid gap-4">{sliders.map(s => (<div key={s.id} className={`flex flex-col md:flex-row bg-white p-4 rounded-xl border md:items-center gap-4 ${editSliderId === s.id ? 'ring-2 ring-indigo-500' : ''}`}><img src={s.imageUrl} className="w-full md:w-24 h-32 md:h-16 object-cover rounded-lg" /><div className="flex-1 text-center md:text-left"><h4 className="font-bold text-sm">{s.title}</h4></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditSlider(s)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('sliders', s.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div>
-            </div>
-        )}
-
-        {/* TAB MITRA */}
+        {/* TAB MITRA & KLIEN */}
         {activeTab === 'mitra' && (
-            <div className="max-w-4xl"><form onSubmit={savePartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editPartnerId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Mitra</span><button type="button" onClick={cancelEditPartner} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2">Upload logo (Kosongkan jika tidak ingin mengganti logo lama).</p><input id="partnerFileInput" type="file" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />{partnerImgUrl && !partnerImgFile && <img src={partnerImgUrl} className="h-16 object-contain border rounded p-1 bg-slate-50" alt="Current" />}<input type="text" placeholder="Nama Perusahaan (Wajib diisi)" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold uppercase text-sm" required/><input type="text" placeholder="Bidang/Layanan (Cth: Pelatihan SDM)" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editPartnerId ? 'Perbarui Mitra' : 'Tambah Mitra'}</button></form><div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{partners.map(p => (<div key={p.id} className={`bg-white p-3 md:p-4 rounded-xl border flex flex-col justify-between items-center text-center ${editPartnerId === p.id ? 'ring-2 ring-indigo-500' : ''}`}>{p.imgUrl ? (<img src={p.imgUrl} alt={p.name} className="h-10 md:h-12 w-auto object-contain mb-3" />) : (<div className="h-10 md:h-12 flex items-center justify-center mb-3"><h4 className="font-bold text-slate-600 uppercase text-xs">{p.name}</h4></div>)}<div className="flex gap-2 w-full mt-auto"><button onClick={() => handleEditPartner(p)} className="flex-1 text-indigo-600 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 p-2 rounded transition">Edit</button><button onClick={()=>deleteItem('partners', p.id)} className="flex-1 text-red-500 text-xs font-bold bg-red-50 hover:bg-red-100 p-2 rounded transition">Hapus</button></div></div>))}</div></div>
-        )}
-
-        {/* TAB LAYANAN (PARENT SERVICE) */}
-        {activeTab === 'layanan' && (
-            <div className="max-w-4xl"><form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editServiceId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Layanan</span><button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2 font-bold">Upload Gambar Background (Opsional)</p><input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />{serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}<input type="text" placeholder="Nama Layanan (Cth: Consulting)" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Deskripsi Singkat..." value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><input type="text" placeholder="Link Detail (Opsional)" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{services.map(s => (<div key={s.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editServiceId === s.id ? 'ring-2 ring-indigo-500' : ''}`}>s.imgUrl && <img src={s.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/><h4 className="font-bold text-base md:text-lg mb-2">{s.name}</h4><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditService(s)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('services', s.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
-        )}
-
-        {/* TAB SUB-LAYANAN */}
-        {activeTab === 'sublayanan' && (
-            <div className="max-w-4xl">
-                <form onSubmit={saveSubService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
-                    {editSubServiceId && (
+            <div className="max-w-5xl">
+                <form onSubmit={savePartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editPartnerId && (
                         <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
-                            <span>Sedang Mengedit Sub-Layanan</span>
-                            <button type="button" onClick={cancelEditSub} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                            <span>Sedang Mengedit Mitra</span>
+                            <button type="button" onClick={cancelEditPartner} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
                         </div>
                     )}
-                    
-                    <label className="text-xs font-bold text-slate-700 block">Pilih Layanan Utama (Parent)</label>
-                    <select value={subParentId} onChange={e=>setSubParentId(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm bg-slate-50 outline-none focus:border-indigo-500" required>
-                        <option value="">-- Pilih Layanan Utama --</option>
-                        {services.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                    </select>
-
-                    <label className="text-xs font-bold text-slate-700 block mt-4">Judul Sub-Layanan</label>
-                    <input type="text" placeholder="Cth: Leadership Training" value={subTitle} onChange={e=>setSubTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
-                    
-                    <label className="text-xs font-bold text-slate-700 block mt-4">Deskripsi Pendek</label>
-                    <textarea rows="3" placeholder="Deskripsi Singkat Sub-Layanan..." value={subDesc} onChange={e=>setSubDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
-                    
-                    <label className="text-xs font-bold text-slate-700 block mt-4">Upload Gambar Sub-Layanan</label>
-                    <input type="file" onChange={e=>setSubImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />
-                    {subImgUrl && !subImgFile && <img src={subImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}
-                    
-                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-4">{editSubServiceId ? 'Perbarui Sub-Layanan' : 'Tambah Sub-Layanan'}</button>
-                </form>
-
-                <h3 className="font-bold text-lg mb-4">Daftar Sub-Layanan</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                    {subServices.map(sub => {
-                        const parentService = services.find(s => s.id === sub.parentId);
-                        const parentName = parentService ? parentService.name : 'Layanan Terhapus';
-                        return (
-                            <div key={sub.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editSubServiceId === sub.id ? 'ring-2 ring-indigo-500' : ''}`}>
-                                <div className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-2 border-b pb-2">Bagian: {parentName}</div>
-                                {sub.imgUrl && <img src={sub.imgUrl} className="w-full h-24 object-cover rounded-lg mb-3" alt="bg"/>}
-                                <h4 className="font-bold text-base md:text-lg mb-1">{sub.title}</h4>
-                                <p className="text-xs text-slate-500 line-clamp-2">{sub.desc}</p>
-                                <div className="flex gap-2 w-full mt-auto pt-4">
-                                    <button onClick={() => handleEditSub(sub)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button>
-                                    <button onClick={()=>deleteItem('subservices', sub.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        )}
-
-        {/* TAB BARU: EVENTS / JADWAL */}
-        {activeTab === 'events' && (
-            <div className="max-w-4xl">
-                <form onSubmit={saveEvents} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
-                    {editEventsId && (
-                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
-                            <span>Sedang Mengedit Agenda / Events</span>
-                            <button type="button" onClick={cancelEditEvents} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
-                        </div>
-                    )}
-                    
-                    <label className="text-xs font-bold text-slate-700 block">Nama Events / Pelatihan</label>
-                    <input type="text" placeholder="Cth: Public Speaking Masterclass" value={eventsName} onChange={e=>setEventsName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Tanggal Pelaksanaan</label>
-                            <input type="text" placeholder="Cth: 15-16 Agustus 2026" value={eventsDate} onChange={e=>setEventsDate(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Logo Mitra</label>
+                            <input type="file" id="partnerFileInput" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {partnerImgUrl && !partnerImgFile && <img src={partnerImgUrl} className="h-16 mt-2 rounded object-contain border bg-white p-1" alt="Current Logo" />}
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Lokasi / Platform</label>
-                            <input type="text" placeholder="Cth: Zoom Meeting / Hotel Mulia" value={eventsLocation} onChange={e=>setEventsLocation(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Mitra / Klien</label>
+                            <input type="text" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Bidang / Industri</label>
+                            <input type="text" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Manufaktur" />
                         </div>
                     </div>
-                    
-                    <label className="text-xs font-bold text-slate-700 block mt-2">Deskripsi Singkat</label>
-                    <textarea rows="3" placeholder="Deskripsi acara..." value={eventsDesc} onChange={e=>setEventsDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
-                    
-                    <label className="text-xs font-bold text-slate-700 block mt-2">Upload Banner/Poster Events (Opsional)</label>
-                    <input type="file" onChange={e=>setEventsImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm mb-2" />
-                    {eventsImgUrl && !eventsImgFile && <img src={eventsImgUrl} className="h-20 rounded object-cover border mb-2" alt="Current" />}
-                    
-                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">{editEventsId ? 'Perbarui Events' : 'Tambah Events'}</button>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editPartnerId ? 'Perbarui Data' : 'Tambah Mitra')}
+                    </button>
                 </form>
-
-                <h3 className="font-bold text-lg mb-4">Daftar Agenda & Events</h3>
-                <div className="grid grid-cols-1 gap-3 md:gap-4">
-                    {events.map(ev => (
-                        <div key={ev.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row items-center gap-4 ${editEventsId === ev.id ? 'ring-2 ring-indigo-500' : ''}`}>
-                            {ev.imgUrl ? (
-                                <img src={ev.imgUrl} className="w-full md:w-32 h-32 md:h-24 object-cover rounded-lg" alt="Banner"/>
-                            ) : (
-                                <div className="w-full md:w-32 h-32 md:h-24 bg-slate-100 flex items-center justify-center rounded-lg text-xs text-slate-400">No Image</div>
-                            )}
-                            <div className="flex-grow text-center md:text-left">
-                                <h4 className="font-bold text-base md:text-lg text-slate-900">{ev.name}</h4>
-                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-emerald-600">
-                                    <span>📅 {ev.date}</span>
-                                    <span>📍 {ev.location}</span>
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{ev.desc}</p>
-                            </div>
-                            <div className="flex md:flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
-                                <button onClick={() => handleEditEvents(ev)} className="flex-1 text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button>
-                                <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {partners.map(p => (
+                        <div key={p.id} className="bg-white p-4 rounded-xl border flex flex-col items-center text-center shadow-sm">
+                            <img src={p.imgUrl || 'https://placehold.co/100x100?text=No+Logo'} className="h-16 w-full object-contain mb-3" alt={p.name} />
+                            <h4 className="font-bold text-sm text-slate-900 mb-1">{p.name}</h4>
+                            <p className="text-[10px] text-slate-500 mb-3">{p.field}</p>
+                            <div className="flex gap-2 w-full mt-auto">
+                                <button onClick={() => handleEditPartner(p)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                <button onClick={()=>deleteItem('partners', p.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
                             </div>
                         </div>
                     ))}
+                    {partners.length === 0 && <div className="col-span-2 md:col-span-4 text-center text-slate-400 py-10 border-2 border-dashed rounded-xl">Belum ada data mitra/klien.</div>}
                 </div>
             </div>
         )}
-
-        {/* TAB TIM */}
-        {activeTab === 'tim' && (
-            <div className="max-w-4xl"><form onSubmit={saveTeam} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editTeamId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Anggota Tim</span><button type="button" onClick={cancelEditTeam} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<p className="text-xs md:text-sm text-slate-500 mb-2">Upload foto (Kosongkan jika tidak ingin mengganti foto lama).</p><input type="file" onChange={e=>setTeamImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />{teamImgUrl && !teamImgFile && <img src={teamImgUrl} className="h-16 w-16 object-cover rounded-full border" alt="Current" />}<input type="text" placeholder="Nama Lengkap & Gelar" value={teamName} onChange={e=>setTeamName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><input type="text" placeholder="Jabatan / Role" value={teamRole} onChange={e=>setTeamRole(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editTeamId ? 'Perbarui Data Tim' : 'Tambah Anggota Tim'}</button></form><div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">{teams.map(t => (<div key={t.id} className={`bg-white p-3 md:p-4 rounded-xl border flex flex-col items-center text-center ${editTeamId === t.id ? 'ring-2 ring-indigo-500' : ''}`}><img src={t.img} className="w-16 h-16 rounded-full object-cover mb-3"/><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[9px] md:text-[10px] text-orange-500 mb-3 line-clamp-1">{t.role}</p><div className="flex gap-2 w-full mt-auto"><button onClick={() => handleEditTeam(t)} className="flex-1 text-indigo-600 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 py-1.5 rounded transition">Edit</button><button onClick={()=>deleteItem('teams', t.id)} className="flex-1 text-red-500 text-xs font-bold bg-red-50 hover:bg-red-100 py-1.5 rounded transition">Hapus</button></div></div>))}</div></div>
-        )}
-
-        {/* TAB TESTIMONI */}
-        {activeTab === 'testimoni' && (
-            <div className="max-w-4xl"><form onSubmit={saveTestimonial} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editTestiId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit Testimoni</span><button type="button" onClick={cancelEditTesti} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<input type="text" placeholder="Nama Klien" value={testiName} onChange={e=>setTestiName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><input type="text" placeholder="Asal Perusahaan / Instansi" value={testiCompany} onChange={e=>setTestiCompany(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required/><textarea rows="3" placeholder="Isi testimoni..." value={testiText} onChange={e=>setTestiText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editTestiId ? 'Perbarui Testimoni' : 'Tambah Testimoni'}</button></form><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">{testimonials.map(t => (<div key={t.id} className={`bg-white p-4 md:p-6 rounded-xl border flex flex-col ${editTestiId === t.id ? 'ring-2 ring-indigo-500' : ''}`}><p className="italic text-xs md:text-sm text-slate-600 mb-4">"{t.text}"</p><h4 className="font-bold text-xs md:text-sm">{t.name}</h4><p className="text-[10px] md:text-xs text-slate-400 mb-3">{t.company}</p><div className="flex gap-2 w-full mt-auto pt-4"><button onClick={() => handleEditTesti(t)} className="text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('testimonials', t.id)} className="text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
-        )}
-
-        {/* TAB FAQ */}
-        {activeTab === 'faq' && (
-            <div className="max-w-4xl"><form onSubmit={saveFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">{editFaqId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200"><span>Sedang Mengedit FAQ</span><button type="button" onClick={cancelEditFaq} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<input type="text" placeholder="Pertanyaan" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/><textarea rows="3" placeholder="Jawaban..." value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea><button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto">{editFaqId ? 'Perbarui F.A.Q' : 'Tambah F.A.Q'}</button></form><div className="space-y-3">{faqs.map(f => (<div key={f.id} className={`bg-white p-4 rounded-xl border flex flex-col md:flex-row justify-between md:items-start gap-4 ${editFaqId === f.id ? 'ring-2 ring-indigo-500' : ''}`}><div className="pr-4"><h4 className="font-bold text-xs md:text-sm mb-1">{f.q}</h4><p className="text-[10px] md:text-xs text-slate-500">{f.a}</p></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditFaq(f)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('faqs', f.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
-        )}
-
-        {/* TAB BLOG */}
-        {activeTab === 'blog' && (
-            <div className="max-w-4xl"><form onSubmit={savePost} className="bg-white p-4 md:p-8 rounded-2xl shadow-sm space-y-4 border mb-8">{editPostId && (<div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200 mb-4"><span>Anda sedang mengedit: {postTitle}</span><button type="button" onClick={cancelEditPost} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button></div>)}<input type="text" placeholder="Judul Berita" value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-base md:text-lg" required/><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"><select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-white text-sm"><option value="News">News</option><option value="Opini">Opini</option></select><input type="text" placeholder="Dateline (Cth: Jakarta)" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div><div className="border p-3 md:p-4 rounded-lg bg-slate-50"><p className="mb-2 font-bold text-xs md:text-sm text-slate-700">Upload Sampul Berita</p><input type="file" onChange={async (e) => { if(e.target.files[0]) { setLoading(true); try { const url = await uploadToCloudinary(e.target.files[0]); setPostCoverUrl(url); alert("Gambar Sampul Siap!"); } catch(err) { alert(err.message); } setLoading(false); } }} accept="image/*" className="text-xs md:text-sm w-full mb-2" />{postCoverUrl && <img src={postCoverUrl} className="h-20 rounded-lg object-cover border" alt="Cover Preview" />}</div><div className="h-64 mb-14 md:mb-10 mt-2"><ReactQuill ref={quillRef} theme="snow" value={postContent} onChange={setPostContent} modules={modules} className="h-full bg-white rounded-b-lg" placeholder="Tulis isi berita di sini..." /></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pt-8 md:pt-12"><input type="text" placeholder="Nama Penulis" value={postAuthor} onChange={e=>setPostAuthor(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /><input type="text" placeholder="Tags (Pisahkan koma)" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" /></div><div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4 border-t pt-4 border-slate-100"><select value={isDraft} onChange={e => setIsDraft(e.target.value === 'true')} className="w-full border p-3 rounded-lg font-bold text-sm bg-slate-50 outline-none focus:border-indigo-500 cursor-pointer"><option value="false">🌍 Terbitkan ke Publik</option><option value="true">🔒 Simpan sebagai Draf (Sembunyikan)</option></select><button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm hover:bg-indigo-700 transition shadow-sm">{loading ? 'Menyimpan...' : (editPostId ? 'Perbarui Berita' : 'Terbitkan Sekarang')}</button></div></form><div className="space-y-3">{posts.map(p => (<div key={p.id} className={`flex flex-col md:flex-row p-4 rounded-xl border justify-between gap-3 items-center ${p.isDraft ? 'bg-orange-50 border-orange-200' : 'bg-white border-slate-200'} ${editPostId === p.id ? 'ring-2 ring-indigo-500' : ''}`}><div className="flex-1"><div className="flex items-center gap-2 mb-1">{p.isDraft && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">DRAF</span>}<h4 className="font-bold text-sm line-clamp-1">{p.title}</h4></div></div><div className="flex gap-2 w-full md:w-auto"><button onClick={() => handleEditPost(p)} className="flex-1 md:flex-none text-indigo-600 text-xs font-bold px-4 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">Edit</button><button onClick={()=>deleteItem('posts', p.id)} className="flex-1 md:flex-none text-red-500 text-xs font-bold px-4 py-2 bg-red-50 hover:bg-red-100 rounded-lg transition">Hapus</button></div></div>))}</div></div>
-        )}
-
       </main>
     </div>
   );
