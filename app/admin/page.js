@@ -684,8 +684,8 @@ export default function AdminPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Tanggal (Opsional)</label>
-                            <input type="text" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Contoh: 12 Agustus 2024" />
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Lokasi/Nama Penerbit Berita (Opsional)</label>
+                            <input type="text" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Contoh: Malang/Mahatma.id" />
                         </div>
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Penulis</label>
@@ -923,6 +923,184 @@ export default function AdminPage() {
                         )
                     })}
                 </div>
+            </div>
+        )}
+
+        {/* --- TAB MITRA & KLIEN --- */}
+        {activeTab === 'mitra' && (
+            <div className="max-w-5xl">
+                <form onSubmit={savePartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editPartnerId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Mitra</span>
+                            <button type="button" onClick={cancelEditPartner} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Logo Mitra</label>
+                            <input type="file" id="partnerFileInput" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {partnerImgUrl && !partnerImgFile && <img src={partnerImgUrl} className="h-16 mt-2 rounded object-contain border bg-white p-1" alt="Current Logo" />}
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Mitra / Klien</label>
+                            <input type="text" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Bidang / Industri</label>
+                            <input type="text" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Manufaktur" />
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editPartnerId ? 'Perbarui Data' : 'Tambah Mitra')}
+                    </button>
+                </form>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {partners.map(p => (
+                        <div key={p.id} className="bg-white p-4 rounded-xl border flex flex-col items-center text-center shadow-sm">
+                            <img src={p.imgUrl || 'https://placehold.co/100x100?text=No+Logo'} className="h-16 w-full object-contain mb-3" alt={p.name} />
+                            <h4 className="font-bold text-sm text-slate-900 mb-1">{p.name}</h4>
+                            <p className="text-[10px] text-slate-500 mb-3">{p.field}</p>
+                            <div className="flex gap-2 w-full mt-auto">
+                                <button onClick={() => handleEditPartner(p)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                <button onClick={()=>deleteItem('partners', p.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                            </div>
+                        </div>
+                    ))}
+                    {partners.length === 0 && <div className="col-span-2 md:col-span-4 text-center text-slate-400 py-10 border-2 border-dashed rounded-xl">Belum ada data mitra/klien.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB TEKS & LOGO UTAMA --- */}
+        {activeTab === 'umum' && (
+            <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div className="mb-4 bg-slate-50 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Terang (Default)</label>
+                        <div className="flex flex-col gap-2">
+                            <input type="file" accept="image/*" onChange={async (e) => {
+                                if(e.target.files[0]) {
+                                    setLoading(true);
+                                    try {
+                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                        setSettings({...settings, logoUrl: url});
+                                        alert(`Logo Terang Berhasil Diunggah!`);
+                                    } catch(err) { alert(err.message); }
+                                    setLoading(false);
+                                }
+                            }} className="text-xs border p-2 rounded bg-white w-full" />
+                            {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1 w-fit" alt="logo"/>}
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-1">Muncul di latar putih.</p>
+                    </div>
+
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Gelap (Opsional)</label>
+                        <div className="flex flex-col gap-2">
+                            <input type="file" accept="image/*" onChange={async (e) => {
+                                if(e.target.files[0]) {
+                                    setLoading(true);
+                                    try {
+                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                        setSettings({...settings, logoDarkUrl: url});
+                                        alert(`Logo Gelap Berhasil Diunggah!`);
+                                    } catch(err) { alert(err.message); }
+                                    setLoading(false);
+                                }
+                            }} className="text-xs border p-2 rounded bg-white w-full" />
+                            {settings.logoDarkUrl && <img src={settings.logoDarkUrl} className="h-12 object-contain bg-slate-900 rounded border p-1 w-fit" alt="logo dark"/>}
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-1">Muncul otomatis saat mode gelap (latar hitam).</p>
+                    </div>
+                </div>
+                
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Mission</h3>
+                    <div className="mb-4 bg-white p-3 border rounded-lg">
+                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Utama Misi (Area Kiri)</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, missionImageUrl: url});
+                                    alert(`Gambar Utama Misi Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-[10px] border p-1 rounded w-full" />
+                        {settings.missionImageUrl && <img src={settings.missionImageUrl} className="h-24 mt-2 object-cover rounded border p-1" alt="preview"/>}
+                    </div>
+
+                    <label className="text-xs font-bold block mb-1 text-slate-700">Judul Utama Misi (Area Kanan Atas)</label>
+                    <input type="text" value={settings.missionTitle || ''} onChange={e=>setSettings({...settings, missionTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Contoh: Integrated Solution for Your Needs" />
+                    <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-4" rows="3" placeholder="Deskripsi Singkat Misi (Opsional)"></textarea>
+                    
+                    <h4 className="font-bold text-slate-700 mb-2 mt-6 text-sm border-t pt-4">Kartu Poin Misi (Area Kanan Bawah)</h4>
+                    <p className="text-xs text-slate-500 mb-3">Isi paragraf panjang untuk setiap kartu misi. Biarkan kosong jika tidak digunakan.</p>
+                    <div className="grid grid-cols-1 gap-4">
+                        {[1, 2, 3, 4].map(num => (
+                            <div key={num} className="border border-slate-200 p-3 rounded-lg bg-white">
+                                <label className="text-xs font-bold block mb-1 text-slate-600">Isi Kartu Misi {num}</label>
+                                <textarea rows="3" placeholder={`Isi Poin Misi ${num} (Contoh: 1. Cultivating Leadership...)`} value={settings[`mission${num}Desc`] || ''} onChange={e=>setSettings({...settings, [`mission${num}Desc`]: e.target.value})} className="w-full border p-2 rounded text-sm outline-none focus:border-orange-400" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Service</h3>
+                    <input type="text" value={settings.serviceTitle || ''} onChange={e=>setSettings({...settings, serviceTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Judul Service" />
+                    <textarea value={settings.serviceDesc || ''} onChange={e=>setSettings({...settings, serviceDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-4 text-sm" rows="3" placeholder="Deskripsi Service"></textarea>
+                    <div className="border border-slate-200 p-3 md:p-4 rounded-lg bg-white"><label className="text-xs md:text-sm font-bold text-slate-700 block mb-2">Upload Gambar Ilustrasi Layanan</label><div className="flex flex-col md:flex-row items-center gap-3 md:gap-4"><input type="file" onChange={async (e) => { if(e.target.files[0]) { setLoading(true); try { const url = await uploadToCloudinary(e.target.files[0]); setSettings({...settings, serviceImageUrl: url}); alert("Gambar diunggah! Jangan lupa klik Simpan Pengaturan."); } catch(err) { alert(err.message); } setLoading(false); } }} accept="image/*" className="text-xs border p-2 rounded w-full" />{settings.serviceImageUrl && <img src={settings.serviceImageUrl} className="h-16 w-16 object-cover rounded border" alt="Preview"/>}</div></div>
+                </div>
+
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-red-600 border-b pb-2 text-sm md:text-base">Bagian: Call To Action (Siap Untuk Berubah?)</h3>
+                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Judul Call To Action</label>
+                    <input type="text" value={settings.ctaTitle || ''} onChange={e=>setSettings({...settings, ctaTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Cth: Siap Untuk Berubah?" />
+                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Deskripsi</label>
+                    <textarea value={settings.ctaDesc || ''} onChange={e=>setSettings({...settings, ctaDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi ajakan..."></textarea>
+                    <label className="text-xs md:text-sm font-bold text-slate-700 block mt-2 mb-1">Link Tombol "Pesan Layanan"</label>
+                    <input type="text" value={settings.ctaLink || ''} onChange={e=>setSettings({...settings, ctaLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="https://..." />
+                </div>
+                
+                <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan Utama</button>
+            </form>
+        )}
+
+        {/* --- TAB HALAMAN TENTANG KAMI --- */}
+        {activeTab === 'tentang' && (
+            <div className="max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="font-bold mb-6 text-indigo-600 text-lg border-b pb-2">Pengaturan Halaman Tentang Kami</h3>
+                <form onSubmit={saveSettings} className="space-y-6">
+                    <div>
+                        <label className="text-sm font-bold block mb-2 text-slate-700">Gambar Sampul (Hero Image)</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, aboutImageUrl: url});
+                                    alert(`Gambar Sampul About Us Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-xs border p-2 rounded w-full" />
+                        {settings.aboutImageUrl && <img src={settings.aboutImageUrl} className="h-32 mt-2 object-cover rounded border" alt="about hero"/>}
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold block mb-1 text-slate-700">Judul Utama</label>
+                        <input type="text" value={settings.aboutTitle || ''} onChange={e=>setSettings({...settings, aboutTitle: e.target.value})} className="w-full border p-3 rounded-lg text-sm" placeholder="Cth: Membangun Masa Depan yang Berkelanjutan." />
+                    </div>
+                    <div>
+                        <label className="text-sm font-bold block mb-1 text-slate-700">Deskripsi Lengkap</label>
+                        <textarea value={settings.aboutDesc || ''} onChange={e=>setSettings({...settings, aboutDesc: e.target.value})} className="w-full border p-3 rounded-lg text-sm" rows="6" placeholder="Tulis deskripsi lengkap tentang perusahaan..."></textarea>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Halaman Tentang Kami</button>
+                </form>
             </div>
         )}
 
@@ -1192,6 +1370,56 @@ export default function AdminPage() {
                     {products.length === 0 && <div className="col-span-1 md:col-span-2 text-center text-slate-400 py-10">Belum ada data produk/portofolio.</div>}
                 </div>
             </div>
+        )}
+
+        {/* --- TAB PENGATURAN FOOTER --- */}
+        {activeTab === 'footer' && (
+            <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Profil & Kontak Footer</h3>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Deskripsi Singkat</label>
+                    <textarea value={settings.footerDesc || ''} onChange={e=>setSettings({...settings, footerDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-4 text-sm" rows="3"></textarea>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Telepon / WhatsApp</label>
+                    <input type="text" value={settings.phone || ''} onChange={e=>setSettings({...settings, phone: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Email Perusahaan</label>
+                    <input type="email" value={settings.email || ''} onChange={e=>setSettings({...settings, email: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Alamat Lengkap</label>
+                    <textarea value={settings.address || ''} onChange={e=>setSettings({...settings, address: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" rows="2"></textarea>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Lokasi & Maps</h3>
+                    <div className="mb-4 bg-white p-3 border rounded-lg">
+                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Peta/Lokasi</label>
+                        <input type="file" accept="image/*" onChange={async (e) => {
+                            if(e.target.files[0]) {
+                                setLoading(true);
+                                try {
+                                    const url = await uploadToCloudinary(e.target.files[0]);
+                                    setSettings({...settings, mapUrl: url});
+                                    alert(`Gambar Peta Berhasil Diunggah!`);
+                                } catch(err) { alert(err.message); }
+                                setLoading(false);
+                            }
+                        }} className="text-xs border p-2 rounded w-full" />
+                        {settings.mapUrl && <img src={settings.mapUrl} className="h-24 mt-2 object-cover rounded border p-1" alt="map preview"/>}
+                    </div>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Link Google Maps (Saat gambar diklik)</label>
+                    <input type="text" value={settings.mapLink || ''} onChange={e=>setSettings({...settings, mapLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://maps.google.com/..." />
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border">
+                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Media Sosial</h3>
+                    <label className="text-xs md:text-sm font-bold text-slate-700">LinkedIn URL</label>
+                    <input type="text" value={settings.linkedin || ''} onChange={e=>setSettings({...settings, linkedin: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://linkedin.com/in/..." />
+                    
+                    <label className="text-xs md:text-sm font-bold text-slate-700">YouTube URL</label>
+                    <input type="text" value={settings.youtube || ''} onChange={e=>setSettings({...settings, youtube: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://youtube.com/..." />
+                    
+                    <label className="text-xs md:text-sm font-bold text-slate-700">Instagram URL</label>
+                    <input type="text" value={settings.instagram || ''} onChange={e=>setSettings({...settings, instagram: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://instagram.com/..." />
+                </div>
+                
+                <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan Footer</button>
+            </form>
         )}
 
       </main>
