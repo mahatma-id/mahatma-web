@@ -180,27 +180,35 @@ export default function AdminPage() {
   const cancelEditSlider = () => { setEditSliderId(null); setSlideTagline(''); setSlideTitle(''); setSlideSubtitle(''); setSlideBtn1Text(''); setSlideBtn1Link(''); setSlideBtn2Text(''); setSlideBtn2Link(''); setSlideImageUrl(''); setSlideImageFile(null); };
   const handleEditSlider = (s) => { setEditSliderId(s.id); setSlideTagline(s.tagline || ''); setSlideTitle(s.title || ''); setSlideSubtitle(s.subtitle || ''); setSlideBtn1Text(s.btn1Text || s.btnText || ''); setSlideBtn1Link(s.btn1Link || s.btnLink || ''); setSlideBtn2Text(s.btn2Text || ''); setSlideBtn2Link(s.btn2Link || ''); setSlideImageUrl(s.imageUrl || ''); setSlideImageFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveSlider = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = slideImageUrl; if (slideImageFile) finalImg = await uploadToCloudinary(slideImageFile); if (!finalImg && !editSliderId) { alert("Pilih gambar!"); setLoading(false); return; } const data = { tagline: slideTagline, title: slideTitle, subtitle: slideSubtitle, btn1Text: slideBtn1Text, btn1Link: slideBtn1Link, btn2Text: slideBtn2Text, btn2Link: slideBtn2Link, imageUrl: finalImg }; if (editSliderId) await updateDoc(doc(db, "sliders", editSliderId), data); else await addDoc(collection(db, "sliders"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditSlider(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditPartner = () => { setEditPartnerId(null); setPartnerName(''); setPartnerField(''); setPartnerImgUrl(''); setPartnerImgFile(null); if(document.getElementById('partnerFileInput')) document.getElementById('partnerFileInput').value = ''; };
   const handleEditPartner = (p) => { setEditPartnerId(p.id); setPartnerName(p.name||''); setPartnerField(p.field||''); setPartnerImgUrl(p.imgUrl||''); setPartnerImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const savePartner = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = partnerImgUrl; if (partnerImgFile) finalImg = await uploadToCloudinary(partnerImgFile); const data = { name: partnerName, imgUrl: finalImg, field: partnerField }; if (editPartnerId) await updateDoc(doc(db, "partners", editPartnerId), data); else await addDoc(collection(db, "partners"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditPartner(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditService = () => { setEditServiceId(null); setServiceName(''); setServiceDesc(''); setServiceLink(''); setServiceImgUrl(''); setServiceImgFile(null); };
   const handleEditService = (s) => { setEditServiceId(s.id); setServiceName(s.name||''); setServiceDesc(s.desc||''); setServiceLink(s.link||''); setServiceImgUrl(s.imgUrl||''); setServiceImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveService = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = serviceImgUrl; if (serviceImgFile) finalImg = await uploadToCloudinary(serviceImgFile); const data = { name: serviceName, desc: serviceDesc, link: serviceLink || "#", imgUrl: finalImg }; if (editServiceId) await updateDoc(doc(db, "services", editServiceId), data); else await addDoc(collection(db, "services"), { ...data, createdAt: serverTimestamp() }); alert('Berhasil!'); cancelEditService(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditSub = () => { setEditSubServiceId(null); setSubParentId(''); setSubTitle(''); setSubDesc(''); setSubImgUrl(''); setSubImgFile(null); };
   const handleEditSub = (s) => { setEditSubServiceId(s.id); setSubParentId(s.parentId||''); setSubTitle(s.title||''); setSubDesc(s.desc||''); setSubImgUrl(s.imgUrl||''); setSubImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveSubService = async (e) => { e.preventDefault(); if(!subParentId) return alert("Harap pilih Layanan Utama terlebih dahulu!"); setLoading(true); try { let finalImg = subImgUrl; if (subImgFile) finalImg = await uploadToCloudinary(subImgFile); const data = { parentId: subParentId, title: subTitle, desc: subDesc, imgUrl: finalImg }; if (editSubServiceId) await updateDoc(doc(db, "subservices", editSubServiceId), data); else await addDoc(collection(db, "subservices"), { ...data, createdAt: serverTimestamp() }); alert('Sub-Layanan Tersimpan!'); cancelEditSub(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditTeam = () => { setEditTeamId(null); setTeamName(''); setTeamRole(''); setTeamImgUrl(''); setTeamImgFile(null); };
   const handleEditTeam = (t) => { setEditTeamId(t.id); setTeamName(t.name||''); setTeamRole(t.role||''); setTeamImgUrl(t.img||''); setTeamImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveTeam = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = teamImgUrl; if (teamImgFile) finalImg = await uploadToCloudinary(teamImgFile); if (!finalImg && !editTeamId) { alert("Pilih foto!"); setLoading(false); return; } const data = { name: teamName, role: teamRole, img: finalImg }; if (editTeamId) await updateDoc(doc(db, "teams", editTeamId), data); else await addDoc(collection(db, "teams"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditTeam(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditTesti = () => { setEditTestiId(null); setTestiName(''); setTestiCompany(''); setTestiText(''); };
   const handleEditTesti = (t) => { setEditTestiId(t.id); setTestiName(t.name||''); setTestiCompany(t.company||''); setTestiText(t.text||''); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveTestimonial = async (e) => { e.preventDefault(); setLoading(true); try { const data = { name: testiName, company: testiCompany, text: testiText }; if (editTestiId) await updateDoc(doc(db, "testimonials", editTestiId), data); else await addDoc(collection(db, "testimonials"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditTesti(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditFaq = () => { setEditFaqId(null); setFaqQ(''); setFaqA(''); };
   const handleEditFaq = (f) => { setEditFaqId(f.id); setFaqQ(f.q||''); setFaqA(f.a||''); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveFaq = async (e) => { e.preventDefault(); setLoading(true); try { const data = { q: faqQ, a: faqA }; if (editFaqId) await updateDoc(doc(db, "faqs", editFaqId), data); else await addDoc(collection(db, "faqs"), { ...data, createdAt: serverTimestamp() }); alert("Berhasil!"); cancelEditFaq(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditPost = () => { setEditPostId(null); setPostTitle(''); setPostContent(''); setPostCoverUrl(''); setPostDateline(''); setPostAuthor(''); setPostTags(''); setIsDraft(false); };
   const handleEditPost = (post) => { setEditPostId(post.id); setPostTitle(post.title); setPostCategory(post.category); setPostContent(post.content); setPostCoverUrl(post.coverUrl || ''); setPostDateline(post.dateline || ''); setPostAuthor(post.author || ''); setPostTags(post.tags || ''); setIsDraft(post.isDraft || false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const savePost = async (e) => { e.preventDefault(); setLoading(true); try { if (editPostId) { await updateDoc(doc(db, "posts", editPostId), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, isDraft: isDraft }); alert(isDraft ? 'Draf Diperbarui!' : 'Berita Diperbarui!'); } else { let slug = postTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); if (!slug) slug = 'berita-' + Date.now(); const docSnap = await getDoc(doc(db, "posts", slug)); if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); await setDoc(doc(db, "posts", slug), { title: postTitle, category: postCategory, content: postContent, coverUrl: postCoverUrl, dateline: postDateline, author: postAuthor || 'Tim Redaksi', tags: postTags, views: 0, createdAt: serverTimestamp(), isDraft: isDraft }); alert(isDraft ? 'Draf Disimpan!' : 'Berita Diterbitkan!'); } cancelEditPost(); } catch(err) { alert(err.message); } setLoading(false); };
+  
   const cancelEditEvents = () => { setEditEventsId(null); setEventsName(''); setEventsDate(''); setEventsLocation(''); setEventsDesc(''); setEventsImgUrl(''); setEventsImgFile(null); };
   const handleEditEvents = (e) => { setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
   const saveEvents = async (e) => { e.preventDefault(); setLoading(true); try { let finalImg = eventsImgUrl; if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile); const data = { name: eventsName, date: eventsDate, location: eventsLocation, desc: eventsDesc, imgUrl: finalImg }; if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); alert('Agenda/Events Berhasil Disimpan!'); cancelEditEvents(); } catch(err) { alert(err.message); } setLoading(false); };
@@ -416,42 +424,21 @@ export default function AdminPage() {
             <div className="max-w-6xl">
                 {!selectedClient ? (
                     <>
-                        {/* FORM BUAT AKUN KLIEN OLEH ADMIN */}
                         <form onSubmit={handleCreateClient} className="bg-white p-6 rounded-2xl shadow-sm border mb-8 border-emerald-100">
                             <h3 className="font-bold text-lg mb-2 text-emerald-700">Daftarkan Klien Baru</h3>
                             <p className="text-xs text-slate-500 mb-6">Akun yang dibuat di sini bisa langsung digunakan oleh klien untuk login ke Portal ISO.</p>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama Lembaga</label>
-                                    <input type="text" required value={newClientLembaga} onChange={e=>setNewClientLembaga(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Cth: PT Sukses Bersama" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama PIC</label>
-                                    <input type="text" required value={newClientPic} onChange={e=>setNewClientPic(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Nama Lengkap Penanggung Jawab" />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">No WhatsApp</label>
-                                    <input type="text" required value={newClientPhone} onChange={e=>setNewClientPhone(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="0812..." />
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Email Login</label>
-                                    <input type="email" required value={newClientEmail} onChange={e=>setNewClientEmail(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="email@lembaga.com" />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Password Login</label>
-                                    <input type="text" required value={newClientPassword} onChange={e=>setNewClientPassword(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Buat password untuk klien..." />
-                                </div>
+                                <div><label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama Lembaga</label><input type="text" required value={newClientLembaga} onChange={e=>setNewClientLembaga(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Cth: PT Sukses Bersama" /></div>
+                                <div><label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Nama PIC</label><input type="text" required value={newClientPic} onChange={e=>setNewClientPic(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Nama Lengkap Penanggung Jawab" /></div>
+                                <div><label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">No WhatsApp</label><input type="text" required value={newClientPhone} onChange={e=>setNewClientPhone(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="0812..." /></div>
+                                <div><label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Email Login</label><input type="email" required value={newClientEmail} onChange={e=>setNewClientEmail(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="email@lembaga.com" /></div>
+                                <div className="md:col-span-2"><label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-1">Password Login</label><input type="text" required value={newClientPassword} onChange={e=>setNewClientPassword(e.target.value)} className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" placeholder="Buat password untuk klien..." /></div>
                             </div>
 
-                            {/* PILIH KEBUTUHAN ISO & FOLDER KLIEN */}
                             <div className="border-t border-slate-100 pt-4 mt-2">
                                 <h4 className="font-bold text-sm mb-3">Tentukan Kebutuhan Dokumen Klien</h4>
-                                <select 
-                                    className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm bg-slate-50 mb-4"
-                                    value={selectedIsoForClient} 
-                                    onChange={(e) => { setSelectedIsoForClient(e.target.value); setSelectedFoldersForClient([]); }}
-                                >
+                                <select className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm bg-slate-50 mb-4" value={selectedIsoForClient} onChange={(e) => { setSelectedIsoForClient(e.target.value); setSelectedFoldersForClient([]); }}>
                                     <option value="">-- Pilih Jenis Sertifikasi ISO --</option>
                                     {isoTypes.map(iso => <option key={iso.id} value={iso.id}>{iso.name}</option>)}
                                 </select>
@@ -462,12 +449,7 @@ export default function AdminPage() {
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                             {isoFolders.filter(f => f.isoId === selectedIsoForClient).map(folder => (
                                                 <label key={folder.id} className="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border shadow-sm">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={selectedFoldersForClient.includes(folder.id)}
-                                                        onChange={() => toggleFolderForClient(folder.id)}
-                                                        className="w-4 h-4 text-emerald-600"
-                                                    />
+                                                    <input type="checkbox" checked={selectedFoldersForClient.includes(folder.id)} onChange={() => toggleFolderForClient(folder.id)} className="w-4 h-4 text-emerald-600"/>
                                                     <span className="text-xs font-bold text-slate-700 line-clamp-1">{folder.name}</span>
                                                 </label>
                                             ))}
@@ -482,17 +464,13 @@ export default function AdminPage() {
                             </button>
                         </form>
 
-                        {/* TABEL DAFTAR KLIEN YANG SUDAH DIBUAT */}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border mb-8">
                             <h3 className="font-bold text-lg mb-4">Daftar Akun Klien</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse min-w-[700px]">
                                     <thead>
                                         <tr className="bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
-                                            <th className="p-3 border-b">Nama Lembaga</th>
-                                            <th className="p-3 border-b">ISO & Folder</th>
-                                            <th className="p-3 border-b">Email / User</th>
-                                            <th className="p-3 border-b text-right">Aksi</th>
+                                            <th className="p-3 border-b">Nama Lembaga</th><th className="p-3 border-b">ISO & Folder</th><th className="p-3 border-b">Email / User</th><th className="p-3 border-b text-right">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -502,19 +480,11 @@ export default function AdminPage() {
                                             const isoName = isoTypes.find(i => i.id === c.isoId)?.name || 'Unknown ISO';
                                             return (
                                                 <tr key={c.id} className="hover:bg-slate-50 transition border-b border-slate-100">
-                                                    <td className="p-3 font-bold text-sm text-emerald-700">
-                                                        {c.lembagaName}
-                                                        <div className="text-[10px] font-normal text-slate-500 mt-1">PIC: {c.picName} ({c.phone})</div>
-                                                    </td>
-                                                    <td className="p-3 text-xs">
-                                                        <div className="font-bold text-slate-800">{isoName}</div>
-                                                        <div className="text-[10px] text-slate-500 mt-1">{c.assignedFolders?.length || 0} Folder Ditugaskan</div>
-                                                    </td>
+                                                    <td className="p-3 font-bold text-sm text-emerald-700">{c.lembagaName}<div className="text-[10px] font-normal text-slate-500 mt-1">PIC: {c.picName} ({c.phone})</div></td>
+                                                    <td className="p-3 text-xs"><div className="font-bold text-slate-800">{isoName}</div><div className="text-[10px] text-slate-500 mt-1">{c.assignedFolders?.length || 0} Folder Ditugaskan</div></td>
                                                     <td className="p-3 text-xs text-slate-600">{c.email}</td>
                                                     <td className="p-3 text-right space-x-2">
-                                                        <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">
-                                                            🔍 Cek Dokumen
-                                                        </button>
+                                                        <button onClick={() => setSelectedClient(c)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-bold transition border border-indigo-200 shadow-sm">🔍 Cek Dokumen</button>
                                                         <button onClick={() => deleteItem('clients', c.id)} className="px-3 py-1.5 text-slate-400 hover:text-red-600 text-xs font-bold transition">Hapus</button>
                                                     </td>
                                                 </tr>
@@ -526,12 +496,8 @@ export default function AdminPage() {
                         </div>
                     </>
                 ) : (
-                    // TAMPILAN 2: REVIEW DOKUMEN SPESIFIK 1 KLIEN
                     <div className="bg-white p-4 md:p-8 rounded-2xl shadow-lg border border-slate-200 mb-8 animate-in fade-in zoom-in duration-300">
-                        <button onClick={() => setSelectedClient(null)} className="mb-6 px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-bold flex items-center gap-2 transition">
-                            ← Kembali ke Daftar Klien
-                        </button>
-                        
+                        <button onClick={() => setSelectedClient(null)} className="mb-6 px-4 py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg text-xs font-bold flex items-center gap-2 transition">← Kembali ke Daftar Klien</button>
                         <div className="border-b border-slate-200 pb-4 mb-6">
                             <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 mb-1">Ruang Review Audit</p>
                             <h3 className="font-black text-2xl md:text-3xl text-slate-900">{selectedClient.lembagaName}</h3>
@@ -539,7 +505,6 @@ export default function AdminPage() {
                         </div>
 
                         <div className="space-y-6">
-                            {/* Render folder-folder yang ditugaskan ke klien ini */}
                             {selectedClient.assignedFolders?.map(folderId => {
                                 const folder = isoFolders.find(f => f.id === folderId);
                                 const docsInFolder = docMasters.filter(d => d.folderId === folderId);
@@ -547,22 +512,14 @@ export default function AdminPage() {
 
                                 return (
                                     <div key={folder.id} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                                        <div className="bg-slate-50 p-4 border-b border-slate-200">
-                                            <h4 className="font-bold text-slate-800">📁 {folder.name}</h4>
-                                        </div>
+                                        <div className="bg-slate-50 p-4 border-b border-slate-200"><h4 className="font-bold text-slate-800">📁 {folder.name}</h4></div>
                                         <div className="p-4 space-y-4 bg-white">
-                                            
-                                            {/* AWAL BLOK YANG DIUBAH */}
                                             {docsInFolder.length === 0 ? (
                                                 <p className="text-xs text-slate-400 italic">Belum ada dokumen di folder ini.</p>
                                             ) : docsInFolder.map((master, idx) => {
                                                 const cDoc = selectedClientDocs.find(d => d.masterId === master.id);
-                                                
-                                                // Logika aman untuk membaca Array Files (Multiple Upload) atau File Lama (Single Upload)
                                                 let currentFiles = cDoc?.files || [];
-                                                if (cDoc?.fileUrl && currentFiles.length === 0) {
-                                                    currentFiles = [{ url: cDoc.fileUrl, name: 'Dokumen_Lama.pdf' }];
-                                                }
+                                                if (cDoc?.fileUrl && currentFiles.length === 0) { currentFiles = [{ url: cDoc.fileUrl, name: 'Dokumen_Lama.pdf' }]; }
 
                                                 return (
                                                     <div key={master.id} className={`p-4 border rounded-xl flex flex-col gap-4 justify-between transition-colors ${cDoc?.status === 'approved' ? 'bg-emerald-50/50 border-emerald-200' : cDoc?.status === 'revision' ? 'bg-red-50/50 border-red-200' : 'bg-slate-50'}`}>
@@ -570,20 +527,14 @@ export default function AdminPage() {
                                                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                                                 <span className="w-5 h-5 bg-slate-900 text-white rounded-full flex justify-center items-center text-[10px] font-bold shrink-0">{idx + 1}</span>
                                                                 <h4 className="font-bold text-sm text-slate-800">{master.name}</h4>
-                                                                
-                                                                {/* Badge Status */}
                                                                 {cDoc ? (
                                                                     <div className="ml-2 flex gap-2">
                                                                         {cDoc.status === 'pending' && <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-[10px] font-bold uppercase border border-yellow-200 animate-pulse">Menunggu Cek</span>}
                                                                         {cDoc.status === 'approved' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase border border-emerald-200">✅ Disetujui</span>}
                                                                         {cDoc.status === 'revision' && <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase border border-red-200">❌ Direvisi</span>}
                                                                     </div>
-                                                                ) : (
-                                                                    <span className="px-2 py-1 ml-2 bg-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase">Belum Upload</span>
-                                                                )}
+                                                                ) : (<span className="px-2 py-1 ml-2 bg-slate-200 text-slate-500 rounded text-[10px] font-bold uppercase">Belum Upload</span>)}
                                                             </div>
-                                                            
-                                                            {/* List File Terlampir (Bisa Banyak) */}
                                                             <div className="ml-7 mt-3">
                                                                 {currentFiles.length > 0 ? (
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -593,13 +544,9 @@ export default function AdminPage() {
                                                                             </a>
                                                                         ))}
                                                                     </div>
-                                                                ) : (
-                                                                    cDoc && <p className="text-[10px] text-slate-400 italic">Tidak ada file terlampir.</p>
-                                                                )}
+                                                                ) : (cDoc && <p className="text-[10px] text-slate-400 italic">Tidak ada file terlampir.</p>)}
                                                             </div>
                                                         </div>
-
-                                                        {/* FORM REVIEW ADMIN */}
                                                         {cDoc && (
                                                             <div className="w-full flex flex-col md:flex-row gap-2 border-t border-slate-200 pt-4 mt-2">
                                                                 <input type="text" placeholder={cDoc.status === 'approved' ? "Dokumen ACC." : "Tulis revisi..."} value={docComments[cDoc.id] !== undefined ? docComments[cDoc.id] : (cDoc.adminComment || '')} onChange={(e) => setDocComments({...docComments, [cDoc.id]: e.target.value})} className="text-xs border p-2.5 rounded-lg flex-1 outline-none focus:border-indigo-500 bg-white" disabled={cDoc.status === 'approved'}/>
@@ -612,8 +559,6 @@ export default function AdminPage() {
                                                     </div>
                                                 )
                                             })}
-                                            {/* AKHIR BLOK YANG DIUBAH */}
-
                                         </div>
                                     </div>
                                 )
@@ -627,8 +572,6 @@ export default function AdminPage() {
         {/* --- TAB MASTER DOKUMEN & FOLDER (HIERARKI) --- */}
         {activeTab === 'docmasters' && (
             <div className="max-w-4xl space-y-8">
-                
-                {/* 1. BUAT JENIS ISO */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <h3 className="font-bold text-lg mb-4 text-slate-800 border-b pb-2">1. Buat Jenis Sertifikasi ISO</h3>
                     <form onSubmit={saveIsoType} className="flex gap-3 mb-4">
@@ -644,7 +587,6 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* 2. BUAT FOLDER KEBUTUHAN & DUPLIKAT FOLDER */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200">
                     <h3 className="font-bold text-lg mb-4 text-emerald-800 border-b pb-2">2. Kelola Folder Dokumen</h3>
                     <form onSubmit={saveIsoFolder} className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
@@ -660,7 +602,6 @@ export default function AdminPage() {
                         {isoFolders.map(folder => {
                             const isoName = isoTypes.find(i => i.id === folder.isoId)?.name;
                             const docCount = docMasters.filter(d => d.folderId === folder.id).length;
-                            
                             return (
                                 <div key={folder.id} className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl relative flex flex-col justify-between">
                                     <div>
@@ -668,7 +609,6 @@ export default function AdminPage() {
                                         <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">📁 {folder.name}</h4>
                                         <p className="text-[10px] text-slate-500 mt-1">{docCount} Dokumen</p>
                                     </div>
-                                    
                                     <div className="flex gap-2 mt-3 pt-2 border-t border-emerald-200/50">
                                         <button onClick={() => handleDuplicateFolder(folder)} title="Duplikat Folder beserta isinya" className="flex-1 bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-[10px] font-bold py-1 rounded transition">Copy</button>
                                         <button onClick={() => handleRenameFolder(folder.id, folder.name)} title="Ganti Nama" className="flex-1 bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 text-[10px] font-bold py-1 rounded transition">Rename</button>
@@ -680,7 +620,6 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                {/* 3. BUAT SYARAT DOKUMEN DALAM FOLDER */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-200">
                     <h3 className="font-bold text-lg mb-4 text-indigo-800 border-b pb-2">3. Buat Syarat Dokumen (Isi Folder)</h3>
                     <form onSubmit={saveDocMaster} className="space-y-3 mb-6">
@@ -700,7 +639,6 @@ export default function AdminPage() {
                             const docsInFolder = docMasters.filter(d => d.folderId === folder.id);
                             if (docsInFolder.length === 0) return null;
                             const isoName = isoTypes.find(i => i.id === folder.isoId)?.name;
-
                             return (
                                 <div key={folder.id} className="border rounded-xl overflow-hidden shadow-sm">
                                     <div className="bg-indigo-50 p-3 flex justify-between items-center border-b border-indigo-100">
@@ -719,7 +657,478 @@ export default function AdminPage() {
                         })}
                     </div>
                 </div>
+            </div>
+        )}
 
+        {/* --- TAB BLOG / WAWASAN --- */}
+        {activeTab === 'blog' && (
+            <div className="max-w-5xl">
+                <form onSubmit={savePost} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editPostId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Artikel</span>
+                            <button type="button" onClick={cancelEditPost} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Judul Artikel</label>
+                            <input type="text" value={postTitle} onChange={e=>setPostTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Kategori</label>
+                            <select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm bg-slate-50" required>
+                                <option value="News">Berita & Informasi (News)</option>
+                                <option value="Promo">Promo / Penawaran (Promo)</option>
+                                <option value="Edukasi">Edukasi & Tips (Edukasi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Tanggal (Opsional)</label>
+                            <input type="text" value={postDateline} onChange={e=>setPostDateline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Contoh: 12 Agustus 2024" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Penulis</label>
+                            <input type="text" value={postAuthor} onChange={e=>setPostAuthor(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Nama Penulis" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Tag (Pisahkan dengan koma)</label>
+                            <input type="text" value={postTags} onChange={e=>setPostTags(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="ISO, Audit, Konsultan" />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Upload Gambar Cover (Thumbnail)</label>
+                            <input type="file" onChange={async (e) => {
+                                if(e.target.files[0]) {
+                                    setLoading(true);
+                                    try {
+                                        const url = await uploadToCloudinary(e.target.files[0]);
+                                        setPostCoverUrl(url);
+                                    } catch(err) { alert(err.message); }
+                                    setLoading(false);
+                                }
+                            }} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {postCoverUrl && <img src={postCoverUrl} className="h-32 mt-2 rounded-lg object-cover border" alt="Cover" />}
+                        </div>
+                    </div>
+
+                    <div className="mt-4">
+                        <label className="text-xs font-bold text-slate-700 block mb-2">Isi Konten Artikel</label>
+                        <div className="bg-white">
+                            <ReactQuill ref={quillRef} theme="snow" value={postContent} onChange={setPostContent} modules={modules} className="h-64 mb-12" />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mt-6 border-t pt-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={isDraft} onChange={e=>setIsDraft(e.target.checked)} className="w-4 h-4 text-orange-600" />
+                            <span className="text-sm font-bold text-slate-700">Simpan sebagai Draf (Sembunyikan)</span>
+                        </label>
+                        <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm ml-auto">
+                            {loading ? 'Memproses...' : (editPostId ? 'Perbarui Artikel' : 'Terbitkan Artikel')}
+                        </button>
+                    </div>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {posts.map(post => (
+                        <div key={post.id} className="bg-white rounded-xl border overflow-hidden shadow-sm flex flex-col">
+                            {post.coverUrl && <img src={post.coverUrl} className="w-full h-32 object-cover border-b" alt={post.title} />}
+                            <div className="p-4 flex flex-col flex-1">
+                                <div className="flex gap-2 mb-2">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest bg-slate-100 px-2 py-1 rounded text-slate-600">{post.category}</span>
+                                    {post.isDraft && <span className="text-[9px] font-bold uppercase tracking-widest bg-orange-100 px-2 py-1 rounded text-orange-600">DRAF</span>}
+                                </div>
+                                <h4 className="font-bold text-sm text-slate-900 mb-1 leading-tight">{post.title}</h4>
+                                <p className="text-[10px] text-slate-500 mb-4">{post.dateline || 'Tanpa Tanggal'}</p>
+                                <div className="flex gap-2 mt-auto border-t pt-3">
+                                    <button onClick={() => handleEditPost(post)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                    <button onClick={()=>deleteItem('posts', post.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {posts.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada artikel yang ditulis.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB JADWAL / EVENTS --- */}
+        {activeTab === 'events' && (
+            <div className="max-w-4xl">
+                <form onSubmit={saveEvents} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editEventsId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Event</span>
+                            <button type="button" onClick={cancelEditEvents} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Event / Pelatihan</label>
+                            <input type="text" value={eventsName} onChange={e=>setEventsName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Waktu Pelaksanaan</label>
+                            <input type="text" value={eventsDate} onChange={e=>setEventsDate(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Contoh: 15-16 Oktober 2025" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Lokasi / Metode</label>
+                            <input type="text" value={eventsLocation} onChange={e=>setEventsLocation(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Contoh: Zoom Meeting / Hotel XYZ" required/>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
+                            <textarea rows="3" value={eventsDesc} onChange={e=>setEventsDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm"></textarea>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Upload Banner / Brosur</label>
+                            <input type="file" onChange={e=>setEventsImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {eventsImgUrl && !eventsImgFile && <img src={eventsImgUrl} className="h-32 mt-2 rounded-lg object-cover border" alt="Cover" />}
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editEventsId ? 'Perbarui Event' : 'Tambah Event')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {events.map(ev => (
+                        <div key={ev.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col md:flex-row gap-4">
+                            {ev.imgUrl && <img src={ev.imgUrl} className="w-full md:w-32 h-32 object-cover rounded-lg border" alt={ev.name} />}
+                            <div className="flex-1 flex flex-col">
+                                <h4 className="font-bold text-sm text-slate-900 mb-1">{ev.name}</h4>
+                                <p className="text-[10px] font-bold text-emerald-600 mb-1">📅 {ev.date}</p>
+                                <p className="text-[10px] text-slate-500 mb-2">📍 {ev.location}</p>
+                                <p className="text-[10px] text-slate-600 line-clamp-2 mb-3">{ev.desc}</p>
+                                <div className="flex gap-2 mt-auto border-t pt-3">
+                                    <button onClick={() => handleEditEvents(ev)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                    <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {events.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada jadwal event.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB LAYANAN --- */}
+        {activeTab === 'layanan' && (
+            <div className="max-w-5xl">
+                <form onSubmit={saveService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editServiceId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Layanan</span>
+                            <button type="button" onClick={cancelEditService} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Ikon / Gambar Layanan</label>
+                            <input type="file" onChange={e=>setServiceImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {serviceImgUrl && !serviceImgFile && <img src={serviceImgUrl} className="h-20 mt-2 rounded object-contain border p-1" alt="Current" />}
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Layanan Utama</label>
+                            <input type="text" value={serviceName} onChange={e=>setServiceName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Link Tombol (Opsional)</label>
+                            <input type="text" value={serviceLink} onChange={e=>setServiceLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="https://" />
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
+                            <textarea rows="3" value={serviceDesc} onChange={e=>setServiceDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editServiceId ? 'Perbarui Layanan' : 'Tambah Layanan Utama')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {services.map(s => (
+                        <div key={s.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col">
+                            {s.imgUrl && <img src={s.imgUrl} className="h-12 w-12 object-contain mb-3" alt={s.name} />}
+                            <h4 className="font-bold text-sm text-slate-900 mb-1">{s.name}</h4>
+                            <p className="text-xs text-slate-500 mb-4 flex-1">{s.desc}</p>
+                            <div className="flex gap-2 mt-auto border-t pt-3">
+                                <button onClick={() => handleEditService(s)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                <button onClick={()=>deleteItem('services', s.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                            </div>
+                        </div>
+                    ))}
+                    {services.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada layanan utama.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB SUB LAYANAN --- */}
+        {activeTab === 'sublayanan' && (
+            <div className="max-w-5xl">
+                <form onSubmit={saveSubService} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editSubServiceId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Sub-Layanan</span>
+                            <button type="button" onClick={cancelEditSub} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Pilih Induk Layanan</label>
+                            <select value={subParentId} onChange={e=>setSubParentId(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-sm font-bold text-indigo-700" required>
+                                <option value="">-- Pilih Layanan Utama --</option>
+                                {services.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Upload Ikon/Gambar Sub-Layanan</label>
+                            <input type="file" onChange={e=>setSubImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {subImgUrl && !subImgFile && <img src={subImgUrl} className="h-16 mt-2 rounded object-contain border p-1 bg-white" alt="Current" />}
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Sub Layanan</label>
+                            <input type="text" value={subTitle} onChange={e=>setSubTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Sub Layanan</label>
+                            <textarea rows="3" value={subDesc} onChange={e=>setSubDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editSubServiceId ? 'Perbarui Sub-Layanan' : 'Tambah Sub-Layanan')}
+                    </button>
+                </form>
+
+                <div className="space-y-6">
+                    {services.map(parent => {
+                        const subs = subServices.filter(sub => sub.parentId === parent.id);
+                        if(subs.length === 0) return null;
+                        return (
+                            <div key={parent.id} className="bg-white p-4 rounded-xl border shadow-sm">
+                                <h3 className="font-bold text-sm text-indigo-800 border-b pb-2 mb-3">Induk: {parent.name}</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                    {subs.map(sub => (
+                                        <div key={sub.id} className="bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col">
+                                            {sub.imgUrl && <img src={sub.imgUrl} className="h-8 w-8 object-contain mb-2" alt="icon"/>}
+                                            <h4 className="font-bold text-xs text-slate-900 mb-1">{sub.title}</h4>
+                                            <p className="text-[10px] text-slate-500 mb-2 flex-1">{sub.desc}</p>
+                                            <div className="flex gap-2 mt-2 pt-2 border-t border-slate-200">
+                                                <button onClick={() => handleEditSub(sub)} className="flex-1 text-indigo-600 text-[9px] font-bold py-1 bg-white border border-indigo-100 rounded hover:bg-indigo-50 transition">Edit</button>
+                                                <button onClick={()=>deleteItem('subservices', sub.id)} className="flex-1 text-red-500 text-[9px] font-bold py-1 bg-white border border-red-100 rounded hover:bg-red-50 transition">Hapus</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB HERO SLIDER --- */}
+        {activeTab === 'slider' && (
+            <div className="max-w-5xl">
+                <form onSubmit={saveSlider} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editSliderId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Slider</span>
+                            <button type="button" onClick={cancelEditSlider} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Gambar Slider Utama</label>
+                            <input type="file" onChange={e=>setSlideImageFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {slideImageUrl && !slideImageFile && <img src={slideImageUrl} className="h-32 mt-2 rounded object-cover border" alt="Current" />}
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Tagline Kecil (Teks Atas)</label>
+                            <input type="text" value={slideTagline} onChange={e=>setSlideTagline(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Solusi Cerdas Bisnis Anda" />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Judul Besar (Tengah)</label>
+                            <input type="text" value={slideTitle} onChange={e=>setSlideTitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Sub Judul / Deskripsi</label>
+                            <textarea rows="2" value={slideSubtitle} onChange={e=>setSlideSubtitle(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Teks Tombol 1</label>
+                            <input type="text" value={slideBtn1Text} onChange={e=>setSlideBtn1Text(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Hubungi Kami" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Link Tombol 1</label>
+                            <input type="text" value={slideBtn1Link} onChange={e=>setSlideBtn1Link(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="/" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Teks Tombol 2 (Opsional)</label>
+                            <input type="text" value={slideBtn2Text} onChange={e=>setSlideBtn2Text(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Pelajari Lebih Lanjut" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Link Tombol 2</label>
+                            <input type="text" value={slideBtn2Link} onChange={e=>setSlideBtn2Link(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="/about" />
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editSliderId ? 'Perbarui Slider' : 'Tambah Slider')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {sliders.map(s => (
+                        <div key={s.id} className="bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col">
+                            {s.imageUrl && <img src={s.imageUrl} className="h-40 w-full object-cover border-b" alt="Slider" />}
+                            <div className="p-4 flex-1 flex flex-col">
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">{s.tagline}</p>
+                                <h4 className="font-bold text-sm text-slate-900 mb-2 leading-tight">{s.title}</h4>
+                                <p className="text-xs text-slate-500 mb-4 flex-1 line-clamp-2">{s.subtitle}</p>
+                                <div className="flex gap-2 mt-auto border-t pt-3">
+                                    <button onClick={() => handleEditSlider(s)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                    <button onClick={()=>deleteItem('sliders', s.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {sliders.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada data slider.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB TIM PAKAR --- */}
+        {activeTab === 'tim' && (
+            <div className="max-w-5xl">
+                <form onSubmit={saveTeam} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editTeamId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Anggota Tim</span>
+                            <button type="button" onClick={cancelEditTeam} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Foto Profil Tim</label>
+                            <input type="file" onChange={e=>setTeamImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
+                            {teamImgUrl && !teamImgFile && <img src={teamImgUrl} className="h-20 w-20 mt-2 rounded-full object-cover border p-1" alt="Current" />}
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Lengkap</label>
+                            <input type="text" value={teamName} onChange={e=>setTeamName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Jabatan / Role</label>
+                            <input type="text" value={teamRole} onChange={e=>setTeamRole(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Lead Auditor" required/>
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editTeamId ? 'Perbarui Data Tim' : 'Tambah Anggota Tim')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {teams.map(t => (
+                        <div key={t.id} className="bg-white p-4 rounded-xl border flex flex-col items-center text-center shadow-sm">
+                            <img src={t.img || 'https://placehold.co/100x100?text=No+Photo'} className="h-20 w-20 rounded-full object-cover mb-3 border-2 border-slate-100" alt={t.name} />
+                            <h4 className="font-bold text-sm text-slate-900 mb-1">{t.name}</h4>
+                            <p className="text-[10px] text-slate-500 mb-3">{t.role}</p>
+                            <div className="flex gap-2 w-full mt-auto border-t pt-3">
+                                <button onClick={() => handleEditTeam(t)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                <button onClick={()=>deleteItem('teams', t.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                            </div>
+                        </div>
+                    ))}
+                    {teams.length === 0 && <div className="col-span-2 md:col-span-4 text-center text-slate-400 py-10">Belum ada data tim.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB TESTIMONI --- */}
+        {activeTab === 'testimoni' && (
+            <div className="max-w-4xl">
+                <form onSubmit={saveTestimonial} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editTestiId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit Testimoni</span>
+                            <button type="button" onClick={cancelEditTesti} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Klien</label>
+                            <input type="text" value={testiName} onChange={e=>setTestiName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Instansi / Perusahaan</label>
+                            <input type="text" value={testiCompany} onChange={e=>setTestiCompany(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: PT Maju Mundur" required/>
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-slate-700 block mb-1">Isi Testimoni</label>
+                            <textarea rows="3" value={testiText} onChange={e=>setTestiText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                        </div>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editTestiId ? 'Perbarui Testimoni' : 'Tambah Testimoni')}
+                    </button>
+                </form>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {testimonials.map(t => (
+                        <div key={t.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col">
+                            <p className="text-xs text-slate-600 italic mb-4 flex-1">"{t.text}"</p>
+                            <div className="border-t pt-3 flex justify-between items-end">
+                                <div>
+                                    <h4 className="font-bold text-sm text-slate-900">{t.name}</h4>
+                                    <p className="text-[10px] text-slate-500">{t.company}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleEditTesti(t)} className="text-indigo-600 text-[10px] font-bold px-2 py-1 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                    <button onClick={()=>deleteItem('testimonials', t.id)} className="text-red-500 text-[10px] font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {testimonials.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada data testimoni.</div>}
+                </div>
+            </div>
+        )}
+
+        {/* --- TAB F.A.Q --- */}
+        {activeTab === 'faq' && (
+            <div className="max-w-4xl">
+                <form onSubmit={saveFaq} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
+                    {editFaqId && (
+                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
+                            <span>Sedang Mengedit FAQ</span>
+                            <button type="button" onClick={cancelEditFaq} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
+                        </div>
+                    )}
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Pertanyaan (Question)</label>
+                        <input type="text" value={faqQ} onChange={e=>setFaqQ(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" placeholder="Apa itu ISO 9001?" required/>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">Jawaban (Answer)</label>
+                        <textarea rows="3" value={faqA} onChange={e=>setFaqA(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
+                    </div>
+                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                        {loading ? 'Memproses...' : (editFaqId ? 'Perbarui FAQ' : 'Tambah FAQ')}
+                    </button>
+                </form>
+
+                <div className="space-y-3">
+                    {faqs.map(f => (
+                        <div key={f.id} className="bg-white p-4 rounded-xl border shadow-sm">
+                            <h4 className="font-bold text-sm text-slate-900 mb-2 flex items-start gap-2"><span className="text-orange-500">Q:</span> {f.q}</h4>
+                            <p className="text-xs text-slate-600 mb-4 pl-6 border-l-2 border-slate-100 ml-2">{f.a}</p>
+                            <div className="flex gap-2 border-t pt-3 mt-3">
+                                <button onClick={() => handleEditFaq(f)} className="text-indigo-600 text-[10px] font-bold px-3 py-1 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                                <button onClick={()=>deleteItem('faqs', f.id)} className="text-red-500 text-[10px] font-bold px-3 py-1 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                            </div>
+                        </div>
+                    ))}
+                    {faqs.length === 0 && <div className="text-center text-slate-400 py-10">Belum ada data FAQ.</div>}
+                </div>
             </div>
         )}
 
@@ -733,40 +1142,33 @@ export default function AdminPage() {
                             <button type="button" onClick={cancelEditProduct} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
                         </div>
                     )}
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="col-span-1 md:col-span-2">
                             <label className="text-xs font-bold text-slate-700 block mb-1">Upload Gambar / Cover</label>
                             <input type="file" onChange={e=>setProductImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
                             {productImgUrl && !productImgFile && <img src={productImgUrl} className="h-32 mt-2 rounded-lg object-cover border" alt="Current" />}
                         </div>
-                        
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Judul / Nama Produk</label>
                             <input type="text" placeholder="Cth: Modul SOP ISO 9001" value={productName} onChange={e=>setProductName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
                         </div>
-                        
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Label Kategori (Opsional)</label>
                             <input type="text" placeholder="Cth: E-Book / Template / Project" value={productLabel} onChange={e=>setProductLabel(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                         </div>
-
                         <div className="col-span-1 md:col-span-2">
                             <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Singkat</label>
                             <textarea rows="3" placeholder="Jelaskan sedikit tentang produk/portofolio ini..." value={productDesc} onChange={e=>setProductDesc(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" required></textarea>
                         </div>
-
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Teks Tombol Aksi</label>
                             <input type="text" placeholder="Cth: Beli Sekarang / Tanya Project" value={productBtnText} onChange={e=>setProductBtnText(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                         </div>
-                        
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-1">Link Tombol (Opsional)</label>
                             <input type="text" placeholder="Link Shopee, Web, dll. Kosongkan = Arah ke WhatsApp." value={productBtnLink} onChange={e=>setProductBtnLink(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" />
                         </div>
                     </div>
-                    
                     <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
                         {loading ? 'Memproses...' : (editProductId ? 'Perbarui Data' : 'Tambah ke Daftar')}
                     </button>
@@ -792,232 +1194,6 @@ export default function AdminPage() {
             </div>
         )}
 
-        {/* TAB UMUM */}
-        {activeTab === 'umum' && (
-            <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div className="mb-4 bg-slate-50 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Terang (Default)</label>
-                        <div className="flex flex-col gap-2">
-                            <input type="file" accept="image/*" onChange={async (e) => {
-                                if(e.target.files[0]) {
-                                    setLoading(true);
-                                    try {
-                                        const url = await uploadToCloudinary(e.target.files[0]);
-                                        setSettings({...settings, logoUrl: url});
-                                        alert(`Logo Terang Berhasil Diunggah!`);
-                                    } catch(err) { alert(err.message); }
-                                    setLoading(false);
-                                }
-                            }} className="text-xs border p-2 rounded bg-white w-full" />
-                            {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1 w-fit" alt="logo"/>}
-                        </div>
-                        <p className="text-[9px] text-slate-400 mt-1">Muncul di latar putih.</p>
-                    </div>
-
-                    <div>
-                        <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Gelap (Opsional)</label>
-                        <div className="flex flex-col gap-2">
-                            <input type="file" accept="image/*" onChange={async (e) => {
-                                if(e.target.files[0]) {
-                                    setLoading(true);
-                                    try {
-                                        const url = await uploadToCloudinary(e.target.files[0]);
-                                        setSettings({...settings, logoDarkUrl: url});
-                                        alert(`Logo Gelap Berhasil Diunggah!`);
-                                    } catch(err) { alert(err.message); }
-                                    setLoading(false);
-                                }
-                            }} className="text-xs border p-2 rounded bg-white w-full" />
-                            {settings.logoDarkUrl && <img src={settings.logoDarkUrl} className="h-12 object-contain bg-slate-900 rounded border p-1 w-fit" alt="logo dark"/>}
-                        </div>
-                        <p className="text-[9px] text-slate-400 mt-1">Muncul otomatis saat mode gelap (latar hitam).</p>
-                    </div>
-                </div>
-                
-                <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Mission</h3>
-                    <div className="mb-4 bg-white p-3 border rounded-lg">
-                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Utama Misi (Area Kiri)</label>
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try {
-                                    const url = await uploadToCloudinary(e.target.files[0]);
-                                    setSettings({...settings, missionImageUrl: url});
-                                    alert(`Gambar Utama Misi Berhasil Diunggah!`);
-                                } catch(err) { alert(err.message); }
-                                setLoading(false);
-                            }
-                        }} className="text-[10px] border p-1 rounded w-full" />
-                        {settings.missionImageUrl && <img src={settings.missionImageUrl} className="h-24 mt-2 object-cover rounded border p-1" alt="preview"/>}
-                    </div>
-
-                    <label className="text-xs font-bold block mb-1 text-slate-700">Judul Utama Misi (Area Kanan Atas)</label>
-                    <input type="text" value={settings.missionTitle || ''} onChange={e=>setSettings({...settings, missionTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Contoh: Integrated Solution for Your Needs" />
-                    <textarea value={settings.missionDesc || ''} onChange={e=>setSettings({...settings, missionDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm mb-4" rows="3" placeholder="Deskripsi Singkat Misi (Opsional)"></textarea>
-                    
-                    <h4 className="font-bold text-slate-700 mb-2 mt-6 text-sm border-t pt-4">Kartu Poin Misi (Area Kanan Bawah)</h4>
-                    <p className="text-xs text-slate-500 mb-3">Isi paragraf panjang untuk setiap kartu misi. Biarkan kosong jika tidak digunakan.</p>
-                    <div className="grid grid-cols-1 gap-4">
-                        {[1, 2, 3, 4].map(num => (
-                            <div key={num} className="border border-slate-200 p-3 rounded-lg bg-white">
-                                <label className="text-xs font-bold block mb-1 text-slate-600">Isi Kartu Misi {num}</label>
-                                <textarea rows="3" placeholder={`Isi Poin Misi ${num} (Contoh: 1. Cultivating Leadership...)`} value={settings[`mission${num}Desc`] || ''} onChange={e=>setSettings({...settings, [`mission${num}Desc`]: e.target.value})} className="w-full border p-2 rounded text-sm outline-none focus:border-orange-400" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                
-                <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Bagian: Our Service</h3>
-                    <input type="text" value={settings.serviceTitle || ''} onChange={e=>setSettings({...settings, serviceTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Judul Service" />
-                    <textarea value={settings.serviceDesc || ''} onChange={e=>setSettings({...settings, serviceDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-4 text-sm" rows="3" placeholder="Deskripsi Service"></textarea>
-                    <div className="border border-slate-200 p-3 md:p-4 rounded-lg bg-white"><label className="text-xs md:text-sm font-bold text-slate-700 block mb-2">Upload Gambar Ilustrasi Layanan</label><div className="flex flex-col md:flex-row items-center gap-3 md:gap-4"><input type="file" onChange={async (e) => { if(e.target.files[0]) { setLoading(true); try { const url = await uploadToCloudinary(e.target.files[0]); setSettings({...settings, serviceImageUrl: url}); alert("Gambar diunggah! Jangan lupa klik Simpan Pengaturan."); } catch(err) { alert(err.message); } setLoading(false); } }} accept="image/*" className="text-xs border p-2 rounded w-full" />{settings.serviceImageUrl && <img src={settings.serviceImageUrl} className="h-16 w-16 object-cover rounded border" alt="Preview"/>}</div></div>
-                </div>
-
-                <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-red-600 border-b pb-2 text-sm md:text-base">Bagian: Call To Action (Siap Untuk Berubah?)</h3>
-                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Judul Call To Action</label>
-                    <input type="text" value={settings.ctaTitle || ''} onChange={e=>setSettings({...settings, ctaTitle: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mb-3 text-sm" placeholder="Cth: Siap Untuk Berubah?" />
-                    <label className="text-xs md:text-sm font-bold text-slate-700 block mb-1">Deskripsi</label>
-                    <textarea value={settings.ctaDesc || ''} onChange={e=>setSettings({...settings, ctaDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" rows="3" placeholder="Deskripsi ajakan..."></textarea>
-                    <label className="text-xs md:text-sm font-bold text-slate-700 block mt-2 mb-1">Link Tombol "Pesan Layanan"</label>
-                    <input type="text" value={settings.ctaLink || ''} onChange={e=>setSettings({...settings, ctaLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="https://..." />
-                </div>
-                
-                <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan</button>
-            </form>
-        )}
-
-        {/* TAB TENTANG KAMI */}
-        {activeTab === 'tentang' && (
-            <div className="max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <h3 className="font-bold mb-6 text-indigo-600 text-lg border-b pb-2">Pengaturan Halaman Tentang Kami</h3>
-                <form onSubmit={saveSettings} className="space-y-6">
-                    <div>
-                        <label className="text-sm font-bold block mb-2 text-slate-700">Gambar Sampul (Hero Image)</label>
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try {
-                                    const url = await uploadToCloudinary(e.target.files[0]);
-                                    setSettings({...settings, aboutImageUrl: url});
-                                    alert(`Gambar Sampul About Us Berhasil Diunggah!`);
-                                } catch(err) { alert(err.message); }
-                                setLoading(false);
-                            }
-                        }} className="text-xs border p-2 rounded w-full" />
-                        {settings.aboutImageUrl && <img src={settings.aboutImageUrl} className="h-32 mt-2 object-cover rounded border" alt="about hero"/>}
-                    </div>
-                    <div>
-                        <label className="text-sm font-bold block mb-1 text-slate-700">Judul Utama</label>
-                        <input type="text" value={settings.aboutTitle || ''} onChange={e=>setSettings({...settings, aboutTitle: e.target.value})} className="w-full border p-3 rounded-lg text-sm" placeholder="Cth: Membangun Masa Depan yang Berkelanjutan." />
-                    </div>
-                    <div>
-                        <label className="text-sm font-bold block mb-1 text-slate-700">Deskripsi Lengkap</label>
-                        <textarea value={settings.aboutDesc || ''} onChange={e=>setSettings({...settings, aboutDesc: e.target.value})} className="w-full border p-3 rounded-lg text-sm" rows="6" placeholder="Tulis deskripsi lengkap tentang perusahaan..."></textarea>
-                    </div>
-                    <button disabled={loading} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Halaman Tentang Kami</button>
-                </form>
-            </div>
-        )}
-
-        {/* TAB FOOTER */}
-        {activeTab === 'footer' && (
-            <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Profil & Kontak Footer</h3>
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Deskripsi Singkat</label>
-                    <textarea value={settings.footerDesc || ''} onChange={e=>setSettings({...settings, footerDesc: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-4 text-sm" rows="3"></textarea>
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Telepon / WhatsApp</label>
-                    <input type="text" value={settings.phone || ''} onChange={e=>setSettings({...settings, phone: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Email Perusahaan</label>
-                    <input type="email" value={settings.email || ''} onChange={e=>setSettings({...settings, email: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" />
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Alamat Lengkap</label>
-                    <textarea value={settings.address || ''} onChange={e=>setSettings({...settings, address: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" rows="2"></textarea>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border">
-                    <h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Lokasi & Maps</h3>
-                    <div className="mb-4 bg-white p-3 border rounded-lg">
-                        <label className="text-xs font-bold block mb-2 text-slate-700">Upload Gambar Peta/Lokasi</label>
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try {
-                                    const url = await uploadToCloudinary(e.target.files[0]);
-                                    setSettings({...settings, mapUrl: url});
-                                    alert(`Gambar Peta Berhasil Diunggah!`);
-                                } catch(err) { alert(err.message); }
-                                setLoading(false);
-                            }
-                        }} className="text-xs border p-2 rounded w-full" />
-                        {settings.mapUrl && <img src={settings.mapUrl} className="h-24 mt-2 object-cover rounded border p-1" alt="map preview"/>}
-                    </div>
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Link Google Maps (Saat gambar diklik)</label>
-                    <input type="text" value={settings.mapLink || ''} onChange={e=>setSettings({...settings, mapLink: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://maps.google.com/..." />
-                </div>
-                <div className="p-4 bg-slate-50 rounded-xl border"><h3 className="font-bold mb-4 text-orange-600 border-b pb-2 text-sm md:text-base">Media Sosial</h3>
-                    <label className="text-xs md:text-sm font-bold text-slate-700">LinkedIn URL</label>
-                    <input type="text" value={settings.linkedin || ''} onChange={e=>setSettings({...settings, linkedin: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://linkedin.com/in/..." />
-                    
-                    <label className="text-xs md:text-sm font-bold text-slate-700">YouTube URL</label>
-                    <input type="text" value={settings.youtube || ''} onChange={e=>setSettings({...settings, youtube: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 mb-3 text-sm" placeholder="https://youtube.com/..." />
-                    
-                    <label className="text-xs md:text-sm font-bold text-slate-700">Instagram URL</label>
-                    <input type="text" value={settings.instagram || ''} onChange={e=>setSettings({...settings, instagram: e.target.value})} className="w-full border p-2.5 md:p-3 rounded-lg mt-2 text-sm" placeholder="https://instagram.com/..." />
-                </div>
-                
-                <button disabled={loading} className="bg-orange-600 text-white px-6 md:px-8 py-3 rounded-lg font-bold text-sm w-full md:w-auto">Simpan Pengaturan Footer</button>
-            </form>
-        )}
-
-        {/* TAB MITRA & KLIEN */}
-        {activeTab === 'mitra' && (
-            <div className="max-w-5xl">
-                <form onSubmit={savePartner} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
-                    {editPartnerId && (
-                        <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
-                            <span>Sedang Mengedit Mitra</span>
-                            <button type="button" onClick={cancelEditPartner} className="bg-white px-3 py-1 rounded text-orange-600 border border-orange-200 hover:bg-orange-50">Batal Edit</button>
-                        </div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="col-span-1 md:col-span-2">
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Logo Mitra</label>
-                            <input type="file" id="partnerFileInput" onChange={e=>setPartnerImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
-                            {partnerImgUrl && !partnerImgFile && <img src={partnerImgUrl} className="h-16 mt-2 rounded object-contain border bg-white p-1" alt="Current Logo" />}
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Nama Mitra / Klien</label>
-                            <input type="text" value={partnerName} onChange={e=>setPartnerName(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg font-bold text-sm" required/>
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-1">Bidang / Industri</label>
-                            <input type="text" value={partnerField} onChange={e=>setPartnerField(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm" placeholder="Cth: Manufaktur" />
-                        </div>
-                    </div>
-                    <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
-                        {loading ? 'Memproses...' : (editPartnerId ? 'Perbarui Data' : 'Tambah Mitra')}
-                    </button>
-                </form>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {partners.map(p => (
-                        <div key={p.id} className="bg-white p-4 rounded-xl border flex flex-col items-center text-center shadow-sm">
-                            <img src={p.imgUrl || 'https://placehold.co/100x100?text=No+Logo'} className="h-16 w-full object-contain mb-3" alt={p.name} />
-                            <h4 className="font-bold text-sm text-slate-900 mb-1">{p.name}</h4>
-                            <p className="text-[10px] text-slate-500 mb-3">{p.field}</p>
-                            <div className="flex gap-2 w-full mt-auto">
-                                <button onClick={() => handleEditPartner(p)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
-                                <button onClick={()=>deleteItem('partners', p.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
-                            </div>
-                        </div>
-                    ))}
-                    {partners.length === 0 && <div className="col-span-2 md:col-span-4 text-center text-slate-400 py-10 border-2 border-dashed rounded-xl">Belum ada data mitra/klien.</div>}
-                </div>
-            </div>
-        )}
       </main>
     </div>
   );
