@@ -295,7 +295,7 @@ export default function BeritaDetail({ params }) {
                             <p className="font-bold text-xs md:text-sm text-slate-900 dark:text-white transition-colors">{authorName}</p>
                             {authorProfile && <p className="text-[9px] md:text-[10px] text-emerald-600 dark:text-emerald-500 font-bold mb-0.5 line-clamp-1">{authorProfile.role}</p>}
                             <p className="text-[9px] md:text-[10px] text-slate-400 font-semibold tracking-wider uppercase mt-0.5">
-                                {publishDate} • ⏱️ {readTime} MNT BACA • 👀 {post.views || 0} DIBACA
+                                {publishDate} • ⏱️ {readTime} MENIT BACA • 👀 {post.views || 0} DIBACA
                             </p>
                         </div>
                     </div>
