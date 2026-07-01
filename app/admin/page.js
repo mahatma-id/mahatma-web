@@ -680,7 +680,7 @@ export default function AdminPage() {
                             <select value={postCategory} onChange={e=>setPostCategory(e.target.value)} className="w-full border p-2.5 md:p-3 rounded-lg text-sm bg-slate-50" required>
                                 <option value="News">Berita & Informasi (News)</option>
                                 <option value="Promo">Promo / Penawaran (Promo)</option>
-                                <option value="Edukasi">Edukasi & Tips (Edukasi)</option>
+                                <option value="Opini">Opini & (Opini)</option>
                             </select>
                         </div>
                         <div>
