@@ -13,9 +13,12 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [services, setServices] = useState([]);
   
-  const [products, setProducts] = useState([]); // <-- STATE PRODUK
+  const [products, setProducts] = useState([]);
   const [partners, setPartners] = useState([]);
   const [teams, setTeams] = useState([]);
+  
+  // STATE BARU UNTUK CAROUSEL TEAM
+  const [currentTeamIndex, setCurrentTeamIndex] = useState(0);
   
   const [testimonials, setTestimonials] = useState([]);
   const [faqs, setFaqs] = useState([]);
@@ -41,10 +44,7 @@ export default function Home() {
     });
     
     const unsubService = onSnapshot(query(collection(db, "services"), orderBy("createdAt", "desc")), snap => { setServices(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
-    
-    // AMBIL DATA PRODUK DENGAN LIMIT 3 UNTUK BERANDA
     const unsubProducts = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc"), limit(3)), snap => { setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() }))); }); 
-    
     const unsubPartners = onSnapshot(query(collection(db, "partners"), orderBy("createdAt", "desc")), snap => { setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubTeams = onSnapshot(query(collection(db, "teams"), orderBy("createdAt", "asc")), snap => { setTeams(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
     const unsubTestimonials = onSnapshot(query(collection(db, "testimonials"), orderBy("createdAt", "desc")), snap => { setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))); });
@@ -66,11 +66,21 @@ export default function Home() {
     };
   }, []);
 
+  // AUTO-SLIDE HERO BANNER
   useEffect(() => {
       if (sliders.length <= 1) return;
       const interval = setInterval(() => { setCurrentSlide(prev => (prev + 1) % sliders.length); }, 5000);
       return () => clearInterval(interval);
   }, [sliders.length]);
+
+  // AUTO-SLIDE OUR TEAM (TIAP 5 DETIK)
+  useEffect(() => {
+    if (teams.length <= 4) return; // Slider hanya aktif jika jumlah tim lebih dari 4
+    const interval = setInterval(() => {
+        setCurrentTeamIndex(prev => (prev + 1) % teams.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [teams.length]);
 
   const rawPhone = settings.phone || "6285185639375";
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
@@ -78,55 +88,54 @@ export default function Home() {
       waNumber = '62' + waNumber.substring(1);
   }
 
-  const displayedTeams = teams.slice(0, 4);
+  // LOGIKA MENAMPILKAN 4 TIM YANG BERGESER (CAROUSEL)
+  const displayedTeams = [];
+  if (teams.length > 0) {
+      const itemsToShow = Math.min(4, teams.length);
+      for (let i = 0; i < itemsToShow; i++) {
+          displayedTeams.push(teams[(currentTeamIndex + i) % teams.length]);
+      }
+  }
 
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
 
+      {/* HEADER STANDARD MAHATMA ACADEMY */}
       <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
+          
+          {/* REVISI 2: Logo Hardcode Terang & Gelap */}
           <Link href="/" className="flex items-center gap-2 group z-50">
-            {settings.logoUrl ? (
+            {mounted && (
                 <img 
-                    src={mounted && ( (!isScrolled && settings.logoDarkUrl) || (resolvedTheme === 'dark' && settings.logoDarkUrl) ) ? settings.logoDarkUrl : settings.logoUrl} 
-                    alt="Logo" 
+                    src={(!isScrolled || resolvedTheme === 'dark') ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} 
+                    alt="Mahatma Academy" 
                     className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
-            ) : (
-                <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                    <span className={`font-extrabold text-base md:text-xl tracking-tight transition-colors ${isScrolled ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
-                        Mahatma <span className="text-emerald-600">Academy</span>
-                    </span>
-                    <span className={`text-[7px] md:text-[10px] font-bold tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0 ${isScrolled ? 'text-slate-500 dark:text-slate-400' : 'text-white/80 drop-shadow-md'}`}>
-                        <span className="hidden md:inline">- </span>Driving Transformation
-                    </span>
-                </div>
             )}
           </Link>
 
-          <nav className={`hidden lg:flex items-center gap-8 font-bold text-[11px] tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
+          {/* REVISI 4: Standardisasi Navigasi */}
+          <nav className={`hidden lg:flex items-center gap-6 xl:gap-8 font-bold text-[10px] xl:text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
             <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About</Link>
             <a href="#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
-            <a href="#produk" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Product</a>
-            <a href="#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</a>
+            <Link href="/produk" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Product</Link>
+            <Link href="/tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</Link>
             <a href="#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
             <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
+            <Link href="/mitra-kerja" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Mitra</Link>
           </nav>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <div className={isScrolled ? '' : 'text-white'}>
-                 <ThemeToggle />
-            </div>
+          <div className="hidden lg:flex items-center gap-4">
+            <div className={isScrolled ? '' : 'text-white'}><ThemeToggle /></div>
             
-            <div className={`flex items-center p-1.5 md:p-[5px] rounded-full border transition-all duration-300 ml-2 ${isScrolled ? 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700' : 'bg-white/10 border-white/20 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.1)]'}`}>
-                <Link href="/portal" className={`px-4 md:px-6 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full transition-all hover:bg-slate-200/50 dark:hover:bg-slate-700/50 ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white'}`}>
-                    Portal ISO
-                </Link>
+            {/* REVISI 1: Menghapus Portal ISO dari Header */}
+            <div className={`flex items-center p-1.5 md:p-[5px] rounded-full border transition-all duration-300 ml-2 ${isScrolled ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-white/10 border-white/20 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.2)]'}`}>
                 <a href="#kontak" className="px-5 md:px-7 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
                     Join Us
                 </a>
             </div>
-
+            
             <Link href="/admin" title="Admin Panel" className={`p-2 ml-1 rounded-full transition-all ${isScrolled ? 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/20'}`}>
                 <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
@@ -135,42 +144,34 @@ export default function Home() {
           </div>
 
           <div className="lg:hidden flex items-center gap-3 z-50">
-            <div className={isScrolled || isMobileMenuOpen ? '' : 'text-white'}>
-                <ThemeToggle />
-            </div>
+            <div className={isScrolled || isMobileMenuOpen ? '' : 'text-white'}><ThemeToggle /></div>
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`focus:outline-none p-2 ${isScrolled || isMobileMenuOpen ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}
-                </svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{isMobileMenuOpen ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />}</svg>
             </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[600px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
-                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
+                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
                 <a href="#layanan" onClick={() => setIsMobileMenuOpen(false)}>Service</a>
-                <a href="#produk" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Product</a>
-                <a href="#tim" onClick={() => setIsMobileMenuOpen(false)}>Team</a>
+                <Link href="/produk" onClick={() => setIsMobileMenuOpen(false)}>Product</Link>
+                <Link href="/tim" onClick={() => setIsMobileMenuOpen(false)}>Team</Link>
                 <a href="#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</a>
                 <Link href="/events" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
+                <Link href="/mitra-kerja" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Mitra</Link>
                 
-                <div className="flex flex-col items-center gap-3 mt-4 w-full">
-                    <div className="flex items-center p-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 w-full justify-between">
-                        <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-slate-600 dark:text-slate-300 font-bold text-[10px] tracking-widest uppercase rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-all">Portal ISO</Link>
-                        <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center px-4 py-3 bg-emerald-600 text-white font-bold text-[10px] rounded-full hover:bg-emerald-500 transition-all tracking-widest uppercase shadow-md">Join Us</a>
-                    </div>
-                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </Link>
+                <div className="flex flex-col items-center gap-2 mt-2 w-full">
+                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase shadow-md">Join Us</a>
+                    <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> Admin</Link>
                 </div>
             </nav>
         </div>
       </header>
 
       {/* 1. HERO SECTION */}
-      <section className="relative h-[65vh] md:min-h-[90vh] bg-slate-900 overflow-hidden">
+      <section className="relative h-screen bg-slate-900 overflow-hidden">
         {sliders.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center text-white"><p className="animate-pulse">Menyiapkan Visual...</p></div>
         ) : (
@@ -202,32 +203,34 @@ export default function Home() {
       {/* 2. OUR MISSION */}
       <section className="py-12 md:py-24 bg-slate-50 dark:bg-slate-900 px-4 md:px-12 lg:px-16 border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
         <div className="container mx-auto max-w-7xl">
-            <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center lg:items-stretch">
                 <div className="w-full lg:w-5/12">
                     {settings.missionImageUrl ? (
-                        <div className="relative w-full aspect-[3/4] md:aspect-square lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl group">
+                        <div className="relative w-full aspect-[4/5] md:aspect-square lg:aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl group">
                             <img src={settings.missionImageUrl} alt="Our Mission" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent"></div>
                         </div>
-                    ) : (<div className="w-full aspect-square rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400">No Mission Image</div>)}
+                    ) : (<div className="w-full aspect-[4/5] rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400">No Mission Image</div>)}
                 </div>
-                <div className="w-full lg:w-7/12 flex flex-col">
-                    <div className="text-left mb-10">
+                <div className="w-full lg:w-7/12 flex flex-col justify-center">
+                    <div className="text-left mb-8 md:mb-10">
                         <span className="text-emerald-600 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Mission</span>
                         <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white leading-tight">{settings.missionTitle || "Integrated Solution for Your Needs"}</h2>
+                        {settings.missionDesc && (
+                            <p className="text-slate-600 dark:text-slate-400 mt-4 text-sm md:text-base leading-relaxed font-light">{settings.missionDesc}</p>
+                        )}
                     </div>
-                    <div className="relative w-full h-[450px]">
-                        {[1, 2, 3, 4].map((num, idx) => {
+                    
+                    {/* DESAIN BARU: Grid Card Elegan */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                        {[1, 2, 3, 4].map((num) => {
                             const desc = settings[`mission${num}Desc`];
                             if (!desc) return null; 
-                            const positions = ["top-0 left-0 z-40 transform hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-xl", "top-12 left-4 md:left-8 z-30 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-lg", "top-24 left-8 md:left-16 z-20 transform -rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-md", "top-36 left-12 md:left-24 z-10 transform rotate-1 hover:rotate-0 hover:scale-105 hover:-translate-y-2 hover:z-50 shadow-sm"];
                             return (
-                                <div key={num} className={`absolute w-full max-w-md bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 transition-all duration-500 cursor-pointer ${positions[idx]}`}>
-                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-100 dark:bg-slate-700 group-hover:bg-emerald-500 transition-colors"></div>
-                                    <div className="flex items-start gap-4">
-                                        <span className="text-3xl md:text-4xl font-black text-emerald-100 dark:text-slate-700">0{num}</span>
-                                        <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-semibold">{desc}</p>
-                                    </div>
+                                <div key={num} className="group bg-white dark:bg-slate-800 p-6 md:p-8 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
+                                    <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-100 dark:bg-slate-700 group-hover:bg-emerald-500 transition-colors duration-300"></div>
+                                    <span className="text-3xl md:text-4xl font-black text-emerald-50 dark:text-slate-700/50 mb-3 group-hover:text-emerald-100 dark:group-hover:text-slate-600 transition-colors duration-300">0{num}</span>
+                                    <p className="text-slate-700 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-medium relative z-10">{desc}</p>
                                 </div>
                             )
                         })}
@@ -311,7 +314,6 @@ export default function Home() {
                     ))}
                 </div>
 
-                {/* TOMBOL LIHAT SEMUA PRODUK */}
                 <div className="mt-10 md:mt-14 text-center">
                     <Link href="/produk" className="inline-block px-8 py-3.5 md:px-10 md:py-4 bg-emerald-600 text-white font-bold tracking-widest uppercase rounded-full text-[10px] md:text-xs hover:bg-slate-900 dark:hover:bg-slate-800 hover:text-white transition duration-300 shadow-md">
                         Lihat Semua Katalog &rarr;
@@ -322,7 +324,7 @@ export default function Home() {
           </section>
       )}
 
-      {/* 5. TIM PAKAR */}
+      {/* 5. TIM PAKAR (REVISI AUTO-SLIDE) */}
       {teams.length > 0 && (
           <section id="tim" className="py-12 md:py-20 bg-slate-900 dark:bg-slate-950 text-white px-4 md:px-12 lg:px-16 border-t border-slate-800 transition-colors duration-300">
             <div className="container mx-auto max-w-7xl">
@@ -330,9 +332,11 @@ export default function Home() {
                     <span className="text-emerald-500 font-black tracking-widest uppercase text-[12px] md:text-sm mb-3 block">Our Team</span>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-2 md:mb-4"></h2>
                 </div>
-                <div className="grid grid-cols-4 gap-2 md:gap-6">
-                    {displayedTeams.map((member) => (
-                        <div key={member.id} className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4]">
+                
+                {/* Carousel Container */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                    {displayedTeams.map((member, index) => (
+                        <div key={`${member.id}-${currentTeamIndex}-${index}`} className="group relative overflow-hidden rounded-2xl md:rounded-3xl bg-slate-800 dark:bg-slate-900 aspect-[3/4] animate-[fadeIn_1s_ease-in-out]">
                             <img src={member.img} alt={member.name} className="w-full h-full object-cover object-center group-hover:scale-110 group-hover:opacity-60 transition-all duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 dark:from-slate-950 via-slate-900/40 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 p-2 md:p-6 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 w-full text-center">
@@ -342,11 +346,18 @@ export default function Home() {
                         </div>
                     ))}
                 </div>
-                {teams.length > 4 && (
-                    <div className="mt-8 md:mt-12 text-center">
-                        <Link href="/tim" className="inline-block px-8 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-500 transition shadow-lg text-xs md:text-sm uppercase tracking-widest">See More →</Link>
-                    </div>
-                )}
+
+                {/* Tambahkan style CSS animasi manual khusus untuk slider team */}
+                <style jsx>{`
+                    @keyframes fadeIn {
+                        from { opacity: 0.8; transform: scale(0.98); }
+                        to { opacity: 1; transform: scale(1); }
+                    }
+                `}</style>
+
+                <div className="mt-8 md:mt-12 text-center">
+                    <Link href="/tim" className="inline-block px-8 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-500 transition shadow-lg text-xs md:text-sm uppercase tracking-widest">See More →</Link>
+                </div>
             </div>
           </section>
       )}
@@ -455,14 +466,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
-                        {settings.logoUrl ? (
-                            <img src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
-                        ) : (
-                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">Mahatma <span className="text-emerald-600">Academy</span></span>
-                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0"><span className="hidden md:inline">- </span>Driving Transformation</span>
-                            </div>
-                        )}
+                        <img src={(!isScrolled || resolvedTheme === 'dark') ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
                     </Link>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-base leading-relaxed md:leading-loose mb-4 md:mb-8 max-w-xs md:max-w-none">
                         {settings.footerDesc || "Mempersiapkan diri menghadapi perubahan zaman dan membuat bisnis Anda tetap relevan di masa depan."}

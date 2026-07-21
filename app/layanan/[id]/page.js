@@ -11,7 +11,7 @@ export default function LayananDetail({ params }) {
   const id = resolvedParams.id;
   
   const [service, setService] = useState(null);
-  const [subServices, setSubServices] = useState([]); // STATE BARU UNTUK SUB-LAYANAN
+  const [subServices, setSubServices] = useState([]); 
   const [loading, setLoading] = useState(true);
   
   const [settings, setSettings] = useState({});
@@ -33,7 +33,6 @@ export default function LayananDetail({ params }) {
         setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // Ambil detail layanan utama (Parent)
     const fetchService = async () => {
       try {
         const docRef = doc(db, "services", id);
@@ -51,10 +50,8 @@ export default function LayananDetail({ params }) {
     };
     fetchService();
 
-    // Ambil daftar Sub-Layanan berdasarkan ID Layanan Utama
     const subServicesQuery = query(collection(db, "subservices"), where("parentId", "==", id));
     const unsubSubServices = onSnapshot(subServicesQuery, snap => {
-        // Karena orderBy tidak bisa dipakai bersamaan dengan where di Firebase tanpa index, kita sort manual di client
         const subs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         subs.sort((a, b) => b.createdAt - a.createdAt); 
         setSubServices(subs);
@@ -80,11 +77,6 @@ export default function LayananDetail({ params }) {
   if (loading) {
       return (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
-              {settings.logoDarkUrl || settings.logoUrl ? (
-                  <img src={settings.logoDarkUrl || settings.logoUrl} alt="Loading..." className="h-12 md:h-16 w-auto object-contain animate-pulse mb-6 drop-shadow-lg" />
-              ) : (
-                  <span className="font-extrabold text-2xl md:text-3xl tracking-tight animate-pulse mb-6 text-emerald-500">Mahatma <span className="text-white">Academy</span></span>
-              )}
               <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
                   <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
@@ -109,53 +101,42 @@ export default function LayananDetail({ params }) {
   return (
     <div className="text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white relative transition-colors duration-300">
       
-      {/* HEADER DINAMIS */}
+      {/* HEADER STANDARD MAHATMA ACADEMY */}
       <header className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen ? 'bg-white dark:bg-slate-950 shadow-md border-b border-slate-100 dark:border-slate-800 py-3' : 'bg-transparent py-5'}`}>
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
+          
           <Link href="/" className="flex items-center gap-2 group z-50">
-            {settings.logoUrl ? (
+            {mounted && (
                 <img 
-                    src={mounted && ((!isScrolled && settings.logoDarkUrl) || (isScrolled && resolvedTheme === 'dark' && settings.logoDarkUrl)) ? settings.logoDarkUrl : settings.logoUrl} 
-                    alt="Logo" 
+                    src={(!isScrolled || resolvedTheme === 'dark') ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} 
+                    alt="Mahatma Academy" 
                     className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
-            ) : (
-                <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                    <span className={`font-extrabold text-base md:text-xl tracking-tight transition-colors ${isScrolled ? 'text-slate-900 dark:text-white' : 'text-white drop-shadow-md'}`}>
-                        Mahatma <span className="text-emerald-600">Academy</span>
-                    </span>
-                    <span className={`text-[7px] md:text-[10px] font-bold tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0 ${isScrolled ? 'text-slate-500 dark:text-slate-400' : 'text-white/80 drop-shadow-md'}`}>
-                        <span className="hidden md:inline">- </span>Driving Transformation
-                    </span>
-                </div>
             )}
           </Link>
 
-          <nav className={`hidden lg:flex items-center gap-10 font-bold text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
-            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About Us</Link>
-            <Link href="/#layanan" className="text-emerald-500 hover:-translate-y-1 transition-all">Service</Link>
-            <Link href="/#tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</Link>
-            <Link href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</Link>
+          <nav className={`hidden lg:flex items-center gap-6 xl:gap-8 font-bold text-[10px] xl:text-xs tracking-widest uppercase transition-colors ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white drop-shadow-md'}`}>
+            <Link href="/tentang-kami" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">About</Link>
+            <a href="/#layanan" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Service</a>
+            <Link href="/produk" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Product</Link>
+            <Link href="/tim" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Team</Link>
+            <a href="/#insight" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Insight</a>
             <Link href="/events" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Events</Link>
+            <Link href="/mitra-kerja" className="hover:text-emerald-500 hover:-translate-y-1 transition-all">Mitra</Link>
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
             <div className={isScrolled ? '' : 'text-white'}><ThemeToggle /></div>
             
-            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
-            <div className={`flex items-center p-1 rounded-full border transition-all duration-300 ${isScrolled ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-white/10 border-white/20 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.2)]'}`}>
-                <Link href="/portal" className={`px-5 py-2 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full transition-all hover:bg-white hover:text-slate-900 ${isScrolled ? 'text-slate-600 dark:text-slate-300' : 'text-white'}`}>
-                    Portal ISO
-                </Link>
-                <Link href="/#kontak" className="px-5 py-2 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
+            <div className={`flex items-center p-1.5 md:p-[5px] rounded-full border transition-all duration-300 ml-2 ${isScrolled ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-white/10 border-white/20 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.2)]'}`}>
+                <a href="#kontak" className="px-5 md:px-7 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
                     Join Us
-                </Link>
+                </a>
             </div>
-
-            {/* UPDATE: Login Admin jadi Icon di ujung */}
-            <Link href="/admin" title="Admin Panel" className={`p-2 rounded-full transition-all ${isScrolled ? 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/20'}`}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            
+            <Link href="/admin" title="Admin Panel" className={`p-2 ml-1 rounded-full transition-all ${isScrolled ? 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800' : 'text-white/80 hover:text-white hover:bg-white/20'}`}>
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                 </svg>
             </Link>
           </div>
@@ -169,17 +150,18 @@ export default function LayananDetail({ params }) {
         </div>
 
         {/* Mobile Menu */}
-        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[500px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
+        <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-[600px] py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
-                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link>
-                <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Service</Link>
-                <Link href="/#tim" onClick={() => setIsMobileMenuOpen(false)}>Team</Link>
-                <Link href="/#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</Link>
+                <Link href="/tentang-kami" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
+                <a href="/#layanan" onClick={() => setIsMobileMenuOpen(false)}>Service</a>
+                <Link href="/produk" onClick={() => setIsMobileMenuOpen(false)}>Product</Link>
+                <Link href="/tim" onClick={() => setIsMobileMenuOpen(false)}>Team</Link>
+                <a href="/#insight" onClick={() => setIsMobileMenuOpen(false)}>Insight</a>
                 <Link href="/events" onClick={() => setIsMobileMenuOpen(false)}>Events</Link>
+                <Link href="/mitra-kerja" onClick={() => setIsMobileMenuOpen(false)} className="text-emerald-600">Mitra</Link>
                 
                 <div className="flex flex-col items-center gap-2 mt-2 w-full">
-                    <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase">Portal ISO</Link>
-                    <Link href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase">Join Us</Link>
+                    <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-xs rounded-full transition-all tracking-widest uppercase shadow-md">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> Admin</Link>
                 </div>
             </nav>
@@ -274,13 +256,8 @@ export default function LayananDetail({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
-                        {settings.logoUrl ? (
-                            <img src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
-                        ) : (
-                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white">Mahatma <span className="text-emerald-600">Academy</span></span>
-                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0"><span className="hidden md:inline">- </span>Driving Transformation</span>
-                            </div>
+                        {mounted && (
+                            <img src={resolvedTheme === 'dark' ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
                         )}
                     </Link>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-base leading-relaxed md:leading-loose mb-4 md:mb-8 max-w-xs md:max-w-none">

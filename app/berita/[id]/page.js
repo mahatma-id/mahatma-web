@@ -15,12 +15,12 @@ export default function BeritaDetail({ params }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({});
-  const [partners, setPartners] = useState([]); // Untuk Footer
+  const [partners, setPartners] = useState([]); 
   
   // State Sidebar & Rekomendasi
   const [latestPosts, setLatestPosts] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
-  const [teams, setTeams] = useState([]); // Untuk mencari foto penulis
+  const [teams, setTeams] = useState([]); 
   
   // State Komentar
   const [name, setName] = useState('');
@@ -35,7 +35,6 @@ export default function BeritaDetail({ params }) {
   useEffect(() => {
     setMounted(true);
 
-    // Ambil Data Pengaturan & Partners
     const unsubSettings = onSnapshot(doc(db, "settings", "general"), snap => {
         if(snap.exists()) setSettings(snap.data());
     });
@@ -43,35 +42,29 @@ export default function BeritaDetail({ params }) {
         setPartners(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
-    // 1. Fetch Berita Utama & Tambah View Count
     const fetchPost = async () => {
         const docRef = doc(db, "posts", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             setPost(docSnap.data());
-            // Tambahkan jumlah views otomatis +1 setiap kali halaman dibuka
             try { await updateDoc(docRef, { views: increment(1) }); } catch (error) { console.log("View counter init"); }
         }
         setLoading(false);
     };
     fetchPost();
 
-    // 2. Fetch Komentar Real-time
     const unsubComments = onSnapshot(query(collection(db, "posts", id, "comments"), orderBy("createdAt", "desc")), snap => {
         setComments(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // 3. Fetch Berita Terbaru (Sidebar)
     const unsubLatest = onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(6)), snap => {
         setLatestPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // 4. Fetch Berita Terpopuler (Sidebar)
     const unsubPopular = onSnapshot(query(collection(db, "posts"), orderBy("views", "desc"), limit(6)), snap => {
         setPopularPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // 5. Fetch Data Tim Pakar (Untuk Foto Penulis)
     const unsubTeams = onSnapshot(query(collection(db, "teams")), snap => {
         setTeams(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
@@ -92,14 +85,8 @@ export default function BeritaDetail({ params }) {
   let waNumber = rawPhone.replace(/[^0-9]/g, '');
   if (waNumber.startsWith('0')) waNumber = '62' + waNumber.substring(1);
 
-  // Tampilan Loading
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-white">
-        {settings.logoDarkUrl || settings.logoUrl ? (
-            <img src={settings.logoDarkUrl || settings.logoUrl} alt="Loading..." className="h-12 md:h-16 w-auto object-contain animate-pulse mb-6 drop-shadow-lg" />
-        ) : (
-            <span className="font-extrabold text-2xl md:text-3xl tracking-tight animate-pulse mb-6 text-emerald-500">Mahatma <span className="text-white">Academy</span></span>
-        )}
         <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-[ping_1.5s_infinite]"></div>
             <div className="w-2 h-2 bg-yellow-400 rounded-full animate-[ping_1.5s_infinite_200ms]"></div>
@@ -115,31 +102,26 @@ export default function BeritaDetail({ params }) {
       publishDate = post.createdAt.toDate().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
-  // CARI DATA PENULIS DI DATABASE TIM
   const authorName = post.author || 'Tim Redaksi';
   const authorProfile = teams.find(t => t.name.toLowerCase() === authorName.toLowerCase());
 
-  // PEMBERSIH SPASI KAKU & ENTER KOSONG DARI EDITOR
   let finalContent = post.content || '';
   finalContent = finalContent.replace(/&nbsp;/g, ' '); 
   finalContent = finalContent.replace(/^(<p><br><\/p>\s*)+/g, ''); 
   finalContent = finalContent.replace(/^(<p>\s*<\/p>\s*)+/g, ''); 
 
-  // SISIPKAN DATELINE
   if (post.dateline) {
       const datelineHtml = `<strong class="font-black mr-2 uppercase">${post.dateline} &mdash;</strong>`;
       if (finalContent.includes('<p>')) finalContent = finalContent.replace(/<p>/, `<p>${datelineHtml} `);
       else finalContent = `<p>${datelineHtml} ${finalContent}</p>`;
   }
 
-  // MENGHITUNG ESTIMASI WAKTU BACA
   const plainText = finalContent.replace(/<[^>]+>/g, ''); 
   const wordCount = plainText.trim().split(/\s+/).length;
   const readTime = Math.max(1, Math.ceil(wordCount / 200)); 
 
   const formatDateSidebar = (timestamp) => timestamp ? timestamp.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Baru saja";
 
-  // DATA UNTUK SIDEBAR & BACA JUGA (Hanya tampilkan yang bukan DRAF)
   const validLatestPosts = latestPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 4);
   const validPopularPosts = popularPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 5);
   const bacaJugaPosts = latestPosts.filter(p => !p.isDraft && p.id !== id).slice(0, 2);
@@ -147,7 +129,6 @@ export default function BeritaDetail({ params }) {
   return (
     <div className="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans text-slate-800 dark:text-slate-200 flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-white transition-colors duration-300">
       
-      {/* CSS KHUSUS EDITOR TEKS - DIUPDATE UNTUK DARK MODE */}
       <style jsx global>{`
         .article-content { text-align: left; width: 100%; transition: color 0.3s; }
         .article-content p { margin-bottom: 1.25rem; line-height: 1.8; font-size: 1rem; word-break: normal; overflow-wrap: break-word; }
@@ -184,25 +165,17 @@ export default function BeritaDetail({ params }) {
         }
       `}</style>
 
-      {/* HEADER SOLID (UPDATE DESAIN TOMBOL) */}
+      {/* HEADER STANDARD MAHATMA ACADEMY */}
       <header className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-[100] transition-all duration-300 py-3">
         <div className="container mx-auto px-4 md:px-12 lg:px-16 flex justify-between items-center max-w-7xl">
+          
           <Link href="/" className="flex items-center gap-2 group z-50">
-            {settings.logoUrl ? (
+            {mounted && (
                 <img 
-                    src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} 
-                    alt="Logo" 
+                    src={resolvedTheme === 'dark' ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} 
+                    alt="Mahatma Academy" 
                     className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left transition-all duration-300" 
                 />
-            ) : (
-                <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                    <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
-                        Mahatma <span className="text-emerald-600">Academy</span>
-                    </span>
-                    <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0">
-                        <span className="hidden md:inline">- </span>Driving Transformation
-                    </span>
-                </div>
             )}
           </Link>
 
@@ -212,18 +185,11 @@ export default function BeritaDetail({ params }) {
 
           <div className="hidden lg:flex items-center gap-4">
             <ThemeToggle />
-            
-            {/* UPDATE: Tombol Portal ISO & Join Us Dijejer */}
-            <div className="flex items-center p-1.5 md:p-[5px] rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 transition-all duration-300 ml-2">
-                <Link href="/portal" className="px-4 md:px-6 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full transition-all hover:bg-slate-200/50 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-300">
-                    Portal ISO
-                </Link>
-                <Link href="/#kontak" className="px-5 md:px-7 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
+            <div className="flex items-center p-1.5 md:p-[5px] rounded-full border transition-all duration-300 ml-2 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                <a href="/#kontak" className="px-5 md:px-7 py-2 md:py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full bg-emerald-600 text-white hover:bg-emerald-500 shadow-md transition-all">
                     Join Us
-                </Link>
+                </a>
             </div>
-
-            {/* UPDATE: Login Admin cuma Icon di ujung kanan */}
             <Link href="/admin" title="Login Admin" className="p-2 ml-1 rounded-full transition-all text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800">
                 <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -239,18 +205,13 @@ export default function BeritaDetail({ params }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <div className={`lg:hidden absolute top-full left-0 w-full bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${isMobileMenuOpen ? 'max-h-96 py-4 opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'}`}>
             <nav className="flex flex-col items-center gap-4 font-bold text-sm tracking-widest uppercase text-slate-600 dark:text-slate-300 px-4">
                 <Link href="/berita" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Semua Berita</Link>
-                <Link href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</Link>
+                <a href="/#layanan" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-emerald-600 w-full text-center pb-2 border-b border-slate-50 dark:border-slate-800">Service</a>
                 
                 <div className="flex flex-col items-center gap-3 mt-2 w-full">
-                    {/* Menu Mobile Pill Menyatu */}
-                    <div className="flex items-center p-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 w-full justify-between">
-                        <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center px-4 py-3 text-slate-600 dark:text-slate-300 font-bold text-[10px] tracking-widest uppercase rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-all">Portal ISO</Link>
-                        <a href="#kontak" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-center px-4 py-3 bg-emerald-600 text-white font-bold text-[10px] rounded-full hover:bg-emerald-500 transition-all tracking-widest uppercase shadow-md">Join Us</a>
-                    </div>
+                    <a href="/#kontak" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center px-4 py-3 bg-emerald-600 text-white font-bold text-[10px] rounded-full hover:bg-emerald-500 transition-all tracking-widest uppercase shadow-md">Join Us</a>
                     <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="mt-2 text-slate-400 hover:text-emerald-600 transition p-2 bg-slate-50 dark:bg-slate-800 rounded-full" title="Admin Login">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </Link>
@@ -445,13 +406,8 @@ export default function BeritaDetail({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 md:gap-12 mb-8 md:mb-16 text-center md:text-left">
                 <div className="lg:col-span-4 lg:pr-8 flex flex-col items-center md:items-start">
                     <Link href="/" className="inline-block mb-4 md:mb-8">
-                        {settings.logoUrl ? (
-                            <img src={mounted && resolvedTheme === 'dark' && settings.logoDarkUrl ? settings.logoDarkUrl : settings.logoUrl} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
-                        ) : (
-                            <div className="flex flex-col md:flex-row md:items-center group-hover:text-emerald-600 transition-colors">
-                                <span className="font-extrabold text-base md:text-xl tracking-tight text-slate-900 dark:text-white">Mahatma <span className="text-emerald-600">Academy</span></span>
-                                <span className="text-[7px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase md:ml-2 mt-0.5 md:mt-0"><span className="hidden md:inline">- </span>Driving Transformation</span>
-                            </div>
+                        {mounted && (
+                            <img src={resolvedTheme === 'dark' ? "https://i.ibb.co.com/r2SXvNTL/Mode-Gelap-Pakai-Ini.png" : "https://i.ibb.co.com/svKzRZZX/Mode-Terang-Pakai-Ini.png"} alt="Logo" className="h-10 md:h-14 w-auto aspect-[4/1] object-contain object-left" />
                         )}
                     </Link>
                     <p className="text-slate-500 dark:text-slate-400 text-xs md:text-base leading-relaxed md:leading-loose mb-4 md:mb-8 max-w-xs md:max-w-none">
@@ -511,18 +467,13 @@ export default function BeritaDetail({ params }) {
                             </div>
                             {partners.length > 12 && (
                                 <div className="mt-3 md:mt-5">
-                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">
-                                        Selengkapnya &rarr;
-                                    </Link>
+                                    <Link href="/mitra-kerja" className="text-[10px] md:text-sm text-emerald-600 hover:text-emerald-700 font-bold transition">Selengkapnya &rarr;</Link>
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>
-                    )}
+                    ) : (<p className="text-xs text-slate-500 dark:text-slate-400">Belum ada mitra.</p>)}
                 </div>
             </div>
-
             <div className="border-t border-slate-200 dark:border-slate-800 pt-6 md:pt-8 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-[9px] md:text-[11px] font-bold tracking-widest uppercase text-slate-400">
                 <p className="mb-3 md:mb-0">&copy; 2026 Mahatma Academy. All rights reserved.</p>
                 <div className="flex justify-center gap-4 md:gap-6">
