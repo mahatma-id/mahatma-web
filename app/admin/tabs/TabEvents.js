@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { uploadToCloudinary, deleteItem } from '../utils';
 
@@ -15,20 +15,64 @@ export default function TabEvents() {
     const [eventsImgUrl, setEventsImgUrl] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // --- STATE UNTUK REGISTRASI & PAYMENT ---
+    const [isRegistration, setIsRegistration] = useState(false);
+    const [formFields, setFormFields] = useState([{ label: 'Nama Lengkap', type: 'text', required: true }]);
+    const [htmPrice, setHtmPrice] = useState(0);
+    const [paymentMethods, setPaymentMethods] = useState({ cash: true, transfer: false, qris: false });
+    const [qrisId, setQrisId] = useState('');
+    const [emailTemplate, setEmailTemplate] = useState('Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
+
+    // --- STATE UNTUK MELIHAT PENDAFTAR ---
+    const [viewingParticipants, setViewingParticipants] = useState(null);
+    const [participantsData, setParticipantsData] = useState([]);
+    const [loadingParticipants, setLoadingParticipants] = useState(false);
+
     useEffect(() => {
         const unsub = onSnapshot(query(collection(db, "events"), orderBy("createdAt", "desc")), snap => setEvents(snap.docs.map(d => ({id: d.id, ...d.data()}))));
         return () => unsub();
     }, []);
 
-    const cancelEditEvents = () => { setEditEventsId(null); setEventsName(''); setEventsDate(''); setEventsLocation(''); setEventsDesc(''); setEventsImgUrl(''); setEventsImgFile(null); };
-    const handleEditEvents = (e) => { setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); window.scrollTo({top:0, behavior:'smooth'}); };
+    const cancelEditEvents = () => { 
+        setEditEventsId(null); setEventsName(''); setEventsDate(''); setEventsLocation(''); setEventsDesc(''); setEventsImgUrl(''); setEventsImgFile(null); 
+        setIsRegistration(false);
+        setFormFields([{ label: 'Nama Lengkap', type: 'text', required: true }]);
+        setHtmPrice(0);
+        setPaymentMethods({ cash: true, transfer: false, qris: false });
+        setQrisId('');
+        setEmailTemplate('Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
+    };
+
+    const handleEditEvents = (e) => { 
+        setEditEventsId(e.id); setEventsName(e.name||''); setEventsDate(e.date||''); setEventsLocation(e.location||''); setEventsDesc(e.desc||''); setEventsImgUrl(e.imgUrl||''); setEventsImgFile(null); 
+        setIsRegistration(e.isRegistration || false);
+        setFormFields(e.formFields || [{ label: 'Nama Lengkap', type: 'text', required: true }]);
+        setHtmPrice(e.htmPrice || 0);
+        setPaymentMethods(e.paymentMethods || { cash: true, transfer: false, qris: false });
+        setQrisId(e.qrisId || '');
+        setEmailTemplate(e.emailTemplate || 'Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
+        window.scrollTo({top:0, behavior:'smooth'}); 
+    };
     
     const saveEvents = async (e) => { 
         e.preventDefault(); setLoading(true); 
         try { 
             let finalImg = eventsImgUrl; 
             if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile); 
-            const data = { name: eventsName, date: eventsDate, location: eventsLocation, desc: eventsDesc, imgUrl: finalImg }; 
+            
+            const data = { 
+                name: eventsName, 
+                date: eventsDate, 
+                location: eventsLocation, 
+                desc: eventsDesc, 
+                imgUrl: finalImg,
+                isRegistration,
+                formFields: isRegistration ? formFields : [],
+                htmPrice: isRegistration ? htmPrice : 0,
+                paymentMethods: isRegistration ? paymentMethods : null,
+                qrisId: isRegistration && paymentMethods.qris ? qrisId : '',
+                emailTemplate: isRegistration ? emailTemplate : ''
+            }; 
             
             if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); 
             else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); 
@@ -38,8 +82,104 @@ export default function TabEvents() {
         setLoading(false); 
     };
 
+    // --- FUNGSI MENGAMBIL DATA PENDAFTAR ---
+    const handleViewParticipants = async (ev) => {
+        setViewingParticipants(ev);
+        setLoadingParticipants(true);
+        try {
+            const q = query(collection(db, "events", ev.id, "participants"), orderBy("registeredAt", "desc"));
+            const snap = await getDocs(q);
+            setParticipantsData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } catch (error) {
+            console.error("Error mengambil data peserta:", error);
+            alert("Gagal memuat data pendaftar.");
+        }
+        setLoadingParticipants(false);
+    };
+
+    const closeParticipantsModal = () => {
+        setViewingParticipants(null);
+        setParticipantsData([]);
+    };
+
+    // --- FUNGSI UPDATE STATUS PEMBAYARAN MANUAL ---
+    const updatePaymentStatus = async (participantId, currentStatus) => {
+        const newStatus = currentStatus === 'Lunas' ? 'Menunggu Konfirmasi' : 'Lunas';
+        if(confirm(`Ubah status pembayaran menjadi ${newStatus}?`)) {
+            try {
+                await updateDoc(doc(db, "events", viewingParticipants.id, "participants", participantId), {
+                    paymentStatus: newStatus
+                });
+                setParticipantsData(prev => prev.map(p => p.id === participantId ? { ...p, paymentStatus: newStatus } : p));
+                alert("Status berhasil diperbarui!");
+            } catch (error) {
+                alert("Gagal mengubah status: " + error.message);
+            }
+        }
+    };
+
+    // --- FUNGSI HAPUS PENDAFTAR ---
+    const handleDeleteParticipant = async (participantId) => {
+        if(confirm("Apakah Anda yakin ingin menghapus data pendaftar ini secara permanen?")) {
+            try {
+                await deleteDoc(doc(db, "events", viewingParticipants.id, "participants", participantId));
+                setParticipantsData(prev => prev.filter(p => p.id !== participantId));
+                alert("Data pendaftar berhasil dihapus.");
+            } catch (error) {
+                alert("Gagal menghapus data: " + error.message);
+            }
+        }
+    };
+
+    // --- FUNGSI DOWNLOAD EXCEL (CSV) ---
+    const handleDownloadExcel = () => {
+        if (participantsData.length === 0) {
+            alert("Tidak ada data untuk diunduh.");
+            return;
+        }
+
+        // Siapkan Header (Judul Kolom)
+        const headers = ["No"];
+        viewingParticipants.formFields.forEach(f => headers.push(f.label));
+        headers.push("Metode Bayar", "Status", "Waktu Daftar");
+
+        // Siapkan Isi Data
+        const rows = participantsData.map((p, index) => {
+            const row = [index + 1];
+            viewingParticipants.formFields.forEach(f => {
+                // Hindari error CSV jika teks mengandung koma atau enter
+                let text = p[f.label] || '-';
+                if (typeof text === 'string') {
+                    text = text.replace(/"/g, '""'); 
+                    if (text.includes(',') || text.includes('\n') || text.includes('"')) {
+                        text = `"${text}"`;
+                    }
+                }
+                row.push(text);
+            });
+            row.push(p.paymentMethod || 'Free');
+            row.push(p.paymentStatus || '-');
+            row.push(p.registeredAt ? p.registeredAt.toDate().toLocaleString('id-ID') : '-');
+            return row.join(",");
+        });
+
+        // Gabungkan dengan BOM agar Excel bisa membaca huruf UTF-8 dengan benar
+        const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        // Buat elemen <a> sementara untuk trigger download
+        const link = document.createElement("a");
+        link.href = url;
+        const fileName = `Data_Pendaftar_${viewingParticipants.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
-        <div className="max-w-4xl">
+        <div className="max-w-4xl relative">
             <form onSubmit={saveEvents} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
                 {editEventsId && (
                     <div className="bg-orange-100 text-orange-800 p-3 rounded-lg text-xs font-bold flex justify-between items-center border border-orange-200">
@@ -69,30 +209,243 @@ export default function TabEvents() {
                         <input type="file" onChange={e=>setEventsImgFile(e.target.files[0])} accept="image/*" className="w-full border p-2.5 md:p-3 rounded-lg bg-slate-50 text-xs md:text-sm" />
                         {eventsImgUrl && !eventsImgFile && <img src={eventsImgUrl} className="h-32 mt-2 rounded-lg object-cover border" alt="Cover" />}
                     </div>
+
+                    {/* --- TOGGLE FITUR REGISTRASI --- */}
+                    <div className="md:col-span-2 border-t pt-4 mt-2">
+                        <label className="flex items-center gap-2 cursor-pointer mb-2">
+                            <input type="checkbox" checked={isRegistration} onChange={e => setIsRegistration(e.target.checked)} className="w-4 h-4 text-emerald-600 rounded" />
+                            <span className="text-sm font-bold text-slate-700">Aktifkan Form Pendaftaran Peserta</span>
+                        </label>
+                    </div>
+
+                    {isRegistration && (
+                        <div className="md:col-span-2 space-y-6 bg-slate-50 p-4 md:p-6 rounded-xl border border-slate-200">
+                            
+                            {/* Form Builder Sederhana */}
+                            <div>
+                                <h4 className="text-xs font-bold text-emerald-700 mb-3 border-b border-emerald-100 pb-2">1. PERTANYAAN FORMULIR</h4>
+                                {formFields.map((field, index) => (
+                                    <div key={index} className="flex flex-col md:flex-row gap-2 mb-3 bg-white p-3 rounded-lg border">
+                                        <div className="flex-1">
+                                            <input type="text" value={field.label} onChange={(e) => {
+                                                const newFields = [...formFields];
+                                                newFields[index].label = e.target.value;
+                                                setFormFields(newFields);
+                                            }} placeholder="Contoh: Asal Instansi / No. WhatsApp" className="w-full border-b focus:border-emerald-500 p-2 text-sm outline-none bg-transparent" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-2 md:mt-0">
+                                            <select value={field.type} onChange={(e) => {
+                                                const newFields = [...formFields];
+                                                newFields[index].type = e.target.value;
+                                                setFormFields(newFields);
+                                            }} className="border p-2 text-sm rounded-lg bg-slate-50">
+                                                <option value="text">Teks Pendek</option>
+                                                <option value="textarea">Teks Panjang</option>
+                                                <option value="number">Angka</option>
+                                                <option value="email">Email</option>
+                                            </select>
+                                            <label className="flex items-center gap-1 text-[10px] font-bold">
+                                                <input type="checkbox" checked={field.required} onChange={(e) => {
+                                                    const newFields = [...formFields];
+                                                    newFields[index].required = e.target.checked;
+                                                    setFormFields(newFields);
+                                                }} /> Wajib
+                                            </label>
+                                            {formFields.length > 1 && (
+                                                <button type="button" onClick={() => {
+                                                    const newFields = formFields.filter((_, i) => i !== index);
+                                                    setFormFields(newFields);
+                                                }} className="text-red-500 hover:bg-red-50 p-1.5 rounded ml-2" title="Hapus">✕</button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={() => setFormFields([...formFields, { label: '', type: 'text', required: false }])} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-lg mt-1 hover:bg-emerald-200 transition">+ Tambah Pertanyaan</button>
+                            </div>
+
+                            {/* Konfigurasi HTM & Pembayaran */}
+                            <div className="pt-2">
+                                <h4 className="text-xs font-bold text-emerald-700 mb-3 border-b border-emerald-100 pb-2">2. BIAYA & PEMBAYARAN</h4>
+                                <label className="text-[10px] font-bold text-slate-500 block mb-1">Harga Tiket (HTM) - Isi 0 jika Gratis</label>
+                                <input type="number" value={htmPrice} onChange={e => setHtmPrice(Number(e.target.value))} placeholder="0" className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm mb-4 bg-white" />
+                                
+                                {htmPrice > 0 && (
+                                    <div className="bg-white p-4 rounded-lg border">
+                                        <span className="text-xs font-bold text-slate-700 mb-3 block">Metode Pembayaran Tersedia:</span>
+                                        <div className="flex flex-col md:flex-row gap-4 mb-4">
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.cash} onChange={e => setPaymentMethods({...paymentMethods, cash: e.target.checked})} /> Cash (On The Spot)</label>
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.transfer} onChange={e => setPaymentMethods({...paymentMethods, transfer: e.target.checked})} /> Transfer Bank</label>
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.qris} onChange={e => setPaymentMethods({...paymentMethods, qris: e.target.checked})} /> QRIS</label>
+                                        </div>
+                                        
+                                        {paymentMethods.qris && (
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-500 block mb-1">Data QRIS (Link Gambar / Kode Merchant)</label>
+                                                <input type="text" value={qrisId} onChange={e => setQrisId(e.target.value)} placeholder="Misal: https://link-gambar-qris.com/qris.jpg" className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" required />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Custom Auto-Email */}
+                            <div className="pt-2">
+                                <h4 className="text-xs font-bold text-emerald-700 mb-2 border-b border-emerald-100 pb-2">3. EMAIL KONFIRMASI (AUTOREPLY)</h4>
+                                <p className="text-[10px] text-slate-500 mb-2 bg-yellow-50 p-2 rounded border border-yellow-200">
+                                    Gunakan tag <b>{'{name}'}</b> untuk memanggil nama peserta, <b>{'{event_name}'}</b> untuk nama event, dan <b>{'{payment_status}'}</b> untuk status bayar.
+                                </p>
+                                <textarea rows="6" value={emailTemplate} onChange={e => setEmailTemplate(e.target.value)} className="w-full border p-3 rounded-lg text-sm bg-white font-mono text-slate-700"></textarea>
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2">
+                <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2 hover:bg-indigo-700 transition">
                     {loading ? 'Memproses...' : (editEventsId ? 'Perbarui Event' : 'Tambah Event')}
                 </button>
             </form>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {events.map(ev => (
-                    <div key={ev.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col md:flex-row gap-4">
-                        {ev.imgUrl && <img src={ev.imgUrl} className="w-full md:w-32 h-32 object-cover rounded-lg border" alt={ev.name} />}
-                        <div className="flex-1 flex flex-col">
-                            <h4 className="font-bold text-sm text-slate-900 mb-1">{ev.name}</h4>
-                            <p className="text-[10px] font-bold text-emerald-600 mb-1">📅 {ev.date}</p>
-                            <p className="text-[10px] text-slate-500 mb-2">📍 {ev.location}</p>
-                            <p className="text-[10px] text-slate-600 line-clamp-2 mb-3">{ev.desc}</p>
-                            <div className="flex gap-2 mt-auto border-t pt-3">
-                                <button onClick={() => handleEditEvents(ev)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
-                                <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
+                    <div key={ev.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col relative overflow-hidden">
+                        {ev.isRegistration && (
+                            <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[8px] font-black uppercase px-2 py-1 rounded shadow-sm z-10">Form Aktif</div>
+                        )}
+                        <div className="flex gap-4 mb-3">
+                            {ev.imgUrl && <img src={ev.imgUrl} className="w-24 h-24 object-cover rounded-lg border" alt={ev.name} />}
+                            <div className="flex-1">
+                                <h4 className="font-bold text-sm text-slate-900 mb-1 leading-tight">{ev.name}</h4>
+                                <p className="text-[10px] font-bold text-emerald-600 mb-1">📅 {ev.date}</p>
+                                <p className="text-[10px] text-slate-500">📍 {ev.location}</p>
                             </div>
+                        </div>
+                        
+                        {/* TOMBOL LIHAT PENDAFTAR */}
+                        {ev.isRegistration && (
+                            <button onClick={() => handleViewParticipants(ev)} className="w-full mb-3 text-emerald-700 text-xs font-bold py-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200">
+                                👥 Lihat Data Pendaftar
+                            </button>
+                        )}
+                        
+                        <div className="flex gap-2 mt-auto border-t pt-3">
+                            <button onClick={() => handleEditEvents(ev)} className="flex-1 text-indigo-600 text-[10px] font-bold py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded transition">Edit</button>
+                            <button onClick={()=>deleteItem('events', ev.id)} className="flex-1 text-red-500 text-[10px] font-bold py-1.5 bg-red-50 hover:bg-red-100 rounded transition">Hapus</button>
                         </div>
                     </div>
                 ))}
                 {events.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada jadwal event.</div>}
             </div>
+
+            {/* --- MODAL DAFTAR PESERTA --- */}
+            {viewingParticipants && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
+                        
+                        {/* Modal Header */}
+                        <div className="p-5 md:p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-black text-lg md:text-xl text-slate-800">Data Pendaftar</h3>
+                                <p className="text-xs font-bold text-emerald-600 mt-1">{viewingParticipants.name}</p>
+                            </div>
+                            <button onClick={closeParticipantsModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-red-100 hover:text-red-500 transition font-bold text-xl">&times;</button>
+                        </div>
+                        
+                        {/* Modal Body / Table */}
+                        <div className="p-0 overflow-y-auto flex-1 bg-white">
+                            {loadingParticipants ? (
+                                <div className="text-center py-20">
+                                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                                    <p className="text-slate-500 text-xs font-bold tracking-widest uppercase">Memuat Data...</p>
+                                </div>
+                            ) : participantsData.length === 0 ? (
+                                <div className="text-center py-20">
+                                    <p className="text-slate-500 text-sm">Belum ada peserta yang mendaftar pada event ini.</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse min-w-max">
+                                        <thead>
+                                            <tr className="bg-slate-100/50 text-[10px] md:text-xs text-slate-500 uppercase tracking-widest border-b border-slate-200">
+                                                <th className="p-4 font-black">No</th>
+                                                {/* Loop Label Form yang dibikin admin secara dinamis */}
+                                                {viewingParticipants.formFields?.map((f, i) => (
+                                                    <th key={i} className="p-4 font-black">{f.label}</th>
+                                                ))}
+                                                <th className="p-4 font-black">Metode Bayar</th>
+                                                <th className="p-4 font-black">Status</th>
+                                                <th className="p-4 font-black">Bukti</th>
+                                                <th className="p-4 font-black">Waktu Daftar</th>
+                                                <th className="p-4 font-black text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-xs text-slate-700">
+                                            {participantsData.map((p, index) => (
+                                                <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                                    <td className="p-4 font-bold text-slate-400">{index + 1}</td>
+                                                    
+                                                    {/* Loop Value Jawaban Peserta berdasarkan Label */}
+                                                    {viewingParticipants.formFields?.map((f, i) => (
+                                                        <td key={i} className="p-4 max-w-[200px] truncate" title={p[f.label]}>
+                                                            {p[f.label] || '-'}
+                                                        </td>
+                                                    ))}
+                                                    
+                                                    <td className="p-4 font-bold uppercase text-[10px]">{p.paymentMethod || 'Free'}</td>
+                                                    <td className="p-4">
+                                                        <button 
+                                                            onClick={() => updatePaymentStatus(p.id, p.paymentStatus)}
+                                                            className={`px-3 py-1.5 rounded text-[9px] font-black uppercase tracking-widest cursor-pointer transition ${p.paymentStatus === 'Lunas' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}
+                                                            title="Klik untuk mengubah status"
+                                                        >
+                                                            {p.paymentStatus}
+                                                        </button>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        {p.paymentProof ? (
+                                                            <a href={p.paymentProof} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 underline font-bold text-[10px]">Cek Bukti</a>
+                                                        ) : <span className="text-slate-300">-</span>}
+                                                    </td>
+                                                    <td className="p-4 text-[10px] text-slate-500 font-mono">
+                                                        {p.registeredAt ? p.registeredAt.toDate().toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        {/* Tombol Hapus Pendaftar */}
+                                                        <button 
+                                                            onClick={() => handleDeleteParticipant(p.id)}
+                                                            className="text-red-500 hover:bg-red-50 p-1.5 rounded transition"
+                                                            title="Hapus Pendaftar"
+                                                        >
+                                                            <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500">Total: {participantsData.length} Pendaftar</span>
+                            <div className="flex gap-2">
+                                {/* Tombol Download Excel */}
+                                {participantsData.length > 0 && (
+                                    <button 
+                                        onClick={handleDownloadExcel} 
+                                        className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition flex items-center gap-1"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        Download Excel
+                                    </button>
+                                )}
+                                <button onClick={closeParticipantsModal} className="px-6 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-700 transition">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

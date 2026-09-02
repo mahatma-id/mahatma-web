@@ -251,7 +251,7 @@ export default function EventsPage() {
                                     
                                     {/* BUTTON AREA (Daftar + Share) */}
                                     <div className="flex items-center gap-2 mt-auto">
-                                        {/* LOGIKA TOMBOL UPDATE: Disable jika Completed ATAU Ongoing */}
+                                        {/* LOGIKA TOMBOL UPDATE: Disable jika Completed ATAU Ongoing, arahkan ke link Form jika isRegistration === true */}
                                         {status?.state === 'completed' ? (
                                             <div className="flex-grow block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed border border-transparent">
                                                 Events Berakhir
@@ -260,6 +260,13 @@ export default function EventsPage() {
                                             <div className="flex-grow block text-center px-6 py-3.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600/70 dark:text-emerald-500/70 font-bold text-[10px] uppercase tracking-widest rounded-xl cursor-not-allowed border border-emerald-500/30">
                                                 Sedang Berlangsung
                                             </div>
+                                        ) : ev.isRegistration ? (
+                                            <Link 
+                                                href={`/events/${ev.id}`} 
+                                                className="flex-grow block text-center px-6 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-slate-900 dark:text-white hover:text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all duration-300 shadow-sm"
+                                            >
+                                                Daftar Sekarang
+                                            </Link>
                                         ) : (
                                             <a 
                                                 href={`https://wa.me/${waNumber}?text=Halo%20tim%20Mahatma,%20saya%20tertarik%20mengikuti%20events%20*${ev.name}*%20pada%20${ev.date}.%20Mohon%20info%20pendaftarannya.`} 

@@ -30,8 +30,32 @@ export default function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => { 
-        setUser(currentUser); 
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => { 
+        if (currentUser) {
+            // Cek waktu login dari localStorage
+            const loginTime = localStorage.getItem('adminLoginTime');
+            if (loginTime) {
+                const now = Date.now();
+                const diff = now - parseInt(loginTime, 10);
+                
+                // 24 jam = 86.400.000 ms
+                if (diff > 86400000) {
+                    await signOut(auth);
+                    localStorage.removeItem('adminLoginTime');
+                    setUser(null);
+                    alert("Sesi login Anda telah habis (24 jam). Silakan login kembali.");
+                } else {
+                    setUser(currentUser);
+                }
+            } else {
+                // Jika login tapi tidak ada catatan waktu, set ke waktu sekarang
+                localStorage.setItem('adminLoginTime', Date.now().toString());
+                setUser(currentUser);
+            }
+        } else {
+            setUser(null);
+            localStorage.removeItem('adminLoginTime');
+        }
         setAuthLoading(false); 
     });
     return () => unsubscribeAuth();
@@ -39,12 +63,23 @@ export default function AdminPage() {
 
   const handleLogin = async (e) => { 
       e.preventDefault(); setLoading(true); 
-      try { await signInWithEmailAndPassword(auth, email, password); alert("Login Berhasil!"); } 
+      try { 
+          await signInWithEmailAndPassword(auth, email, password); 
+          // Catat waktu login saat ini
+          localStorage.setItem('adminLoginTime', Date.now().toString());
+          alert("Login Berhasil!"); 
+      } 
       catch (err) { alert("Email/Password salah!"); } 
       setLoading(false); 
   };
   
-  const handleLogout = async () => { await signOut(auth); alert("Logout Berhasil"); };
+  const handleLogout = async () => { 
+      await signOut(auth); 
+      // Hapus memori waktu login
+      localStorage.removeItem('adminLoginTime');
+      alert("Logout Berhasil"); 
+  };
+  
   const switchTab = (tabId) => { setActiveTab(tabId); setIsSidebarOpen(false); };
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white"><p className="animate-pulse font-bold tracking-widest">MENGECEK OTORITAS...</p></div>;
