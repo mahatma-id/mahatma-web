@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc, getDocs, deleteDoc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { uploadToCloudinary, deleteItem } from '../utils';
 
@@ -87,15 +87,26 @@ export default function TabEvents() {
                 emailTemplate: isRegistration ? emailTemplate : ''
             }; 
             
-            if (editEventsId) await updateDoc(doc(db, "events", editEventsId), data); 
-            else await addDoc(collection(db, "events"), { ...data, createdAt: serverTimestamp() }); 
+            if (editEventsId) {
+                // Update event yang sudah ada
+                await updateDoc(doc(db, "events", editEventsId), data); 
+            } else {
+                // Buat event baru dengan URL SLUG berdasarkan Judul
+                let slug = eventsName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); 
+                if (!slug) slug = 'event-' + Date.now(); 
+                
+                // Cek apakah slug/judul sudah pernah dipakai
+                const docSnap = await getDoc(doc(db, "events", slug)); 
+                if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); 
+                
+                await setDoc(doc(db, "events", slug), { ...data, createdAt: serverTimestamp() }); 
+            }
             
             alert('Agenda/Events Berhasil Disimpan!'); cancelEditEvents(); 
         } catch(err) { alert(err.message); } 
         setLoading(false); 
     };
 
-    // --- FUNGSI MENGAMBIL DATA PENDAFTAR ---
     const handleViewParticipants = async (ev) => {
         setViewingParticipants(ev);
         setLoadingParticipants(true);
