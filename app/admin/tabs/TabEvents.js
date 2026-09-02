@@ -20,7 +20,14 @@ export default function TabEvents() {
     const [formFields, setFormFields] = useState([{ label: 'Nama Lengkap', type: 'text', required: true }]);
     const [htmPrice, setHtmPrice] = useState(0);
     const [paymentMethods, setPaymentMethods] = useState({ cash: true, transfer: false, qris: false });
+    
+    // Detail Bank & QRIS
+    const [bankName, setBankName] = useState('');
+    const [bankAccount, setBankAccount] = useState('');
+    const [bankAccountName, setBankAccountName] = useState('');
     const [qrisId, setQrisId] = useState('');
+    const [qrisNmid, setQrisNmid] = useState('');
+    
     const [emailTemplate, setEmailTemplate] = useState('Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
 
     // --- STATE UNTUK MELIHAT PENDAFTAR ---
@@ -39,7 +46,8 @@ export default function TabEvents() {
         setFormFields([{ label: 'Nama Lengkap', type: 'text', required: true }]);
         setHtmPrice(0);
         setPaymentMethods({ cash: true, transfer: false, qris: false });
-        setQrisId('');
+        setBankName(''); setBankAccount(''); setBankAccountName('');
+        setQrisId(''); setQrisNmid('');
         setEmailTemplate('Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
     };
 
@@ -49,7 +57,8 @@ export default function TabEvents() {
         setFormFields(e.formFields || [{ label: 'Nama Lengkap', type: 'text', required: true }]);
         setHtmPrice(e.htmPrice || 0);
         setPaymentMethods(e.paymentMethods || { cash: true, transfer: false, qris: false });
-        setQrisId(e.qrisId || '');
+        setBankName(e.bankName || ''); setBankAccount(e.bankAccount || ''); setBankAccountName(e.bankAccountName || '');
+        setQrisId(e.qrisId || ''); setQrisNmid(e.qrisNmid || '');
         setEmailTemplate(e.emailTemplate || 'Terima kasih telah mendaftar di event {event_name}. Berikut adalah detail registrasi Anda...');
         window.scrollTo({top:0, behavior:'smooth'}); 
     };
@@ -70,7 +79,11 @@ export default function TabEvents() {
                 formFields: isRegistration ? formFields : [],
                 htmPrice: isRegistration ? htmPrice : 0,
                 paymentMethods: isRegistration ? paymentMethods : null,
+                bankName: isRegistration && paymentMethods.transfer ? bankName : '',
+                bankAccount: isRegistration && paymentMethods.transfer ? bankAccount : '',
+                bankAccountName: isRegistration && paymentMethods.transfer ? bankAccountName : '',
                 qrisId: isRegistration && paymentMethods.qris ? qrisId : '',
+                qrisNmid: isRegistration && paymentMethods.qris ? qrisNmid : '',
                 emailTemplate: isRegistration ? emailTemplate : ''
             }; 
             
@@ -102,7 +115,6 @@ export default function TabEvents() {
         setParticipantsData([]);
     };
 
-    // --- FUNGSI UPDATE STATUS PEMBAYARAN MANUAL ---
     const updatePaymentStatus = async (participantId, currentStatus) => {
         const newStatus = currentStatus === 'Lunas' ? 'Menunggu Konfirmasi' : 'Lunas';
         if(confirm(`Ubah status pembayaran menjadi ${newStatus}?`)) {
@@ -118,7 +130,6 @@ export default function TabEvents() {
         }
     };
 
-    // --- FUNGSI HAPUS PENDAFTAR ---
     const handleDeleteParticipant = async (participantId) => {
         if(confirm("Apakah Anda yakin ingin menghapus data pendaftar ini secara permanen?")) {
             try {
@@ -131,23 +142,19 @@ export default function TabEvents() {
         }
     };
 
-    // --- FUNGSI DOWNLOAD EXCEL (CSV) ---
     const handleDownloadExcel = () => {
         if (participantsData.length === 0) {
             alert("Tidak ada data untuk diunduh.");
             return;
         }
 
-        // Siapkan Header (Judul Kolom)
         const headers = ["No"];
         viewingParticipants.formFields.forEach(f => headers.push(f.label));
         headers.push("Metode Bayar", "Status", "Waktu Daftar");
 
-        // Siapkan Isi Data
         const rows = participantsData.map((p, index) => {
             const row = [index + 1];
             viewingParticipants.formFields.forEach(f => {
-                // Hindari error CSV jika teks mengandung koma atau enter
                 let text = p[f.label] || '-';
                 if (typeof text === 'string') {
                     text = text.replace(/"/g, '""'); 
@@ -163,12 +170,9 @@ export default function TabEvents() {
             return row.join(",");
         });
 
-        // Gabungkan dengan BOM agar Excel bisa membaca huruf UTF-8 dengan benar
         const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n");
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        
-        // Buat elemen <a> sementara untuk trigger download
         const link = document.createElement("a");
         link.href = url;
         const fileName = `Data_Pendaftar_${viewingParticipants.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.csv`;
@@ -225,63 +229,147 @@ export default function TabEvents() {
                             <div>
                                 <h4 className="text-xs font-bold text-emerald-700 mb-3 border-b border-emerald-100 pb-2">1. PERTANYAAN FORMULIR</h4>
                                 {formFields.map((field, index) => (
-                                    <div key={index} className="flex flex-col md:flex-row gap-2 mb-3 bg-white p-3 rounded-lg border">
-                                        <div className="flex-1">
-                                            <input type="text" value={field.label} onChange={(e) => {
-                                                const newFields = [...formFields];
-                                                newFields[index].label = e.target.value;
-                                                setFormFields(newFields);
-                                            }} placeholder="Contoh: Asal Instansi / No. WhatsApp" className="w-full border-b focus:border-emerald-500 p-2 text-sm outline-none bg-transparent" />
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2 md:mt-0">
-                                            <select value={field.type} onChange={(e) => {
-                                                const newFields = [...formFields];
-                                                newFields[index].type = e.target.value;
-                                                setFormFields(newFields);
-                                            }} className="border p-2 text-sm rounded-lg bg-slate-50">
-                                                <option value="text">Teks Pendek</option>
-                                                <option value="textarea">Teks Panjang</option>
-                                                <option value="number">Angka</option>
-                                                <option value="email">Email</option>
-                                            </select>
-                                            <label className="flex items-center gap-1 text-[10px] font-bold">
-                                                <input type="checkbox" checked={field.required} onChange={(e) => {
+                                    <div key={index} className="flex flex-col gap-2 mb-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                        <div className="flex flex-col md:flex-row gap-3">
+                                            <div className="flex-1">
+                                                <input type="text" value={field.label} onChange={(e) => {
                                                     const newFields = [...formFields];
-                                                    newFields[index].required = e.target.checked;
+                                                    newFields[index].label = e.target.value;
                                                     setFormFields(newFields);
-                                                }} /> Wajib
-                                            </label>
-                                            {formFields.length > 1 && (
-                                                <button type="button" onClick={() => {
-                                                    const newFields = formFields.filter((_, i) => i !== index);
+                                                }} placeholder="Pertanyaan (Cth: Asal Instansi)" className="w-full border-b-2 focus:border-emerald-500 p-2 text-sm font-bold outline-none bg-transparent" />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <select value={field.type} onChange={(e) => {
+                                                    const newFields = [...formFields];
+                                                    newFields[index].type = e.target.value;
                                                     setFormFields(newFields);
-                                                }} className="text-red-500 hover:bg-red-50 p-1.5 rounded ml-2" title="Hapus">✕</button>
-                                            )}
+                                                }} className="border p-2 text-xs rounded-lg bg-slate-50 outline-none">
+                                                    <option value="text">Teks Pendek</option>
+                                                    <option value="textarea">Teks Panjang</option>
+                                                    <option value="number">Angka</option>
+                                                    <option value="email">Email</option>
+                                                    <option value="radio">Pilihan Ganda (Satu Jawaban)</option>
+                                                    <option value="checkbox">Kotak Centang (Banyak Jawaban)</option>
+                                                    <option value="scale">Skala Linier (1-5)</option>
+                                                </select>
+                                                <label className="flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-slate-100 p-2 rounded-lg">
+                                                    <input type="checkbox" checked={field.required} onChange={(e) => {
+                                                        const newFields = [...formFields];
+                                                        newFields[index].required = e.target.checked;
+                                                        setFormFields(newFields);
+                                                    }} className="text-emerald-600 rounded" /> Wajib
+                                                </label>
+                                                {formFields.length > 1 && (
+                                                    <button type="button" onClick={() => {
+                                                        const newFields = formFields.filter((_, i) => i !== index);
+                                                        setFormFields(newFields);
+                                                    }} className="text-red-500 hover:bg-red-50 p-2 rounded-lg" title="Hapus Pertanyaan">✕</button>
+                                                )}
+                                            </div>
                                         </div>
+
+                                        {/* Pengaturan Ekstra Berdasarkan Tipe */}
+                                        {(field.type === 'radio' || field.type === 'checkbox') && (
+                                            <div className="mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                <label className="text-[10px] font-bold text-slate-500 block mb-1">Masukkan Opsi (Pisahkan dengan koma). Ketik "Yang lain" agar user bisa input teks.</label>
+                                                <input type="text" placeholder="Cth: WhatsApp, Instagram, Teman, Yang lain: ..." 
+                                                    value={field.options || ''} 
+                                                    onChange={(e) => {
+                                                        const newFields = [...formFields];
+                                                        newFields[index].options = e.target.value;
+                                                        setFormFields(newFields);
+                                                    }}
+                                                    className="w-full border p-2 text-xs rounded outline-none focus:border-emerald-500"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {field.type === 'scale' && (
+                                            <div className="mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100 flex gap-4">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Label Kiri (Nilai 1)</label>
+                                                    <input type="text" placeholder="Cth: Sangat Buruk / Belum Pernah" 
+                                                        value={field.scaleMinLabel || ''} 
+                                                        onChange={(e) => {
+                                                            const newFields = [...formFields];
+                                                            newFields[index].scaleMinLabel = e.target.value;
+                                                            setFormFields(newFields);
+                                                        }}
+                                                        className="w-full border p-2 text-xs rounded outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Label Kanan (Nilai 5)</label>
+                                                    <input type="text" placeholder="Cth: Sangat Baik / Sering Sekali" 
+                                                        value={field.scaleMaxLabel || ''} 
+                                                        onChange={(e) => {
+                                                            const newFields = [...formFields];
+                                                            newFields[index].scaleMaxLabel = e.target.value;
+                                                            setFormFields(newFields);
+                                                        }}
+                                                        className="w-full border p-2 text-xs rounded outline-none focus:border-emerald-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
-                                <button type="button" onClick={() => setFormFields([...formFields, { label: '', type: 'text', required: false }])} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-lg mt-1 hover:bg-emerald-200 transition">+ Tambah Pertanyaan</button>
+                                <button type="button" onClick={() => setFormFields([...formFields, { label: '', type: 'text', required: false }])} className="text-xs bg-emerald-100 text-emerald-700 font-bold px-4 py-2 rounded-lg hover:bg-emerald-200 transition">+ Tambah Pertanyaan Baru</button>
                             </div>
 
                             {/* Konfigurasi HTM & Pembayaran */}
-                            <div className="pt-2">
+                            <div className="pt-4 border-t border-slate-200">
                                 <h4 className="text-xs font-bold text-emerald-700 mb-3 border-b border-emerald-100 pb-2">2. BIAYA & PEMBAYARAN</h4>
                                 <label className="text-[10px] font-bold text-slate-500 block mb-1">Harga Tiket (HTM) - Isi 0 jika Gratis</label>
-                                <input type="number" value={htmPrice} onChange={e => setHtmPrice(Number(e.target.value))} placeholder="0" className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm mb-4 bg-white" />
+                                <input type="number" value={htmPrice} onChange={e => setHtmPrice(Number(e.target.value))} placeholder="0" className="w-full md:w-1/2 border p-2.5 rounded-lg text-sm mb-4 bg-white outline-none focus:border-emerald-500" />
                                 
                                 {htmPrice > 0 && (
-                                    <div className="bg-white p-4 rounded-lg border">
-                                        <span className="text-xs font-bold text-slate-700 mb-3 block">Metode Pembayaran Tersedia:</span>
-                                        <div className="flex flex-col md:flex-row gap-4 mb-4">
-                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.cash} onChange={e => setPaymentMethods({...paymentMethods, cash: e.target.checked})} /> Cash (On The Spot)</label>
-                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.transfer} onChange={e => setPaymentMethods({...paymentMethods, transfer: e.target.checked})} /> Transfer Bank</label>
-                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="w-4 h-4 text-emerald-600" checked={paymentMethods.qris} onChange={e => setPaymentMethods({...paymentMethods, qris: e.target.checked})} /> QRIS</label>
-                                        </div>
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200">
+                                        <span className="text-xs font-bold text-slate-700 mb-3 block border-b pb-2">Metode Pembayaran Tersedia:</span>
                                         
+                                        {/* Opsi Cash */}
+                                        <label className="flex items-center gap-2 text-sm mb-3">
+                                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.cash} onChange={e => setPaymentMethods({...paymentMethods, cash: e.target.checked})} /> 
+                                            Bayar di Tempat (Cash)
+                                        </label>
+
+                                        {/* Opsi Transfer */}
+                                        <label className="flex items-center gap-2 text-sm mb-2">
+                                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.transfer} onChange={e => setPaymentMethods({...paymentMethods, transfer: e.target.checked})} /> 
+                                            Transfer Bank
+                                        </label>
+                                        {paymentMethods.transfer && (
+                                            <div className="ml-6 mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-slate-500">Nama Bank</label>
+                                                    <input type="text" placeholder="Cth: Bank BCA" value={bankName} onChange={e => setBankName(e.target.value)} className="w-full border p-2 text-xs rounded outline-none" required />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-slate-500">Nomor Rekening</label>
+                                                    <input type="text" placeholder="Cth: 1234567890" value={bankAccount} onChange={e => setBankAccount(e.target.value)} className="w-full border p-2 text-xs rounded outline-none font-mono" required />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-slate-500">Nama Pemilik Rekening</label>
+                                                    <input type="text" placeholder="Cth: Mahatma Academy" value={bankAccountName} onChange={e => setBankAccountName(e.target.value)} className="w-full border p-2 text-xs rounded outline-none" required />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Opsi QRIS */}
+                                        <label className="flex items-center gap-2 text-sm mb-2">
+                                            <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.qris} onChange={e => setPaymentMethods({...paymentMethods, qris: e.target.checked})} /> 
+                                            QRIS
+                                        </label>
                                         {paymentMethods.qris && (
-                                            <div>
-                                                <label className="text-[10px] font-bold text-slate-500 block mb-1">Data QRIS (Link Gambar / Kode Merchant)</label>
-                                                <input type="text" value={qrisId} onChange={e => setQrisId(e.target.value)} placeholder="Misal: https://link-gambar-qris.com/qris.jpg" className="w-full border p-2.5 rounded-lg text-sm bg-slate-50" required />
+                                            <div className="ml-6 mb-2 p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Link Gambar QRIS</label>
+                                                    <input type="text" placeholder="Masukkan Link (https://...)" value={qrisId} onChange={e => setQrisId(e.target.value)} className="w-full border p-2 text-xs rounded outline-none" required />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-slate-500 block mb-1">NMID QRIS</label>
+                                                    <input type="text" placeholder="Masukkan NMID (Cth: ID1029384756)" value={qrisNmid} onChange={e => setQrisNmid(e.target.value)} className="w-full border p-2 text-xs rounded outline-none font-mono" required />
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -289,18 +377,18 @@ export default function TabEvents() {
                             </div>
 
                             {/* Custom Auto-Email */}
-                            <div className="pt-2">
+                            <div className="pt-4 border-t border-slate-200">
                                 <h4 className="text-xs font-bold text-emerald-700 mb-2 border-b border-emerald-100 pb-2">3. EMAIL KONFIRMASI (AUTOREPLY)</h4>
                                 <p className="text-[10px] text-slate-500 mb-2 bg-yellow-50 p-2 rounded border border-yellow-200">
                                     Gunakan tag <b>{'{name}'}</b> untuk memanggil nama peserta, <b>{'{event_name}'}</b> untuk nama event, dan <b>{'{payment_status}'}</b> untuk status bayar.
                                 </p>
-                                <textarea rows="6" value={emailTemplate} onChange={e => setEmailTemplate(e.target.value)} className="w-full border p-3 rounded-lg text-sm bg-white font-mono text-slate-700"></textarea>
+                                <textarea rows="6" value={emailTemplate} onChange={e => setEmailTemplate(e.target.value)} className="w-full border p-3 rounded-lg text-sm bg-white font-mono text-slate-700 outline-none focus:border-emerald-500"></textarea>
                             </div>
                         </div>
                     )}
                 </div>
-                <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-2 hover:bg-indigo-700 transition">
-                    {loading ? 'Memproses...' : (editEventsId ? 'Perbarui Event' : 'Tambah Event')}
+                <button disabled={loading} className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-sm w-full md:w-auto mt-4 hover:bg-indigo-700 transition shadow-md">
+                    {loading ? 'Memproses...' : (editEventsId ? 'Perbarui Event' : 'Simpan Event')}
                 </button>
             </form>
 
@@ -315,7 +403,7 @@ export default function TabEvents() {
                             <div className="flex-1">
                                 <h4 className="font-bold text-sm text-slate-900 mb-1 leading-tight">{ev.name}</h4>
                                 <p className="text-[10px] font-bold text-emerald-600 mb-1">📅 {ev.date}</p>
-                                <p className="text-[10px] text-slate-500">📍 {ev.location}</p>
+                                <p className="text-[10px] text-slate-500 line-clamp-2">📍 {ev.location}</p>
                             </div>
                         </div>
                         
@@ -366,13 +454,13 @@ export default function TabEvents() {
                                         <thead>
                                             <tr className="bg-slate-100/50 text-[10px] md:text-xs text-slate-500 uppercase tracking-widest border-b border-slate-200">
                                                 <th className="p-4 font-black">No</th>
-                                                {/* Loop Label Form yang dibikin admin secara dinamis */}
+                                                {/* Loop Label Form Dinamis */}
                                                 {viewingParticipants.formFields?.map((f, i) => (
                                                     <th key={i} className="p-4 font-black">{f.label}</th>
                                                 ))}
                                                 <th className="p-4 font-black">Metode Bayar</th>
-                                                <th className="p-4 font-black">Status</th>
-                                                <th className="p-4 font-black">Bukti</th>
+                                                <th className="p-4 font-black text-center">Status</th>
+                                                <th className="p-4 font-black text-center">Bukti</th>
                                                 <th className="p-4 font-black">Waktu Daftar</th>
                                                 <th className="p-4 font-black text-center">Aksi</th>
                                             </tr>
@@ -382,7 +470,7 @@ export default function TabEvents() {
                                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                                                     <td className="p-4 font-bold text-slate-400">{index + 1}</td>
                                                     
-                                                    {/* Loop Value Jawaban Peserta berdasarkan Label */}
+                                                    {/* Loop Value Dinamis */}
                                                     {viewingParticipants.formFields?.map((f, i) => (
                                                         <td key={i} className="p-4 max-w-[200px] truncate" title={p[f.label]}>
                                                             {p[f.label] || '-'}
@@ -390,7 +478,7 @@ export default function TabEvents() {
                                                     ))}
                                                     
                                                     <td className="p-4 font-bold uppercase text-[10px]">{p.paymentMethod || 'Free'}</td>
-                                                    <td className="p-4">
+                                                    <td className="p-4 text-center">
                                                         <button 
                                                             onClick={() => updatePaymentStatus(p.id, p.paymentStatus)}
                                                             className={`px-3 py-1.5 rounded text-[9px] font-black uppercase tracking-widest cursor-pointer transition ${p.paymentStatus === 'Lunas' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}
@@ -399,7 +487,7 @@ export default function TabEvents() {
                                                             {p.paymentStatus}
                                                         </button>
                                                     </td>
-                                                    <td className="p-4">
+                                                    <td className="p-4 text-center">
                                                         {p.paymentProof ? (
                                                             <a href={p.paymentProof} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 underline font-bold text-[10px]">Cek Bukti</a>
                                                         ) : <span className="text-slate-300">-</span>}
@@ -411,8 +499,8 @@ export default function TabEvents() {
                                                         {/* Tombol Hapus Pendaftar */}
                                                         <button 
                                                             onClick={() => handleDeleteParticipant(p.id)}
-                                                            className="text-red-500 hover:bg-red-50 p-1.5 rounded transition"
-                                                            title="Hapus Pendaftar"
+                                                            className="text-red-500 hover:bg-red-50 p-2 rounded transition"
+                                                            title="Hapus Data Ini"
                                                         >
                                                             <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                         </button>
@@ -429,11 +517,10 @@ export default function TabEvents() {
                         <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
                             <span className="text-xs font-bold text-slate-500">Total: {participantsData.length} Pendaftar</span>
                             <div className="flex gap-2">
-                                {/* Tombol Download Excel */}
                                 {participantsData.length > 0 && (
                                     <button 
                                         onClick={handleDownloadExcel} 
-                                        className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition flex items-center gap-1"
+                                        className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition flex items-center gap-1 shadow-sm"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                         Download Excel
