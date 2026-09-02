@@ -88,14 +88,11 @@ export default function TabEvents() {
             }; 
             
             if (editEventsId) {
-                // Update event yang sudah ada
                 await updateDoc(doc(db, "events", editEventsId), data); 
             } else {
-                // Buat event baru dengan URL SLUG berdasarkan Judul
                 let slug = eventsName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''); 
                 if (!slug) slug = 'event-' + Date.now(); 
                 
-                // Cek apakah slug/judul sudah pernah dipakai
                 const docSnap = await getDoc(doc(db, "events", slug)); 
                 if (docSnap.exists()) slug = slug + '-' + Math.floor(Math.random() * 1000); 
                 
@@ -107,6 +104,7 @@ export default function TabEvents() {
         setLoading(false); 
     };
 
+    // --- FUNGSI MENGAMBIL DATA PENDAFTAR ---
     const handleViewParticipants = async (ev) => {
         setViewingParticipants(ev);
         setLoadingParticipants(true);
@@ -193,6 +191,21 @@ export default function TabEvents() {
         document.body.removeChild(link);
     };
 
+    // --- FUNGSI PINDAH POSISI PERTANYAAN ---
+    const moveFieldUp = (index) => {
+        if (index === 0) return;
+        const newFields = [...formFields];
+        [newFields[index - 1], newFields[index]] = [newFields[index], newFields[index - 1]];
+        setFormFields(newFields);
+    };
+
+    const moveFieldDown = (index) => {
+        if (index === formFields.length - 1) return;
+        const newFields = [...formFields];
+        [newFields[index + 1], newFields[index]] = [newFields[index], newFields[index + 1]];
+        setFormFields(newFields);
+    };
+
     return (
         <div className="max-w-4xl relative">
             <form onSubmit={saveEvents} className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-4 border mb-8">
@@ -240,21 +253,41 @@ export default function TabEvents() {
                             <div>
                                 <h4 className="text-xs font-bold text-emerald-700 mb-3 border-b border-emerald-100 pb-2">1. PERTANYAAN FORMULIR</h4>
                                 {formFields.map((field, index) => (
-                                    <div key={index} className="flex flex-col gap-2 mb-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                                        <div className="flex flex-col md:flex-row gap-3">
-                                            <div className="flex-1">
+                                    <div key={index} className="flex flex-col gap-3 mb-4 bg-white p-4 pt-10 md:pt-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+                                        
+                                        {/* Aksi: Urutan dan Hapus */}
+                                        <div className="absolute top-2 right-2 flex items-center gap-1 z-10 bg-white/90 p-1 rounded-bl-lg">
+                                            {index > 0 && (
+                                                <button type="button" onClick={() => moveFieldUp(index)} className="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-sm shadow-sm" title="Geser ke Atas">↑</button>
+                                            )}
+                                            {index < formFields.length - 1 && (
+                                                <button type="button" onClick={() => moveFieldDown(index)} className="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-sm shadow-sm" title="Geser ke Bawah">↓</button>
+                                            )}
+                                            {formFields.length > 1 && (
+                                                <button type="button" onClick={() => {
+                                                    const newFields = formFields.filter((_, i) => i !== index);
+                                                    setFormFields(newFields);
+                                                }} className="w-6 h-6 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-500 rounded ml-2 shadow-sm" title="Hapus Pertanyaan">✕</button>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col gap-3">
+                                            {/* Input Pertanyaan */}
+                                            <div className="w-full pr-0 md:pr-24">
                                                 <input type="text" value={field.label} onChange={(e) => {
                                                     const newFields = [...formFields];
                                                     newFields[index].label = e.target.value;
                                                     setFormFields(newFields);
-                                                }} placeholder="Pertanyaan (Cth: Asal Instansi)" className="w-full border-b-2 focus:border-emerald-500 p-2 text-sm font-bold outline-none bg-transparent" />
+                                                }} placeholder="Pertanyaan (Cth: Asal Instansi)" className="w-full border-b-2 border-slate-200 focus:border-emerald-500 p-2 text-sm font-bold outline-none bg-transparent" />
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            
+                                            {/* Pilihan Tipe dan Wajib Isi (Flex-Wrap agar tidak nabrak di HP) */}
+                                            <div className="flex flex-wrap items-center gap-2">
                                                 <select value={field.type} onChange={(e) => {
                                                     const newFields = [...formFields];
                                                     newFields[index].type = e.target.value;
                                                     setFormFields(newFields);
-                                                }} className="border p-2 text-xs rounded-lg bg-slate-50 outline-none">
+                                                }} className="flex-1 min-w-[150px] border p-2 text-xs rounded-lg bg-slate-50 outline-none">
                                                     <option value="text">Teks Pendek</option>
                                                     <option value="textarea">Teks Panjang</option>
                                                     <option value="number">Angka</option>
@@ -263,19 +296,13 @@ export default function TabEvents() {
                                                     <option value="checkbox">Kotak Centang (Banyak Jawaban)</option>
                                                     <option value="scale">Skala Linier (1-5)</option>
                                                 </select>
-                                                <label className="flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-slate-100 p-2 rounded-lg">
+                                                <label className="flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-emerald-50 p-2.5 rounded-lg border border-emerald-100 cursor-pointer">
                                                     <input type="checkbox" checked={field.required} onChange={(e) => {
                                                         const newFields = [...formFields];
                                                         newFields[index].required = e.target.checked;
                                                         setFormFields(newFields);
-                                                    }} className="text-emerald-600 rounded" /> Wajib
+                                                    }} className="text-emerald-600 rounded cursor-pointer" /> Wajib Isi
                                                 </label>
-                                                {formFields.length > 1 && (
-                                                    <button type="button" onClick={() => {
-                                                        const newFields = formFields.filter((_, i) => i !== index);
-                                                        setFormFields(newFields);
-                                                    }} className="text-red-500 hover:bg-red-50 p-2 rounded-lg" title="Hapus Pertanyaan">✕</button>
-                                                )}
                                             </div>
                                         </div>
 
@@ -296,8 +323,8 @@ export default function TabEvents() {
                                         )}
 
                                         {field.type === 'scale' && (
-                                            <div className="mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100 flex gap-4">
-                                                <div className="flex-1">
+                                            <div className="mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100 flex gap-4 flex-wrap">
+                                                <div className="flex-1 min-w-[120px]">
                                                     <label className="text-[10px] font-bold text-slate-500 block mb-1">Label Kiri (Nilai 1)</label>
                                                     <input type="text" placeholder="Cth: Sangat Buruk / Belum Pernah" 
                                                         value={field.scaleMinLabel || ''} 
@@ -309,7 +336,7 @@ export default function TabEvents() {
                                                         className="w-full border p-2 text-xs rounded outline-none focus:border-emerald-500"
                                                     />
                                                 </div>
-                                                <div className="flex-1">
+                                                <div className="flex-1 min-w-[120px]">
                                                     <label className="text-[10px] font-bold text-slate-500 block mb-1">Label Kanan (Nilai 5)</label>
                                                     <input type="text" placeholder="Cth: Sangat Baik / Sering Sekali" 
                                                         value={field.scaleMaxLabel || ''} 
@@ -338,13 +365,11 @@ export default function TabEvents() {
                                     <div className="bg-white p-4 rounded-xl border border-slate-200">
                                         <span className="text-xs font-bold text-slate-700 mb-3 block border-b pb-2">Metode Pembayaran Tersedia:</span>
                                         
-                                        {/* Opsi Cash */}
                                         <label className="flex items-center gap-2 text-sm mb-3">
                                             <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.cash} onChange={e => setPaymentMethods({...paymentMethods, cash: e.target.checked})} /> 
                                             Bayar di Tempat (Cash)
                                         </label>
 
-                                        {/* Opsi Transfer */}
                                         <label className="flex items-center gap-2 text-sm mb-2">
                                             <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.transfer} onChange={e => setPaymentMethods({...paymentMethods, transfer: e.target.checked})} /> 
                                             Transfer Bank
@@ -366,7 +391,6 @@ export default function TabEvents() {
                                             </div>
                                         )}
 
-                                        {/* Opsi QRIS */}
                                         <label className="flex items-center gap-2 text-sm mb-2">
                                             <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.qris} onChange={e => setPaymentMethods({...paymentMethods, qris: e.target.checked})} /> 
                                             QRIS
@@ -387,7 +411,6 @@ export default function TabEvents() {
                                 )}
                             </div>
 
-                            {/* Custom Auto-Email */}
                             <div className="pt-4 border-t border-slate-200">
                                 <h4 className="text-xs font-bold text-emerald-700 mb-2 border-b border-emerald-100 pb-2">3. EMAIL KONFIRMASI (AUTOREPLY)</h4>
                                 <p className="text-[10px] text-slate-500 mb-2 bg-yellow-50 p-2 rounded border border-yellow-200">
@@ -403,6 +426,7 @@ export default function TabEvents() {
                 </button>
             </form>
 
+            {/* Sisa konten render card event (TIDAK ADA PERUBAHAN) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {events.map(ev => (
                     <div key={ev.id} className="bg-white p-4 rounded-xl border shadow-sm flex flex-col relative overflow-hidden">
@@ -418,7 +442,6 @@ export default function TabEvents() {
                             </div>
                         </div>
                         
-                        {/* TOMBOL LIHAT PENDAFTAR */}
                         {ev.isRegistration && (
                             <button onClick={() => handleViewParticipants(ev)} className="w-full mb-3 text-emerald-700 text-xs font-bold py-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200">
                                 👥 Lihat Data Pendaftar
@@ -434,7 +457,6 @@ export default function TabEvents() {
                 {events.length === 0 && <div className="col-span-full text-center text-slate-400 py-10">Belum ada jadwal event.</div>}
             </div>
 
-            {/* --- MODAL DAFTAR PESERTA --- */}
             {viewingParticipants && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-[fadeIn_0.2s_ease-out]">
@@ -465,7 +487,6 @@ export default function TabEvents() {
                                         <thead>
                                             <tr className="bg-slate-100/50 text-[10px] md:text-xs text-slate-500 uppercase tracking-widest border-b border-slate-200">
                                                 <th className="p-4 font-black">No</th>
-                                                {/* Loop Label Form Dinamis */}
                                                 {viewingParticipants.formFields?.map((f, i) => (
                                                     <th key={i} className="p-4 font-black">{f.label}</th>
                                                 ))}
@@ -481,7 +502,6 @@ export default function TabEvents() {
                                                 <tr key={p.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                                                     <td className="p-4 font-bold text-slate-400">{index + 1}</td>
                                                     
-                                                    {/* Loop Value Dinamis */}
                                                     {viewingParticipants.formFields?.map((f, i) => (
                                                         <td key={i} className="p-4 max-w-[200px] truncate" title={p[f.label]}>
                                                             {p[f.label] || '-'}
@@ -507,7 +527,6 @@ export default function TabEvents() {
                                                         {p.registeredAt ? p.registeredAt.toDate().toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : '-'}
                                                     </td>
                                                     <td className="p-4 text-center">
-                                                        {/* Tombol Hapus Pendaftar */}
                                                         <button 
                                                             onClick={() => handleDeleteParticipant(p.id)}
                                                             className="text-red-500 hover:bg-red-50 p-2 rounded transition"
@@ -543,7 +562,6 @@ export default function TabEvents() {
                     </div>
                 </div>
             )}
-
         </div>
     );
 }

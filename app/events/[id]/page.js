@@ -14,7 +14,7 @@ export default function EventDetail({ params }) {
     
     // State Formulir
     const [formData, setFormData] = useState({});
-    const [otherData, setOtherData] = useState({}); // State khusus untuk menyimpan isian teks "Yang lain"
+    const [otherData, setOtherData] = useState({}); 
     
     const [paymentMethod, setPaymentMethod] = useState('');
     const [paymentProof, setPaymentProof] = useState(null);
@@ -39,7 +39,6 @@ export default function EventDetail({ params }) {
         setFormData({ ...formData, [label]: value });
     };
 
-    // Fungsi khusus menangani input Checkbox (Multiple Choice)
     const handleCheckboxChange = (label, option, isChecked) => {
         setFormData(prev => {
             const currentArr = prev[label] || [];
@@ -51,7 +50,6 @@ export default function EventDetail({ params }) {
         });
     };
 
-    // Fungsi cerdas untuk mengecek apakah opsi tersebut adalah "Yang lain"
     const isOtherOption = (opt) => {
         if (!opt) return false;
         const lower = opt.toLowerCase();
@@ -63,7 +61,6 @@ export default function EventDetail({ params }) {
         setIsSubmitting(true);
 
         try {
-            // Memproses data formulir (merubah Array checkbox jadi String & menyisipkan jawaban "Yang lain")
             const processedFormData = {};
             for (const field of eventData.formFields) {
                 if (field.type === 'checkbox') {
@@ -75,7 +72,7 @@ export default function EventDetail({ params }) {
                     }
                     const mappedArr = arr.map(item => {
                         if (isOtherOption(item) && otherData[field.label]) {
-                            return `${item} (${otherData[field.label]})`; // Format: Yang lain: ... (Jawaban User)
+                            return `${item} (${otherData[field.label]})`; 
                         }
                         return item;
                     });
@@ -91,7 +88,6 @@ export default function EventDetail({ params }) {
                 }
             }
 
-            // 1. Cari field email untuk tujuan pengiriman
             let recipientEmail = '';
             let participantName = '';
             
@@ -102,13 +98,11 @@ export default function EventDetail({ params }) {
 
             if (!recipientEmail) throw new Error("Formulir tidak memiliki field Email untuk pengiriman tiket!");
 
-            // 2. Upload Bukti Bayar (Jika Ada)
             let proofUrl = '';
             if (paymentProof) {
                 proofUrl = await uploadToCloudinary(paymentProof);
             }
 
-            // 3. Simpan Data ke Firestore
             const participantData = {
                 ...processedFormData,
                 paymentMethod: paymentMethod || 'Free',
@@ -119,7 +113,6 @@ export default function EventDetail({ params }) {
             
             await addDoc(collection(db, "events", id, "participants"), participantData);
 
-            // 4. Parsing Template Email
             let emailBody = eventData.emailTemplate || `Terima kasih {name} telah mendaftar di {event_name}.`;
             emailBody = emailBody.replace(/{name}/g, participantName || 'Peserta');
             emailBody = emailBody.replace(/{event_name}/g, eventData.name);
@@ -127,7 +120,6 @@ export default function EventDetail({ params }) {
             
             const htmlEmail = emailBody.replace(/\n/g, '<br>');
 
-            // 5. Kirim Request Email
             const emailRes = await fetch('/api/send-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -181,8 +173,8 @@ export default function EventDetail({ params }) {
                             
                             {/* Render Pertanyaan Dinamis */}
                             {eventData.formFields.map((field, idx) => (
-                                <div key={idx} className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-                                    <label className="text-sm font-bold text-slate-800 block mb-3">
+                                <div key={idx} className="bg-slate-50/50 p-4 md:p-6 rounded-2xl border border-slate-100">
+                                    <label className="text-sm font-bold text-slate-800 block mb-4">
                                         {field.label} {field.required && <span className="text-red-500 ml-1" title="Wajib diisi">*</span>}
                                     </label>
                                     
@@ -200,12 +192,12 @@ export default function EventDetail({ params }) {
                                                 const isSelected = formData[field.label] === trimmedOpt;
                                                 return (
                                                     <div key={i} className="flex flex-col gap-2">
-                                                        <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit">
-                                                            <input type="radio" name={field.label} value={trimmedOpt} required={field.required && !formData[field.label]} onChange={(e) => handleInputChange(field.label, e.target.value)} className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
-                                                            {trimmedOpt}
+                                                        <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit group">
+                                                            <input type="radio" name={field.label} value={trimmedOpt} required={field.required && !formData[field.label]} onChange={(e) => handleInputChange(field.label, e.target.value)} className="w-5 h-5 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                                                            <span className="group-hover:text-emerald-700 transition-colors">{trimmedOpt}</span>
                                                         </label>
                                                         {isOther && isSelected && (
-                                                            <input type="text" placeholder="Sebutkan..." required={field.required} value={otherData[field.label] || ''} onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} className="ml-7 w-full md:w-2/3 border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
+                                                            <input type="text" placeholder="Sebutkan..." required={field.required} value={otherData[field.label] || ''} onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} className="ml-8 w-full md:w-2/3 border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
                                                         )}
                                                     </div>
                                                 );
@@ -222,12 +214,12 @@ export default function EventDetail({ params }) {
                                                 const isSelected = (formData[field.label] || []).includes(trimmedOpt);
                                                 return (
                                                     <div key={i} className="flex flex-col gap-2">
-                                                        <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit">
-                                                            <input type="checkbox" value={trimmedOpt} onChange={(e) => handleCheckboxChange(field.label, trimmedOpt, e.target.checked)} className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" />
-                                                            {trimmedOpt}
+                                                        <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit group">
+                                                            <input type="checkbox" value={trimmedOpt} onChange={(e) => handleCheckboxChange(field.label, trimmedOpt, e.target.checked)} className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" />
+                                                            <span className="group-hover:text-emerald-700 transition-colors">{trimmedOpt}</span>
                                                         </label>
                                                         {isOther && isSelected && (
-                                                            <input type="text" placeholder="Sebutkan..." required={field.required} value={otherData[field.label] || ''} onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} className="ml-7 w-full md:w-2/3 border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
+                                                            <input type="text" placeholder="Sebutkan..." required={field.required} value={otherData[field.label] || ''} onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} className="ml-8 w-full md:w-2/3 border border-slate-300 p-2.5 rounded-lg text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" />
                                                         )}
                                                     </div>
                                                 );
@@ -235,19 +227,24 @@ export default function EventDetail({ params }) {
                                         </div>
                                     )}
 
-                                    {/* Render Skala Linier */}
+                                    {/* Render Skala Linier (Tampilan Horisontal Sempurna) */}
                                     {field.type === 'scale' && (
-                                        <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
-                                            <span className="text-xs md:text-sm font-bold text-slate-500 text-center md:text-left">{field.scaleMinLabel || 'Belum Pernah'}</span>
-                                            <div className="flex gap-4 md:gap-8">
+                                        <div className="bg-white p-4 md:p-6 rounded-xl border border-slate-200 mt-2">
+                                            {/* Container Label (Kiri dan Kanan Terpisah) */}
+                                            <div className="flex justify-between items-center text-[10px] md:text-sm font-bold text-slate-500 mb-4 px-1">
+                                                <span className="text-left w-1/3 leading-snug">{field.scaleMinLabel || 'Belum Pernah'}</span>
+                                                <span className="text-right w-1/3 leading-snug">{field.scaleMaxLabel || 'Sering Sekali'}</span>
+                                            </div>
+                                            
+                                            {/* Container Angka dan Tombol Radio (Menyebar secara Horizontal) */}
+                                            <div className="flex justify-between items-center px-2 md:px-8">
                                                 {[1, 2, 3, 4, 5].map(val => (
-                                                    <label key={val} className="flex flex-col items-center gap-2 cursor-pointer">
-                                                        <span className="text-xs font-bold text-slate-400">{val}</span>
-                                                        <input type="radio" name={field.label} value={val} required={field.required} onChange={(e) => handleInputChange(field.label, e.target.value)} className="w-5 h-5 text-emerald-600 cursor-pointer" />
+                                                    <label key={val} className="flex flex-col items-center gap-2 cursor-pointer group">
+                                                        <span className="text-xs md:text-sm font-bold text-slate-400 group-hover:text-emerald-600 transition-colors">{val}</span>
+                                                        <input type="radio" name={field.label} value={val} required={field.required} onChange={(e) => handleInputChange(field.label, e.target.value)} className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 cursor-pointer focus:ring-emerald-500" />
                                                     </label>
                                                 ))}
                                             </div>
-                                            <span className="text-xs md:text-sm font-bold text-slate-500 text-center md:text-right">{field.scaleMaxLabel || 'Sering Sekali'}</span>
                                         </div>
                                     )}
 
