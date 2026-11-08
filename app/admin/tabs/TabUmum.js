@@ -21,31 +21,36 @@ export default function TabUmum() {
 
     return (
         <form onSubmit={saveSettings} className="space-y-6 max-w-4xl bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
-            <div className="mb-4 bg-slate-50 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Terang (Default)</label>
-                    <div className="flex flex-col gap-2">
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try { const url = await uploadToCloudinary(e.target.files[0]); setSettings({...settings, logoUrl: url}); alert(`Logo Terang Berhasil Diunggah!`); } 
-                                catch(err) { alert(err.message); } setLoading(false);
-                            }
-                        }} className="text-xs border p-2 rounded bg-white w-full" />
-                        {settings.logoUrl && <img src={settings.logoUrl} className="h-12 object-contain bg-white rounded border p-1 w-fit" alt="logo"/>}
+            {/* INFORMASI LOGO PATEN DARI PUBLIC */}
+            <div className="mb-4 bg-emerald-50/60 border border-emerald-200/70 p-4 md:p-5 rounded-2xl">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg">🛡️</span>
+                        <div>
+                            <h4 className="text-xs md:text-sm font-extrabold text-slate-900">Logo Resmi Mahatma Academy</h4>
+                            <p className="text-[11px] text-slate-500">Logo mode terang & gelap dikelola paten langsung dari folder sistem (/public).</p>
+                        </div>
                     </div>
+                    <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-full text-[9px] font-black uppercase tracking-wider">
+                        Paten Aktif
+                    </span>
                 </div>
-                <div>
-                    <label className="text-sm font-bold block mb-2 text-slate-700">Logo Mode Gelap (Opsional)</label>
-                    <div className="flex flex-col gap-2">
-                        <input type="file" accept="image/*" onChange={async (e) => {
-                            if(e.target.files[0]) {
-                                setLoading(true);
-                                try { const url = await uploadToCloudinary(e.target.files[0]); setSettings({...settings, logoDarkUrl: url}); alert(`Logo Gelap Berhasil Diunggah!`); } 
-                                catch(err) { alert(err.message); } setLoading(false);
-                            }
-                        }} className="text-xs border p-2 rounded bg-white w-full" />
-                        {settings.logoDarkUrl && <img src={settings.logoDarkUrl} className="h-12 object-contain bg-slate-900 rounded border p-1 w-fit" alt="logo dark"/>}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mode Terang (Light Mode)</span>
+                            <span className="text-xs font-mono font-semibold text-slate-700">/Logo Mode Terang.png</span>
+                        </div>
+                        <img src="/Logo Mode Terang.png" className="h-9 w-auto object-contain max-w-[120px]" alt="Logo Terang" />
+                    </div>
+
+                    <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mode Gelap (Dark Mode)</span>
+                            <span className="text-xs font-mono font-semibold text-slate-300">/Logo Mode Gelap.png</span>
+                        </div>
+                        <img src="/Logo Mode Gelap.png" className="h-9 w-auto object-contain max-w-[120px]" alt="Logo Gelap" />
                     </div>
                 </div>
             </div>
