@@ -228,13 +228,29 @@ export default function InsightArticleDetail({ params }) {
   };
 
   const handleDownloadJpg = async () => {
-    const sheetEl = newspaperPreviewRef.current;
+    const sheetEl = newspaperPreviewRef.current || newspaperPrintRef.current;
     if (!sheetEl || typeof window === 'undefined') return;
 
     setIsDownloadingJpg(true);
     try {
       const width = sheetEl.offsetWidth || 794;
       const height = Math.round(width * (297 / 210)); // Strict Full A4 aspect ratio (210mm x 297mm)
+
+      const fetchUrlAsDataUrl = async (url, cacheMode = 'force-cache') => {
+        if (!url || url.startsWith('data:')) return url;
+        try {
+          const res = await fetch(url, { mode: 'cors', cache: cacheMode });
+          const blob = await res.blob();
+          return await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result || '');
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(blob);
+          });
+        } catch (err) {
+          return '';
+        }
+      };
 
       // Helper to convert any image element or URL to Base64 Data URL so SVG foreignObject never taints canvas
       const imgElementToDataUrl = async (origImgEl) => {
@@ -257,52 +273,78 @@ export default function InsightArticleDetail({ params }) {
         }
 
         // 2. Fallback: fetch with CORS & no-cache
-        try {
-          const res = await fetch(resolvedSrc, { mode: 'cors', cache: 'no-cache' });
-          const blob = await res.blob();
-          return await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = () => resolve('');
-            reader.readAsDataURL(blob);
-          });
-        } catch (err) {
-          return '';
-        }
+        return await fetchUrlAsDataUrl(resolvedSrc, 'no-cache');
       };
+
+      // Inline external url(...) assets (such as @font-face woff2 files) inside CSS text
+      const inlineCssUrls = async (cssText, baseUrl) => {
+        const urlRegex = /url\((['"]?)([^)'"]+)\1\)/g;
+        const matches = Array.from(cssText.matchAll(urlRegex));
+        if (matches.length === 0) return cssText;
+
+        let updatedCss = cssText;
+        for (const m of matches) {
+          const fullToken = m[0];
+          const rawUrl = m[2];
+          if (!rawUrl || rawUrl.startsWith('data:') || rawUrl.startsWith('#')) continue;
+          let absUrl = rawUrl;
+          try {
+            absUrl = new URL(rawUrl, baseUrl || window.location.href).href;
+          } catch (e) {
+            // ignore
+          }
+          const dataUrl = await fetchUrlAsDataUrl(absUrl, 'force-cache');
+          if (dataUrl) {
+            updatedCss = updatedCss.split(fullToken).join(`url("${dataUrl}")`);
+          }
+        }
+        return updatedCss;
+      };
+
+      // Collect all real CSS rules & @font-face declarations from the page so foreignObject renders identically to Preview & PDF
+      let pageCss = '';
+      for (const sheet of Array.from(document.styleSheets)) {
+        try {
+          const rules = Array.from(sheet.cssRules || []);
+          for (const rule of rules) {
+            if (rule.type === CSSRule.IMPORT_RULE && rule.href) {
+              try {
+                const res = await fetch(rule.href);
+                const importedText = await res.text();
+                pageCss += (await inlineCssUrls(importedText, rule.href)) + '\n';
+              } catch (e) {
+                // ignore
+              }
+            } else if (rule.cssText.includes('@font-face')) {
+              pageCss += (await inlineCssUrls(rule.cssText, sheet.href || window.location.href)) + '\n';
+            } else {
+              pageCss += rule.cssText + '\n';
+            }
+          }
+        } catch (e) {
+          if (sheet.href) {
+            try {
+              const res = await fetch(sheet.href);
+              const extCss = await res.text();
+              pageCss += (await inlineCssUrls(extCss, sheet.href)) + '\n';
+            } catch (err) {
+              // ignore
+            }
+          }
+        }
+      }
 
       const clone = sheetEl.cloneNode(true);
-
-      // Copy computed styles recursively from live DOM to cloned tree
-      const copyStyles = (srcNode, destNode) => {
-        if (srcNode.nodeType !== 1 || destNode.nodeType !== 1) return;
-        const computed = window.getComputedStyle(srcNode);
-        let cssText = computed.cssText;
-        if (!cssText) {
-          cssText = '';
-          for (let i = 0; i < computed.length; i++) {
-            const prop = computed[i];
-            cssText += `${prop}:${computed.getPropertyValue(prop)};`;
-          }
-        }
-        destNode.style.cssText = cssText;
-
-        const srcChildren = srcNode.children;
-        const destChildren = destNode.children;
-        for (let i = 0; i < srcChildren.length; i++) {
-          if (destChildren[i]) {
-            copyStyles(srcChildren[i], destChildren[i]);
-          }
-        }
-      };
-
-      copyStyles(sheetEl, clone);
       clone.style.margin = '0';
       clone.style.transform = 'none';
       clone.style.boxShadow = 'none';
+      clone.style.border = 'none';
       clone.style.width = `${width}px`;
       clone.style.height = `${height}px`;
+      clone.style.minHeight = `${height}px`;
+      clone.style.maxHeight = `${height}px`;
       clone.style.backgroundColor = '#ffffff';
+      clone.style.boxSizing = 'border-box';
 
       // Convert all <img> tags inside the clone to Base64 data URLs
       const origImgs = sheetEl.querySelectorAll('img');
@@ -318,10 +360,20 @@ export default function InsightArticleDetail({ params }) {
         })
       );
 
+      // Escape closing style tags if any exist inside CSS strings
+      const safeCss = pageCss.replace(/<\/style/gi, '<\\/style');
+      const bodyClasses = (document.body?.className || '').replace(/dark/g, '').trim();
       const serializedHtml = new XMLSerializer().serializeToString(clone);
       const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <style type="text/css"><![CDATA[
+            ${safeCss}
+          ]]></style>
+        </defs>
         <foreignObject width="100%" height="100%">
-          ${serializedHtml}
+          <div xmlns="http://www.w3.org/1999/xhtml" class="${bodyClasses}" style="margin:0;padding:0;width:${width}px;height:${height}px;background:#ffffff;">
+            ${serializedHtml}
+          </div>
         </foreignObject>
       </svg>`;
 
@@ -335,7 +387,7 @@ export default function InsightArticleDetail({ params }) {
         img.src = svgDataUrl;
       });
 
-      const scale = 2; // High-resolution 2x output
+      const scale = 2; // High-resolution 2x output (1588 x 2246 px Full A4)
       const canvas = document.createElement('canvas');
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -601,7 +653,6 @@ export default function InsightArticleDetail({ params }) {
           ? 'w-[210mm] h-[297mm] min-h-[297mm] max-h-[297mm] p-[9mm_11mm] shadow-2xl border border-slate-300 mx-auto overflow-hidden'
           : 'w-[210mm] h-[297mm] min-h-[297mm] max-h-[297mm] p-[9mm_11mm] overflow-hidden'
       }`}
-      style={{ fontFamily: "'Merriweather', Georgia, 'Times New Roman', serif" }}
     >
       {/* TOP SECTION: MASTHEAD + HEADLINE + HERO + BODY */}
       <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
