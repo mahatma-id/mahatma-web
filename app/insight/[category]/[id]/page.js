@@ -83,6 +83,12 @@ export default function InsightArticleDetail({ params }) {
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [isDownloadingJpg, setIsDownloadingJpg] = useState(false);
   const newspaperPreviewRef = useRef(null);
+  const newspaperPrintRef = useRef(null);
+
+  // Auto-Fit Full A4 State (menyesuaikan jumlah karakter & ukuran teks agar lembar A4 210x297mm selalu terisi penuh dari atas ke bawah)
+  const [fitCharLimit, setFitCharLimit] = useState(null);
+  const [fitFontPt, setFitFontPt] = useState(9.4);
+  const fitTrackerRef = useRef({ step: 220, dir: 0, tries: 0, postKey: '' });
 
   // Comment state
   const [name, setName] = useState('');
@@ -150,6 +156,63 @@ export default function InsightArticleDetail({ params }) {
     };
   }, [id]);
 
+  // Auto-Fit Engine: Pastikan isi koran + QR Code selalu memenuhi tinggi kertas Full A4 (210mm x 297mm) tanpa terpotong dan tanpa ruang kosong
+  useEffect(() => {
+    if (!post) return;
+    const defaultCap = post.coverUrl ? 3450 : 4450;
+    if (fitTrackerRef.current.postKey !== id) {
+      fitTrackerRef.current = { step: 240, dir: 0, tries: 0, postKey: id };
+      setFitCharLimit(defaultCap);
+      setFitFontPt(8.5);
+      return;
+    }
+    if (fitCharLimit === null) {
+      setFitCharLimit(defaultCap);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const sheetEl = newspaperPreviewRef.current || newspaperPrintRef.current;
+      if (!sheetEl) return;
+      const wrapperEl = sheetEl.querySelector('[data-newspaper-body-wrapper]');
+      const colsEl = sheetEl.querySelector('[data-newspaper-columns]');
+      if (!wrapperEl || !colsEl) return;
+
+      const availH = wrapperEl.clientHeight;
+      const contentH = colsEl.offsetHeight;
+      if (availH <= 100 || contentH <= 0) return;
+
+      const tracker = fitTrackerRef.current;
+      if (tracker.tries >= 14) return;
+
+      const totalPlainLen = stripHtml(post.content || '').length;
+
+      if (contentH > availH - 2) {
+        // Isi melebihi batas bawah A4 -> kurangi kapasitas karakter agar QR Code tidak terpotong
+        if (tracker.dir === 1) {
+          tracker.step = Math.max(25, Math.floor(tracker.step / 2));
+        }
+        tracker.dir = -1;
+        tracker.tries += 1;
+        setFitCharLimit(prev => Math.max(700, (prev || defaultCap) - tracker.step));
+      } else if (contentH < availH - 22) {
+        // Masih ada ruang kosong di bagian bawah A4 -> tambah karakter atau perbesar sedikit font
+        if (tracker.dir === -1) {
+          tracker.step = Math.max(25, Math.floor(tracker.step / 2));
+        }
+        tracker.dir = 1;
+        tracker.tries += 1;
+        if ((fitCharLimit || defaultCap) < totalPlainLen + 300) {
+          setFitCharLimit(prev => (prev || defaultCap) + tracker.step);
+        } else if (fitFontPt < 11) {
+          setFitFontPt(prev => Number((prev + 0.25).toFixed(2)));
+        }
+      }
+    }, 25);
+
+    return () => clearTimeout(timer);
+  }, [post, id, showPrintPreview, fitCharLimit, fitFontPt]);
+
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href);
@@ -171,7 +234,7 @@ export default function InsightArticleDetail({ params }) {
     setIsDownloadingJpg(true);
     try {
       const width = sheetEl.offsetWidth || 794;
-      const height = sheetEl.offsetHeight || 1123;
+      const height = Math.round(width * (297 / 210)); // Strict Full A4 aspect ratio (210mm x 297mm)
 
       // Helper to convert any image element or URL to Base64 Data URL so SVG foreignObject never taints canvas
       const imgElementToDataUrl = async (origImgEl) => {
@@ -456,9 +519,9 @@ export default function InsightArticleDetail({ params }) {
     }
   }
 
-  // Ambil paragraf/blok secara berurutan agar muat banyak dan pas 1 halaman A4
+  // Ambil paragraf/blok secara berurutan dengan kapasitas dinamis (Auto-Fit Full A4 210x297mm)
   const hasCover = Boolean(post.coverUrl);
-  const maxCharCapacity = hasCover ? 2650 : 3400;
+  const maxCharCapacity = fitCharLimit || (hasCover ? 3450 : 4450);
   const printBlocks = [];
   let accumulatedCost = 0;
 
@@ -469,13 +532,15 @@ export default function InsightArticleDetail({ params }) {
       accumulatedCost += blk.cost;
     } else if (blk.type === 'paragraph') {
       const remaining = maxCharCapacity - accumulatedCost;
-      if (remaining > 90) {
+      if (remaining > 60) {
         let cut = blk.text.substring(0, remaining);
         const lastPeriod = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
-        if (lastPeriod > 45) {
+        if (lastPeriod > remaining - 95 && lastPeriod > 40) {
           cut = cut.substring(0, lastPeriod + 1);
         } else {
-          cut = cut.trim() + '...';
+          const lastSpace = cut.lastIndexOf(' ');
+          if (lastSpace > 30) cut = cut.substring(0, lastSpace);
+          cut = cut.replace(/[.,;:\s]+$/, '') + '...';
         }
         printBlocks.push({
           type: 'paragraph',
@@ -498,15 +563,11 @@ export default function InsightArticleDetail({ params }) {
   // Indeks paragraf pertama untuk penempatan Dateline (MALANG —) atau Drop Cap
   const firstParagraphIdx = printBlocks.findIndex(b => b.type === 'paragraph');
 
-  // Ukuran font & kolom koran menyesuaikan panjang isi agar muat banyak namun tetap nyaman dibaca
-  let printFontSize = '8.6pt';
-  let printLineHeight = '1.42';
-  let printCols = 2;
-  if (accumulatedCost > 1900) {
-    printFontSize = '8pt';
-    printLineHeight = '1.38';
-    printCols = 3;
-  }
+  // Ukuran font & kolom koran menyesuaikan panjang isi agar memenuhi 1 halaman Full A4 (210mm x 297mm)
+  const totalArticlePlainLen = stripHtml(post.content || '').length;
+  const printFontSize = `${fitFontPt}pt`;
+  const printLineHeight = fitFontPt > 9.2 ? '1.5' : '1.4';
+  const printCols = totalArticlePlainLen < 1400 ? 2 : 3;
 
   // Footer contact data from Admin Settings
   const footerPhone = settings.phone || '+62 851-8563-9375';
@@ -531,19 +592,19 @@ export default function InsightArticleDetail({ params }) {
     2: 'prose-lg text-[1.2rem] leading-[1.95]'
   };
 
-  // Reusable A4 Newspaper Sheet Component (used both in Preview Modal & @media print)
+  // Reusable Full A4 Newspaper Sheet Component (210mm x 297mm Penuh untuk Preview, JPG, & PDF)
   const renderNewspaperA4Sheet = (isPreview = false) => (
     <div
-      ref={isPreview ? newspaperPreviewRef : null}
-      className={`newspaper-a4-sheet bg-white text-slate-900 flex flex-col justify-start box-border ${
+      ref={isPreview ? newspaperPreviewRef : newspaperPrintRef}
+      className={`newspaper-a4-sheet bg-white text-slate-900 flex flex-col justify-between box-border ${
         isPreview
-          ? 'w-[210mm] max-h-[297mm] p-[10mm_12mm] shadow-2xl border border-slate-300 mx-auto overflow-hidden'
-          : 'w-[210mm] max-h-[297mm] p-[9mm_11mm] overflow-hidden'
+          ? 'w-[210mm] h-[297mm] min-h-[297mm] max-h-[297mm] p-[9mm_11mm] shadow-2xl border border-slate-300 mx-auto overflow-hidden'
+          : 'w-[210mm] h-[297mm] min-h-[297mm] max-h-[297mm] p-[9mm_11mm] overflow-hidden'
       }`}
       style={{ fontFamily: "'Merriweather', Georgia, 'Times New Roman', serif" }}
     >
       {/* TOP SECTION: MASTHEAD + HEADLINE + HERO + BODY */}
-      <div className="flex flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
         
         {/* 1. MASTHEAD KORAN / MAJALAH MAHATMA */}
         <header className="border-b-[2.5px] border-slate-900 pb-2 mb-2.5 shrink-0">
@@ -652,11 +713,15 @@ export default function InsightArticleDetail({ params }) {
         )}
 
         {/* 4. MULTI-COLUMN NEWSPAPER BODY + INLINE IMAGES + CORNER QR CODE */}
-        <div className="overflow-hidden relative">
+        <div
+          data-newspaper-body-wrapper="true"
+          className="flex-1 min-h-0 overflow-hidden relative"
+        >
           <div
+            data-newspaper-columns="true"
             style={{
               columnCount: printCols,
-              columnGap: '18px',
+              columnGap: '15px',
               columnRule: '1px solid #cbd5e1',
               fontSize: printFontSize,
               lineHeight: printLineHeight,
@@ -890,15 +955,16 @@ export default function InsightArticleDetail({ params }) {
           box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
         }
 
-        /* STRICT 1-PAGE A4 MAGAZINE / NEWSPAPER PRINT ENGINE */
+        /* STRICT 1-PAGE FULL A4 (210mm x 297mm) MAGAZINE / NEWSPAPER PRINT ENGINE */
         @page {
-          size: A4 portrait;
-          margin: 0mm;
+          size: 210mm 297mm;
+          margin: 0mm !important;
         }
         @media print {
           html, body {
             width: 210mm !important;
             height: 297mm !important;
+            min-height: 297mm !important;
             max-height: 297mm !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -914,20 +980,36 @@ export default function InsightArticleDetail({ params }) {
             display: none !important;
           }
           .print-only-newspaper-container {
+            position: static !important;
+            left: 0 !important;
+            top: 0 !important;
+            opacity: 1 !important;
+            z-index: auto !important;
+            pointer-events: auto !important;
             display: block !important;
             width: 210mm !important;
             height: 297mm !important;
+            min-height: 297mm !important;
             max-height: 297mm !important;
             overflow: hidden !important;
             page-break-after: avoid !important;
             page-break-before: avoid !important;
             page-break-inside: avoid !important;
           }
+          .newspaper-a4-sheet {
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
         }
       `}</style>
 
-      {/* DEDICATED 1-PAGE A4 NEWSPAPER SHEET FOR DIRECT PRINTING */}
-      <div className="print-only-newspaper-container hidden print:block">
+      {/* DEDICATED 1-PAGE FULL A4 NEWSPAPER SHEET (ALWAYS MEASURED FOR AUTO-FIT & DIRECT PRINTING) */}
+      <div className="print-only-newspaper-container fixed -left-[9999px] top-0 z-[-1] pointer-events-none opacity-0 print:static print:left-0 print:opacity-100 print:pointer-events-auto print:block">
         {renderNewspaperA4Sheet(false)}
       </div>
 
