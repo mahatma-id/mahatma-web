@@ -361,28 +361,7 @@ export default function TabBlog() {
                             />
                         </div>
 
-                        {/* 3. RINGKASAN / LEAD EXCERPT (PENTING GOOGLE & WA) */}
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label className="text-xs font-black text-slate-700 uppercase tracking-wider block">
-                                    3. Ringkasan Singkat / Lead (Muncul di Google Snippet & WhatsApp Preview)
-                                </label>
-                                <span className={`text-[11px] font-bold ${
-                                    postExcerpt.length >= 100 && postExcerpt.length <= 160 ? 'text-emerald-600' : 'text-slate-400'
-                                }`}>
-                                    {postExcerpt.length} / 160 karakter
-                                </span>
-                            </div>
-                            <textarea 
-                                value={postExcerpt} 
-                                onChange={e => setPostExcerpt(e.target.value)} 
-                                rows={2}
-                                placeholder="Tuliskan 1-2 kalimat pemantik inti berita. Ini adalah teks yang pertama kali dibaca orang saat link dibagikan di WhatsApp..." 
-                                className="w-full border border-slate-200 p-3 rounded-xl text-xs md:text-sm text-slate-800 focus:outline-none focus:border-emerald-500 transition" 
-                            />
-                        </div>
-
-                        {/* 4. REDAKSI: DATELINE, PENULIS, TAGS */}
+                        {/* 3. REDAKSI: DATELINE, PENULIS, TAGS */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                             {/* Dateline Peliputan */}
                             <div>
@@ -443,10 +422,10 @@ export default function TabBlog() {
                             </div>
                         </div>
 
-                        {/* 5. GAMBAR COVER / THUMBNAIL (PENTING SHARELINK) */}
+                        {/* 4. GAMBAR COVER / THUMBNAIL (PENTING SHARELINK) */}
                         <div className="pt-2 border-t">
                             <label className="text-xs font-black text-slate-700 uppercase tracking-wider block mb-1">
-                                5. Gambar Cover / Thumbnail Berita (Wajib 16:9 untuk Sharelink WA & Google News)
+                                4. Gambar Cover / Thumbnail Berita (Wajib 16:9 untuk Sharelink WA & Google News)
                             </label>
                             <p className="text-[11px] text-slate-500 mb-3">
                                 Gunakan gambar beresolusi tajam (disarankan 1200x675 piksel). Thumbnail ini yang otomatis tampil besar saat link dibagikan di WhatsApp, Twitter/X, dan Facebook.
@@ -514,11 +493,11 @@ export default function TabBlog() {
                             </div>
                         </div>
 
-                        {/* 6. EDITOR TEKS REDAKSI DENGAN STATISTIK MENGETIK */}
+                        {/* 5. EDITOR TEKS REDAKSI DENGAN STATISTIK MENGETIK */}
                         <div className="pt-4 border-t">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                                 <label className="text-xs font-black text-slate-700 uppercase tracking-wider block">
-                                    6. Isi Konten Artikel
+                                    5. Isi Konten Artikel
                                 </label>
                                 
                                 {/* Real-time writing stats */}

@@ -21,7 +21,7 @@ export default function CookieBanner() {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur text-white p-4 z-[9999] border-t border-slate-700 shadow-2xl">
+    <div className="no-print print:hidden fixed bottom-0 left-0 w-full bg-slate-900/95 backdrop-blur text-white p-4 z-[9999] border-t border-slate-700 shadow-2xl">
       <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-4 text-xs md:text-sm">
         <p className="text-slate-300 text-center md:text-left max-w-3xl">
           We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies. 

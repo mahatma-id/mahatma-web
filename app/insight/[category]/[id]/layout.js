@@ -1,16 +1,8 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getCategorySlug, getCategoryLabel, stripHtml, getExcerpt } from '@/lib/insight';
+import { getCategorySlug, getCategoryLabel, getExcerpt, getOptimizedOgImageUrl } from '@/lib/insight';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://mahatma.id';
-const DEFAULT_IMAGE = `${SITE_URL}/Logo%20Mode%20Terang.png`;
-
-function resolveImageUrl(url) {
-  if (!url) return DEFAULT_IMAGE;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return `${SITE_URL}${url}`;
-  return `${SITE_URL}/${url}`;
-}
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
@@ -27,8 +19,11 @@ export async function generateMetadata({ params }) {
       const actualCategory = getCategorySlug(post.category || categorySlug);
       const categoryLabel = getCategoryLabel(actualCategory);
       const title = `${post.title} | Mahatma Academy`;
-      const plainDesc = post.excerpt || getExcerpt(post.content, 160) || 'Wawasan dan pemikiran strategis dari Mahatma Academy.';
-      const coverUrl = resolveImageUrl(post.coverUrl);
+      const plainDesc = post.excerpt || getExcerpt(post.content, 155) || 'Wawasan dan pemikiran strategis dari Mahatma Academy.';
+      
+      // Optimasi gambar ke JPG < 120KB agar 100% muncul di WhatsApp, Facebook, X, & LinkedIn
+      const ogImageLarge = getOptimizedOgImageUrl(post.coverUrl, 1200, 630, 75);
+      const ogImageCompact = getOptimizedOgImageUrl(post.coverUrl, 600, 315, 75);
       const canonicalUrl = `${SITE_URL}/insight/${actualCategory}/${id}`;
 
       let publishedTime = undefined;
@@ -76,9 +71,19 @@ export async function generateMetadata({ params }) {
           tags: post.tags ? post.tags.split(',').map(t => t.trim()) : undefined,
           images: [
             {
-              url: coverUrl,
+              url: ogImageLarge,
+              secureUrl: ogImageLarge,
               width: 1200,
               height: 630,
+              type: 'image/jpeg',
+              alt: post.title,
+            },
+            {
+              url: ogImageCompact,
+              secureUrl: ogImageCompact,
+              width: 600,
+              height: 315,
+              type: 'image/jpeg',
               alt: post.title,
             },
           ],
@@ -89,7 +94,7 @@ export async function generateMetadata({ params }) {
           description: plainDesc,
           site: '@mahatma_academy',
           creator: '@mahatma_academy',
-          images: [coverUrl],
+          images: [ogImageLarge],
         },
       };
     }
@@ -119,9 +124,13 @@ export default async function InsightArticleLayout({ children, params }) {
       const actualCat = getCategorySlug(post.category || categorySlug);
       const isOpini = actualCat === 'opini';
       const canonicalUrl = `${SITE_URL}/insight/${actualCat}/${id}`;
-      const coverUrl = resolveImageUrl(post.coverUrl);
       const description = post.excerpt || getExcerpt(post.content, 180);
       
+      // Standar Google News: Sediakan rasio 16:9, 4:3, dan 1:1 minimal lebar 1200px
+      const img16x9 = getOptimizedOgImageUrl(post.coverUrl, 1200, 675, 82);
+      const img4x3 = getOptimizedOgImageUrl(post.coverUrl, 1200, 900, 82);
+      const img1x1 = getOptimizedOgImageUrl(post.coverUrl, 1200, 1200, 82);
+
       const datePublished = (post.createdAt && typeof post.createdAt.toDate === 'function')
         ? post.createdAt.toDate().toISOString()
         : new Date().toISOString();
@@ -139,7 +148,7 @@ export default async function InsightArticleLayout({ children, params }) {
         },
         headline: post.title,
         description: description,
-        image: [coverUrl],
+        image: [img16x9, img4x3, img1x1],
         datePublished: datePublished,
         dateModified: dateModified,
         inLanguage: 'id-ID',

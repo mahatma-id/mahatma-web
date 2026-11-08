@@ -15,6 +15,7 @@ const merriweather = Merriweather({
 
 // PENGATURAN METADATA (SEO & BRANDING)
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://mahatma.id"),
   // Judul di Tab Browser
   title: "Mahatma Academy - Beyond Excellent, Toward Sustainability",
   

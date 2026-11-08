@@ -1,32 +1,28 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getOptimizedOgImageUrl } from '@/lib/insight';
 
 // FITUR INI KHUSUS UNTUK MEMBERIKAN PREVIEW KE WHATSAPP, FB, DLL (SEO & OPEN GRAPH)
 export async function generateMetadata({ params }) {
-  // Tunggu parameter ID (yang sekarang berupa SLUG, misal: pelatihan-ai-untuk-kuliah)
   const resolvedParams = await params;
   const id = resolvedParams.id;
 
   try {
-    // Ambil data event dari Firebase berdasarkan SLUG
     const docRef = doc(db, "events", id);
     const docSnap = await getDoc(docRef);
 
-    // Ambil data logo dari pengaturan umum (fallback jika event tidak ada banner)
     const generalSnap = await getDoc(doc(db, "settings", "general"));
-    let fallbackLogo = 'https://mahatma.id/icon.png';
+    let fallbackLogo = 'https://mahatma.id/Logo%20Mahatma.png';
     if(generalSnap.exists() && generalSnap.data().logoUrl) {
        fallbackLogo = generalSnap.data().logoUrl;
     }
 
     if (docSnap.exists()) {
       const event = docSnap.data();
-      
-      // Bersihkan teks deskripsi untuk dijadikan ringkasan di WhatsApp (maks 120 huruf)
-      const plainDesc = event.desc ? event.desc.substring(0, 120) + '...' : 'Ikuti event dan pelatihan terbaru dari Mahatma Academy.';
-
-      // Prioritaskan gambar Event. Jika tidak ada, pakai logo Mahatma.
-      const ogImage = event.imgUrl || fallbackLogo;
+      const plainDesc = event.desc ? event.desc.substring(0, 155) + '...' : 'Ikuti event dan pelatihan terbaru dari Mahatma Academy.';
+      const rawImage = event.imgUrl || fallbackLogo;
+      const ogImageLarge = getOptimizedOgImageUrl(rawImage, 1200, 630, 75);
+      const ogImageCompact = getOptimizedOgImageUrl(rawImage, 600, 315, 75);
 
       return {
         title: `${event.name} | MAHATMA ACADEMY`,
@@ -37,9 +33,19 @@ export async function generateMetadata({ params }) {
           siteName: 'MAHATMA ACADEMY',
           images: [
             {
-              url: ogImage,
+              url: ogImageLarge,
+              secureUrl: ogImageLarge,
               width: 1200,
               height: 630,
+              type: 'image/jpeg',
+              alt: event.name,
+            },
+            {
+              url: ogImageCompact,
+              secureUrl: ogImageCompact,
+              width: 600,
+              height: 315,
+              type: 'image/jpeg',
               alt: event.name,
             },
           ],
@@ -49,7 +55,7 @@ export async function generateMetadata({ params }) {
           card: 'summary_large_image',
           title: event.name,
           description: plainDesc,
-          images: [ogImage],
+          images: [ogImageLarge],
         },
       };
     }
@@ -57,13 +63,11 @@ export async function generateMetadata({ params }) {
     console.error("Error SEO Metadata Event:", error);
   }
 
-  // Fallback jika event tidak ditemukan (mencegah error bot WA)
   return {
     title: 'Event | MAHATMA ACADEMY',
   };
 }
 
-// Layout ini hanya membungkus dan merender page.js di dalamnya
 export default function EventLayout({ children }) {
   return <>{children}</>;
 }

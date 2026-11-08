@@ -34,6 +34,13 @@ export default function TabEvents() {
     ];
     const [formSections, setFormSections] = useState(defaultSections);
 
+    // --- HALAMAN KHUSUS GABUNG GRUP SEBELUM KLIK DAFTAR / KIRIM ---
+    const [hasGroupStep, setHasGroupStep] = useState(false);
+    const [groupInviteTitle, setGroupInviteTitle] = useState('Gabung Grup WhatsApp Peserta');
+    const [groupInviteUrl, setGroupInviteUrl] = useState('');
+    const [groupInviteDesc, setGroupInviteDesc] = useState('Silakan bergabung ke dalam grup koordinasi peserta terlebih dahulu melalui tombol di bawah ini sebelum menyelesaikan pendaftaran.');
+    const [requireGroupConfirm, setRequireGroupConfirm] = useState(true);
+
     // --- SKEMA HTM & BIAYA ---
     // 'free' (Gratis), 'voluntary' (Sistem Ikhlas/Sukarela), 'fixed' (Satu Harga), 'tiered' (Internal vs Eksternal)
     const [pricingType, setPricingType] = useState('free');
@@ -101,6 +108,11 @@ export default function TabEvents() {
                 ]
             }
         ]);
+        setHasGroupStep(false);
+        setGroupInviteTitle('Gabung Grup WhatsApp Peserta');
+        setGroupInviteUrl('');
+        setGroupInviteDesc('Silakan bergabung ke dalam grup koordinasi peserta terlebih dahulu melalui tombol di bawah ini sebelum menyelesaikan pendaftaran.');
+        setRequireGroupConfirm(true);
         setPricingType('free');
         setHtmPrice(0);
         setInternalPricingType('free');
@@ -146,6 +158,14 @@ export default function TabEvents() {
         } else {
             setFormSections(defaultSections);
         }
+
+        // Pengaturan Halaman Khusus Gabung Grup
+        const savedGroupUrl = e.groupInviteUrl || '';
+        setHasGroupStep(Boolean(e.hasGroupStep || savedGroupUrl));
+        setGroupInviteTitle(e.groupInviteTitle || 'Gabung Grup WhatsApp Peserta');
+        setGroupInviteUrl(savedGroupUrl);
+        setGroupInviteDesc(e.groupInviteDesc || 'Silakan bergabung ke dalam grup koordinasi peserta terlebih dahulu melalui tombol di bawah ini sebelum menyelesaikan pendaftaran.');
+        setRequireGroupConfirm(e.requireGroupConfirm !== undefined ? e.requireGroupConfirm : true);
 
         // Pricing Logic
         const detectedPricingType = e.pricingType || (e.htmPrice > 0 ? 'fixed' : 'free');
@@ -205,6 +225,12 @@ export default function TabEvents() {
                 // Multi-halaman sections
                 formSections: isRegistration ? formSections : [],
                 formFields: isRegistration ? flattenedFields : [],
+                // Halaman Khusus Gabung Grup Peserta Sebelum Klik Daftar
+                hasGroupStep: isRegistration && hasGroupStep && Boolean(groupInviteUrl.trim()),
+                groupInviteTitle: isRegistration && hasGroupStep ? (groupInviteTitle.trim() || 'Gabung Grup WhatsApp Peserta') : '',
+                groupInviteUrl: isRegistration && hasGroupStep ? groupInviteUrl.trim() : '',
+                groupInviteDesc: isRegistration && hasGroupStep ? groupInviteDesc.trim() : '',
+                requireGroupConfirm: isRegistration && hasGroupStep ? requireGroupConfirm : true,
                 // Pricing Model
                 pricingType: isRegistration ? pricingType : 'free',
                 htmPrice: isRegistration ? (pricingType === 'fixed' ? Number(htmPrice) : 0) : 0,
@@ -589,6 +615,19 @@ export default function TabEvents() {
                                                         className="w-full border border-slate-300 p-2 rounded-xl text-xs bg-white focus:border-emerald-500 outline-none text-slate-600" 
                                                     />
                                                 </div>
+                                                <div>
+                                                    <label className="text-[11px] font-black uppercase tracking-wider text-emerald-700 flex items-center gap-1.5 mb-1">
+                                                        <span>💬</span>
+                                                        <span>Link Grup WhatsApp / Telegram pada Halaman Ini (Opsional)</span>
+                                                    </label>
+                                                    <input 
+                                                        type="url" 
+                                                        value={section.groupLink || ''} 
+                                                        onChange={e => updateSectionInfo(sIndex, 'groupLink', e.target.value)} 
+                                                        placeholder="Contoh: https://chat.whatsapp.com/... (Jika diisi, akan muncul tombol klik Gabung Grup di halaman ini)" 
+                                                        className="w-full border border-emerald-200 p-2 rounded-xl text-xs bg-white focus:border-emerald-500 outline-none text-emerald-800 font-mono" 
+                                                    />
+                                                </div>
                                             </div>
 
                                             {/* Questions inside this section */}
@@ -704,6 +743,104 @@ export default function TabEvents() {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+
+                                {/* ======================================================== */}
+                                {/* HALAMAN KHUSUS GABUNG GRUP SEBELUM KLIK DAFTAR / KIRIM */}
+                                {/* ======================================================== */}
+                                <div className="mt-6 bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white rounded-2xl border-2 border-emerald-300 p-5 shadow-xs space-y-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shrink-0 shadow-xs">
+                                                💬
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <h5 className="text-sm font-black text-slate-900 uppercase tracking-wide">
+                                                        Halaman Khusus Gabung Grup (Sebelum Klik Daftar)
+                                                    </h5>
+                                                    <span className="text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+                                                        Fitur Khusus Grup
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                                                    Buat halaman khusus otomatis di tahap akhir sebelum tombol <b>Daftar / Kirim</b> agar peserta wajib klik tautan grup (WhatsApp / Telegram) terlebih dahulu.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <label className="inline-flex items-center gap-2.5 bg-white px-4 py-2.5 rounded-xl border-2 border-emerald-500 cursor-pointer shrink-0 self-start sm:self-center shadow-2xs">
+                                            <input
+                                                type="checkbox"
+                                                checked={hasGroupStep}
+                                                onChange={(e) => setHasGroupStep(e.target.checked)}
+                                                className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
+                                            />
+                                            <span className="text-xs font-black text-emerald-900 uppercase tracking-wider">
+                                                {hasGroupStep ? 'Aktif' : 'Aktifkan Halaman Grup'}
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    {hasGroupStep && (
+                                        <div className="bg-white p-4 md:p-5 rounded-xl border border-emerald-200 space-y-4 pt-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-700 block mb-1">
+                                                        Judul Halaman / Nama Grup
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={groupInviteTitle}
+                                                        onChange={(e) => setGroupInviteTitle(e.target.value)}
+                                                        placeholder="Contoh: Halaman Khusus: Gabung Grup WhatsApp Peserta"
+                                                        className="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-bold bg-white focus:border-emerald-500 outline-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-black uppercase tracking-wider text-emerald-700 block mb-1">
+                                                        Link Undangan Grup (WhatsApp / Telegram) <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="url"
+                                                        value={groupInviteUrl}
+                                                        onChange={(e) => setGroupInviteUrl(e.target.value)}
+                                                        placeholder="https://chat.whatsapp.com/..."
+                                                        required={hasGroupStep}
+                                                        className="w-full border-2 border-emerald-400 p-2.5 rounded-xl text-xs font-mono font-bold bg-emerald-50/30 focus:bg-white focus:border-emerald-600 outline-none text-emerald-900"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[11px] font-black uppercase tracking-wider text-slate-700 block mb-1">
+                                                    Pesan Instruksi untuk Peserta
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={groupInviteDesc}
+                                                    onChange={(e) => setGroupInviteDesc(e.target.value)}
+                                                    placeholder="Silakan klik tombol Gabung Grup di bawah ini sebelum menyelesaikan pendaftaran..."
+                                                    className="w-full border border-slate-300 p-2.5 rounded-xl text-xs bg-white focus:border-emerald-500 outline-none text-slate-700"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                                                <label className="flex items-center gap-2 text-xs font-bold text-slate-800 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={requireGroupConfirm}
+                                                        onChange={(e) => setRequireGroupConfirm(e.target.checked)}
+                                                        className="w-4 h-4 text-emerald-600 rounded cursor-pointer"
+                                                    />
+                                                    <span>Wajibkan peserta mencentang konfirmasi <b>&ldquo;Saya sudah masuk grup&rdquo;</b> sebelum bisa klik Daftar</span>
+                                                </label>
+                                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                                    ✓ Muncul otomatis sebagai halaman terakhir sebelum tombol Daftar
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

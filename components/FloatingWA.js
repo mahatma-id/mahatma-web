@@ -22,7 +22,7 @@ export default function FloatingWA() {
             href={`https://wa.me/${phone}`} 
             target="_blank" 
             rel="noreferrer" 
-            className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[99] bg-green-500 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(34,197,94,0.5)] hover:bg-green-600 hover:scale-110 transition-all duration-300 group"
+            className="no-print print:hidden fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[99] bg-green-500 text-white w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_10px_40px_rgba(34,197,94,0.5)] hover:bg-green-600 hover:scale-110 transition-all duration-300 group"
             title="Hubungi Kami via WhatsApp"
         >
             <svg className="w-8 h-8 md:w-9 md:h-9" fill="currentColor" viewBox="0 0 24 24">

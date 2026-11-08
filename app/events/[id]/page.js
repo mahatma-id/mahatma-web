@@ -36,6 +36,8 @@ export default function EventDetail({ params }) {
     // Copy feedback state
     const [copiedNmid, setCopiedNmid] = useState(false);
     const [copiedAccount, setCopiedAccount] = useState(false);
+    const [copiedGroupLink, setCopiedGroupLink] = useState(false);
+    const [groupConfirmed, setGroupConfirmed] = useState(false);
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -86,27 +88,70 @@ export default function EventDetail({ params }) {
             } else if (type === 'account') {
                 setCopiedAccount(true);
                 setTimeout(() => setCopiedAccount(false), 2000);
+            } else if (type === 'group') {
+                setCopiedGroupLink(true);
+                setTimeout(() => setCopiedGroupLink(false), 2000);
             }
         } catch (err) {
             console.error('Gagal menyalin:', err);
         }
     };
 
+    // Helper untuk mendeteksi URL Grup dari groupLink atau teks deskripsi halaman
+    const extractSectionGroupUrl = (section) => {
+        if (!section) return '';
+        if (section.groupLink && section.groupLink.trim()) {
+            return section.groupLink.trim();
+        }
+        if (section.desc) {
+            const urlMatch = section.desc.match(/https?:\/\/[^\s]+/i);
+            if (urlMatch) return urlMatch[0];
+        }
+        return '';
+    };
+
+    // Bersihkan teks deskripsi dari raw URL jika sudah ditampilkan sebagai kartu tombol interaktif
+    const getCleanSectionDesc = (section) => {
+        if (!section?.desc) return '';
+        return section.desc
+            .replace(/Link\s*:\s*https?:\/\/[^\s]+/gi, '')
+            .replace(/https?:\/\/[^\s]+/gi, '')
+            .trim();
+    };
+
     // --- HITUNG STRUKTUR HALAMAN / SECTIONS ---
     const getSections = () => {
         if (!eventData) return [];
+        let baseSections = [];
         if (eventData.formSections && Array.isArray(eventData.formSections) && eventData.formSections.length > 0) {
-            return eventData.formSections;
-        }
-        if (eventData.formFields && Array.isArray(eventData.formFields) && eventData.formFields.length > 0) {
-            return [{
+            baseSections = [...eventData.formSections];
+        } else if (eventData.formFields && Array.isArray(eventData.formFields) && eventData.formFields.length > 0) {
+            baseSections = [{
                 id: 'sec_1',
                 title: 'Data Pendaftaran',
                 desc: 'Silakan isi formulir di bawah ini dengan lengkap.',
                 fields: eventData.formFields
             }];
         }
-        return [];
+
+        // Jika Admin mengaktifkan Halaman Khusus Gabung Grup Sebelum Klik Daftar
+        const inviteUrl = (eventData.groupInviteUrl || '').trim();
+        if (inviteUrl) {
+            const alreadyInSection = baseSections.some(sec => extractSectionGroupUrl(sec) === inviteUrl);
+            if (!alreadyInSection) {
+                baseSections.push({
+                    id: 'sec_group_invite',
+                    title: eventData.groupInviteTitle || `Halaman ${baseSections.length + 1}: Gabung Grup Peserta`,
+                    desc: eventData.groupInviteDesc || 'Silakan bergabung ke dalam grup koordinasi peserta terlebih dahulu melalui tombol di bawah ini sebelum menyelesaikan pendaftaran.',
+                    groupLink: inviteUrl,
+                    isDedicatedGroupStep: true,
+                    requireConfirm: eventData.requireGroupConfirm !== false,
+                    fields: []
+                });
+            }
+        }
+
+        return baseSections;
     };
 
     const sections = getSections();
@@ -155,8 +200,14 @@ export default function EventDetail({ params }) {
     // Validasi field pada step tertentu
     const validateCurrentStep = (stepIndex) => {
         if (!sections[stepIndex]) return true;
-        const currentFields = sections[stepIndex].fields || [];
+        const sec = sections[stepIndex];
+        const currentFields = sec.fields || [];
         
+        if (sec.isDedicatedGroupStep && sec.requireConfirm !== false && !groupConfirmed) {
+            setStepValidationError('Silakan klik tombol Gabung Grup terlebih dahulu lalu centang konfirmasi "Saya sudah bergabung ke dalam grup peserta" sebelum menyelesaikan pendaftaran.');
+            return false;
+        }
+
         for (const field of currentFields) {
             if (field.required) {
                 if (field.type === 'checkbox') {
@@ -267,6 +318,7 @@ export default function EventDetail({ params }) {
 
             const participantData = {
                 ...processedFormData,
+                ...(eventData.groupInviteUrl ? { 'Status Gabung Grup': groupConfirmed ? 'Sudah Masuk Grup' : 'Belum Konfirmasi' } : {}),
                 participantCategory: eventData.pricingType === 'tiered' ? (participantCategory === 'internal' ? 'Internal' : 'Eksternal') : 'Umum',
                 paidAmount: activePricing.amount,
                 pricingScheme: activePricing.label,
@@ -450,7 +502,9 @@ export default function EventDetail({ params }) {
                                 </h2>
                                 {currentSection?.desc && (
                                     <p className="text-xs md:text-sm text-slate-500 mt-2 leading-relaxed">
-                                        {currentSection.desc}
+                                        {extractSectionGroupUrl(currentSection)
+                                            ? (getCleanSectionDesc(currentSection) || 'Silakan klik tombol di bawah ini untuk bergabung ke dalam grup resmi peserta event sebelum menyelesaikan pendaftaran.')
+                                            : currentSection.desc}
                                     </p>
                                 )}
                                 <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-red-500 font-semibold">
@@ -469,6 +523,92 @@ export default function EventDetail({ params }) {
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             
+                            {/* KARTU KHUSUS UNDANGAN GABUNG GRUP PESERTA (WHATSAPP / TELEGRAM) */}
+                            {extractSectionGroupUrl(currentSection) && (() => {
+                                const groupUrl = extractSectionGroupUrl(currentSection);
+                                const isWhatsApp = groupUrl.toLowerCase().includes('whatsapp.com') || groupUrl.toLowerCase().includes('wa.me');
+                                const isTelegram = groupUrl.toLowerCase().includes('t.me') || groupUrl.toLowerCase().includes('telegram');
+                                const platformLabel = isWhatsApp ? 'Grup WhatsApp Resmi' : isTelegram ? 'Grup Telegram Resmi' : 'Grup Koordinasi Peserta';
+
+                                return (
+                                    <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-emerald-900/15 border border-emerald-500/40 relative overflow-hidden">
+                                        <div className="relative z-10 space-y-5">
+                                            <div className="flex items-start justify-between gap-4 flex-wrap">
+                                                <div className="flex items-center gap-3.5">
+                                                    <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                                                        💬
+                                                    </div>
+                                                    <div>
+                                                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase tracking-widest mb-1">
+                                                            {platformLabel}
+                                                        </span>
+                                                        <h3 className="text-lg md:text-xl font-black leading-tight">
+                                                            Langkah Wajib: Gabung Grup Peserta Sebelum Klik Daftar
+                                                        </h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs md:text-sm text-emerald-50/95 leading-relaxed">
+                                                Seluruh informasi teknis pelaksanaan, tautan ruang pertemuan/materi, dan koordinasi peserta akan dibagikan melalui grup ini. Silakan klik tombol di bawah untuk masuk ke grup terlebih dahulu:
+                                            </p>
+
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                                                <a
+                                                    href={groupUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={() => setStepValidationError('')}
+                                                    className="flex-1 inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-white hover:bg-emerald-50 text-emerald-900 font-black text-xs md:text-sm uppercase tracking-wider rounded-2xl transition shadow-lg cursor-pointer text-center"
+                                                >
+                                                    <span className="text-lg">📲</span>
+                                                    <span>Klik di Sini untuk Gabung {isWhatsApp ? 'Grup WhatsApp' : 'Grup Peserta'}</span>
+                                                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                                </a>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => copyToClipboard(groupUrl, 'group')}
+                                                    className="px-4 py-3.5 bg-emerald-900/40 hover:bg-emerald-900/60 border border-white/25 text-white font-bold text-xs rounded-2xl transition cursor-pointer shrink-0"
+                                                >
+                                                    {copiedGroupLink ? '✓ Link Grup Tersalin' : '📋 Salin Link Grup'}
+                                                </button>
+                                            </div>
+
+                                            <div className="bg-black/20 rounded-xl p-3 text-[11px] font-mono text-emerald-100 break-all border border-white/10">
+                                                <span className="font-sans font-bold text-white/70 uppercase text-[10px] block mb-0.5">Tautan Undangan Grup:</span>
+                                                {groupUrl}
+                                            </div>
+
+                                            {/* Checkbox Konfirmasi jika menggunakan Fitur Halaman Khusus Gabung Grup */}
+                                            {currentSection?.isDedicatedGroupStep && (
+                                                <label
+                                                    onClick={() => setStepValidationError('')}
+                                                    className={`flex items-center gap-3.5 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                                        groupConfirmed
+                                                            ? 'bg-white text-emerald-950 border-white shadow-md'
+                                                            : 'bg-emerald-950/40 text-white border-white/30 hover:bg-emerald-950/60'
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={groupConfirmed}
+                                                        onChange={(e) => {
+                                                            setGroupConfirmed(e.target.checked);
+                                                            setStepValidationError('');
+                                                        }}
+                                                        className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer shrink-0"
+                                                    />
+                                                    <div className="text-xs md:text-sm font-black leading-snug">
+                                                        Saya menyatakan sudah bergabung ke dalam grup peserta di atas <span className="text-red-300">*</span>
+                                                    </div>
+                                                </label>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
                             {/* Render Questions for Current Section */}
                             <div className="space-y-4">
                                 {(currentSection?.fields || []).map((field, idx) => (
