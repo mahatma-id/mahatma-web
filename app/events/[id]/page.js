@@ -406,29 +406,29 @@ export default function EventDetail({ params }) {
         <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 selection:bg-emerald-500 selection:text-white flex flex-col justify-between">
             <Navbar />
             
-            <main className="flex-1 pt-32 pb-16 px-4 md:px-12">
+            <main className="flex-1 pt-24 sm:pt-28 md:pt-32 pb-16 px-3.5 sm:px-6 md:px-12">
                 <div className="max-w-3xl mx-auto">
                     
                     {/* Back Link */}
-                    <Link href="/events" className="inline-flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider mb-6 hover:text-emerald-800 transition">
+                    <Link href="/events" className="inline-flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider mb-5 md:mb-6 hover:text-emerald-800 transition">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         <span>Kembali ke Jadwal Event</span>
                     </Link>
                 
                 {/* Event Card Header */}
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-6 md:mb-8">
                     {eventData.imgUrl && (
-                        <div className="relative w-full h-52 md:h-80 bg-slate-900 overflow-hidden">
+                        <div className="relative w-full h-48 sm:h-64 md:h-80 bg-slate-900 overflow-hidden">
                             <img src={eventData.imgUrl} className="w-full h-full object-cover" alt="Banner Event" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                         </div>
                     )}
-                    <div className="p-6 md:p-8">
+                    <div className="p-5 sm:p-6 md:p-8">
                         <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <span className="bg-emerald-100 text-emerald-800 px-3 py-1 text-[11px] font-black uppercase rounded-full tracking-wider">
+                            <span className="bg-emerald-100 text-emerald-800 px-3 py-1 text-[10px] sm:text-[11px] font-black uppercase rounded-full tracking-wider">
                                 📅 {eventData.date}
                             </span>
-                            <span className="bg-blue-100 text-blue-800 px-3 py-1 text-[11px] font-black uppercase rounded-full tracking-wider">
+                            <span className="bg-blue-100 text-blue-800 px-3 py-1 text-[10px] sm:text-[11px] font-black uppercase rounded-full tracking-wider">
                                 {eventData.pricingType === 'tiered' 
                                     ? 'Internal & Eksternal' 
                                     : eventData.pricingType === 'voluntary' 
@@ -438,12 +438,12 @@ export default function EventDetail({ params }) {
                                     : 'Gratis'}
                             </span>
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-2">{eventData.name}</h1>
-                        <p className="text-xs md:text-sm font-bold text-slate-500 mb-5 flex items-center gap-1.5">
-                            <span>📍</span>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight mb-2">{eventData.name}</h1>
+                        <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 md:mb-5 flex items-start sm:items-center gap-1.5">
+                            <span className="shrink-0">📍</span>
                             <span>{eventData.location}</span>
                         </p>
-                        <p className="text-slate-600 text-xs md:text-sm leading-relaxed whitespace-pre-line">{eventData.desc}</p>
+                        <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm leading-relaxed whitespace-pre-line">{eventData.desc}</p>
                     </div>
                 </div>
 
@@ -451,41 +451,41 @@ export default function EventDetail({ params }) {
                 {/* FORMULIR PENDAFTARAN (GOOGLE FORMS STYLE MULTI-STEP) */}
                 {/* ======================================================== */}
                 {eventData.isRegistration && !isSuccess && (
-                    <div className="space-y-6">
+                    <div className="space-y-5 md:space-y-6">
                         
                         {/* Google Forms Header Card with Progress Bar */}
-                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
                             
                             {/* Google Forms colored top accent strip */}
-                            <div className="h-3.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500"></div>
+                            <div className="h-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500"></div>
 
                             {/* Multi-step Progress Indicator */}
                             {totalSteps > 1 && (
-                                <div className="px-6 md:px-8 pt-5 pb-2 border-b border-slate-100">
-                                    <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
-                                        <span className="text-emerald-700 uppercase tracking-wider font-black">
+                                <div className="px-5 sm:px-6 md:px-8 pt-4 sm:pt-5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center justify-between text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                                        <span className="text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-black">
                                             Halaman {currentStep + 1} dari {totalSteps}
                                         </span>
                                         <span>{Math.round(((currentStep + 1) / totalSteps) * 100)}% Selesai</span>
                                     </div>
-                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div 
                                             className="h-full bg-emerald-500 transition-all duration-300 rounded-full" 
                                             style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                                         ></div>
                                     </div>
 
-                                    {/* Step Chips on Tablet/Desktop */}
-                                    <div className="hidden sm:flex items-center gap-2 mt-4 overflow-x-auto pb-1">
+                                    {/* Step Chips Scrollable on All Devices */}
+                                    <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 overflow-x-auto pb-1 no-scrollbar">
                                         {sections.map((sec, idx) => (
                                             <div 
                                                 key={idx}
-                                                className={`text-[10px] font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
+                                                className={`text-[10px] font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl transition-all whitespace-nowrap shrink-0 ${
                                                     idx === currentStep 
                                                         ? 'bg-emerald-600 text-white shadow-xs' 
                                                         : idx < currentStep 
-                                                        ? 'bg-emerald-100 text-emerald-800' 
-                                                        : 'bg-slate-100 text-slate-400'
+                                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' 
+                                                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
                                                 }`}
                                             >
                                                 {idx + 1}. {sec.title.replace(/^Halaman \d+:\s*/i, '')}
@@ -496,18 +496,18 @@ export default function EventDetail({ params }) {
                             )}
 
                             {/* Section Title & Description Card */}
-                            <div className="p-6 md:p-8">
-                                <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+                            <div className="p-5 sm:p-6 md:p-8">
+                                <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {currentSection?.title || 'Formulir Pendaftaran'}
                                 </h2>
                                 {currentSection?.desc && (
-                                    <p className="text-xs md:text-sm text-slate-500 mt-2 leading-relaxed">
+                                    <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                                         {extractSectionGroupUrl(currentSection)
                                             ? (getCleanSectionDesc(currentSection) || 'Silakan klik tombol di bawah ini untuk bergabung ke dalam grup resmi peserta event sebelum menyelesaikan pendaftaran.')
                                             : currentSection.desc}
                                     </p>
                                 )}
-                                <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-red-500 font-semibold">
+                                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-red-500 font-semibold">
                                     * Menandakan pertanyaan yang wajib diisi
                                 </div>
                             </div>
@@ -575,11 +575,6 @@ export default function EventDetail({ params }) {
                                                 </button>
                                             </div>
 
-                                            <div className="bg-black/20 rounded-xl p-3 text-[11px] font-mono text-emerald-100 break-all border border-white/10">
-                                                <span className="font-sans font-bold text-white/70 uppercase text-[10px] block mb-0.5">Tautan Undangan Grup:</span>
-                                                {groupUrl}
-                                            </div>
-
                                             {/* Checkbox Konfirmasi jika menggunakan Fitur Halaman Khusus Gabung Grup */}
                                             {currentSection?.isDedicatedGroupStep && (
                                                 <label
@@ -612,9 +607,9 @@ export default function EventDetail({ params }) {
                             {/* Render Questions for Current Section */}
                             <div className="space-y-4">
                                 {(currentSection?.fields || []).map((field, idx) => (
-                                    <div key={idx} className="bg-white p-5 md:p-6 rounded-2xl shadow-xs border border-slate-200 transition-all hover:border-slate-300">
+                                    <div key={idx} className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl shadow-xs border border-slate-200 dark:border-slate-800 transition-all hover:border-slate-300 dark:hover:border-slate-700">
                                         
-                                        <label className="text-sm font-bold text-slate-800 block mb-3">
+                                        <label className="text-sm font-bold text-slate-800 dark:text-slate-100 block mb-3 leading-snug">
                                             {field.label} {field.required && <span className="text-red-500 font-bold ml-0.5">*</span>}
                                         </label>
 
@@ -625,7 +620,7 @@ export default function EventDetail({ params }) {
                                                 value={formData[field.label] || ''} 
                                                 onChange={(e) => handleInputChange(field.label, e.target.value)} 
                                                 placeholder="Jawaban Anda..."
-                                                className="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" 
+                                                className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 rounded-xl text-base sm:text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" 
                                                 rows="3"
                                             ></textarea>
                                         )}
@@ -639,7 +634,7 @@ export default function EventDetail({ params }) {
                                                     const isSelected = formData[field.label] === trimmedOpt;
                                                     return (
                                                         <div key={i} className="flex flex-col gap-2">
-                                                            <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit group">
+                                                            <label className="flex items-start sm:items-center gap-3 text-sm text-slate-700 dark:text-slate-200 cursor-pointer w-fit group">
                                                                 <input 
                                                                     type="radio" 
                                                                     name={field.label} 
@@ -647,9 +642,9 @@ export default function EventDetail({ params }) {
                                                                     checked={isSelected}
                                                                     required={field.required && !formData[field.label]} 
                                                                     onChange={(e) => handleInputChange(field.label, e.target.value)} 
-                                                                    className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
+                                                                    className="w-4 h-4 mt-0.5 sm:mt-0 shrink-0 text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
                                                                 />
-                                                                <span className="group-hover:text-emerald-700 transition-colors font-medium">{trimmedOpt}</span>
+                                                                <span className="group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors font-medium leading-snug">{trimmedOpt}</span>
                                                             </label>
                                                             {isOther && isSelected && (
                                                                 <input 
@@ -658,7 +653,7 @@ export default function EventDetail({ params }) {
                                                                     required={field.required} 
                                                                     value={otherData[field.label] || ''} 
                                                                     onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} 
-                                                                    className="ml-7 w-full md:w-3/4 border border-slate-300 p-2 rounded-lg text-sm outline-none focus:border-emerald-500" 
+                                                                    className="ml-7 w-[calc(100%-1.75rem)] md:w-3/4 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-2.5 rounded-lg text-base sm:text-sm outline-none focus:border-emerald-500" 
                                                                 />
                                                             )}
                                                         </div>
@@ -676,15 +671,15 @@ export default function EventDetail({ params }) {
                                                     const isSelected = (formData[field.label] || []).includes(trimmedOpt);
                                                     return (
                                                         <div key={i} className="flex flex-col gap-2">
-                                                            <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer w-fit group">
+                                                            <label className="flex items-start sm:items-center gap-3 text-sm text-slate-700 dark:text-slate-200 cursor-pointer w-fit group">
                                                                 <input 
                                                                     type="checkbox" 
                                                                     value={trimmedOpt} 
                                                                     checked={isSelected}
                                                                     onChange={(e) => handleCheckboxChange(field.label, trimmedOpt, e.target.checked)} 
-                                                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" 
+                                                                    className="w-4 h-4 mt-0.5 sm:mt-0 shrink-0 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer" 
                                                                 />
-                                                                <span className="group-hover:text-emerald-700 transition-colors font-medium">{trimmedOpt}</span>
+                                                                <span className="group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors font-medium leading-snug">{trimmedOpt}</span>
                                                             </label>
                                                             {isOther && isSelected && (
                                                                 <input 
@@ -693,7 +688,7 @@ export default function EventDetail({ params }) {
                                                                     required={field.required} 
                                                                     value={otherData[field.label] || ''} 
                                                                     onChange={(e) => setOtherData({...otherData, [field.label]: e.target.value})} 
-                                                                    className="ml-7 w-full md:w-3/4 border border-slate-300 p-2 rounded-lg text-sm outline-none focus:border-emerald-500" 
+                                                                    className="ml-7 w-[calc(100%-1.75rem)] md:w-3/4 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-2.5 rounded-lg text-base sm:text-sm outline-none focus:border-emerald-500" 
                                                                 />
                                                             )}
                                                         </div>
@@ -704,15 +699,15 @@ export default function EventDetail({ params }) {
 
                                         {/* Skala Linier (1 - 5) */}
                                         {field.type === 'scale' && (
-                                            <div className="bg-slate-50 p-4 md:p-5 rounded-xl border border-slate-200 mt-2">
-                                                <div className="flex justify-between items-center text-xs font-bold text-slate-500 mb-3 px-1">
-                                                    <span className="text-left w-1/3">{field.scaleMinLabel || 'Sangat Kurang'}</span>
-                                                    <span className="text-right w-1/3">{field.scaleMaxLabel || 'Sangat Baik'}</span>
+                                            <div className="bg-slate-50 dark:bg-slate-950 p-3.5 sm:p-4 md:p-5 rounded-xl border border-slate-200 dark:border-slate-800 mt-2">
+                                                <div className="flex justify-between items-center text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 px-1 gap-2">
+                                                    <span className="text-left w-1/2 sm:w-1/3">{field.scaleMinLabel || 'Sangat Kurang'}</span>
+                                                    <span className="text-right w-1/2 sm:w-1/3">{field.scaleMaxLabel || 'Sangat Baik'}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center px-2 md:px-8">
+                                                <div className="flex justify-between items-center px-2 sm:px-4 md:px-8">
                                                     {[1, 2, 3, 4, 5].map(val => (
-                                                        <label key={val} className="flex flex-col items-center gap-2 cursor-pointer group">
-                                                            <span className="text-xs font-bold text-slate-400 group-hover:text-emerald-600 transition">{val}</span>
+                                                        <label key={val} className="flex flex-col items-center gap-2 cursor-pointer group p-1">
+                                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 transition">{val}</span>
                                                             <input 
                                                                 type="radio" 
                                                                 name={field.label} 
@@ -731,12 +726,18 @@ export default function EventDetail({ params }) {
                                         {/* Standar Text, Number, Email */}
                                         {(field.type === 'text' || field.type === 'number' || field.type === 'email') && (
                                             <input 
-                                                type={field.type} 
+                                                type={field.type === 'number' ? 'text' : field.type} 
+                                                inputMode={field.type === 'number' ? 'numeric' : undefined}
                                                 required={field.required} 
                                                 value={formData[field.label] || ''} 
-                                                placeholder="Jawaban Anda..."
-                                                onChange={(e) => handleInputChange(field.label, e.target.value)} 
-                                                className="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" 
+                                                placeholder={field.type === 'number' ? 'Masukkan angka / nomor...' : 'Jawaban Anda...'}
+                                                onWheel={(e) => e.currentTarget.blur()}
+                                                onChange={(e) => {
+                                                    const rawVal = e.target.value;
+                                                    const cleanVal = field.type === 'number' ? rawVal.replace(/[^0-9+]/g, '') : rawVal;
+                                                    handleInputChange(field.label, cleanVal);
+                                                }} 
+                                                className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-3 rounded-xl text-base sm:text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition" 
                                             />
                                         )}
                                     </div>
@@ -747,27 +748,27 @@ export default function EventDetail({ params }) {
                             {/* STEP TERAKHIR: PEMILIHAN KATEGORI TIKET & PEMBAYARAN */}
                             {/* ======================================================== */}
                             {isLastStep && (
-                                <div className="space-y-6 pt-2">
+                                <div className="space-y-5 md:space-y-6 pt-2">
                                     
                                     {/* Pilihan Kategori Internal vs Eksternal jika Tiered */}
                                     {eventData.pricingType === 'tiered' && (
-                                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wide">Pilih Kategori Kepesertaan <span className="text-red-500">*</span></h3>
-                                            <p className="text-xs text-slate-500">Tentukan status kepesertaan Anda untuk penyesuaian biaya HTM.</p>
+                                        <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+                                            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">Pilih Kategori Kepesertaan <span className="text-red-500">*</span></h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Tentukan status kepesertaan Anda untuk penyesuaian biaya HTM.</p>
                                             
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                                                 {/* Card Internal */}
                                                 <div 
                                                     onClick={() => setParticipantCategory('internal')}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition ${participantCategory === 'internal' ? 'bg-emerald-50 border-emerald-600 shadow-xs' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition ${participantCategory === 'internal' ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-600 shadow-xs' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300'}`}
                                                 >
-                                                    <div className="flex items-center justify-between mb-1.5">
-                                                        <span className="text-xs font-black text-slate-800">
+                                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">
                                                             {eventData.internalLabel || 'Peserta Internal'}
                                                         </span>
-                                                        <input type="radio" checked={participantCategory === 'internal'} onChange={() => setParticipantCategory('internal')} className="text-emerald-600" />
+                                                        <input type="radio" checked={participantCategory === 'internal'} onChange={() => setParticipantCategory('internal')} className="text-emerald-600 shrink-0" />
                                                     </div>
-                                                    <p className="text-xs font-bold text-emerald-700">
+                                                    <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
                                                         {eventData.internalPricingType === 'free' 
                                                             ? 'Gratis (Free)' 
                                                             : eventData.internalPricingType === 'voluntary' 
@@ -779,15 +780,15 @@ export default function EventDetail({ params }) {
                                                 {/* Card Eksternal */}
                                                 <div 
                                                     onClick={() => setParticipantCategory('external')}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition ${participantCategory === 'external' ? 'bg-emerald-50 border-emerald-600 shadow-xs' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}
+                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition ${participantCategory === 'external' ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-600 shadow-xs' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-slate-300'}`}
                                                 >
-                                                    <div className="flex items-center justify-between mb-1.5">
-                                                        <span className="text-xs font-black text-slate-800">
+                                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">
                                                             {eventData.externalLabel || 'Peserta Eksternal (Umum)'}
                                                         </span>
-                                                        <input type="radio" checked={participantCategory === 'external'} onChange={() => setParticipantCategory('external')} className="text-emerald-600" />
+                                                        <input type="radio" checked={participantCategory === 'external'} onChange={() => setParticipantCategory('external')} className="text-emerald-600 shrink-0" />
                                                     </div>
-                                                    <p className="text-xs font-bold text-blue-700">
+                                                    <p className="text-xs font-bold text-blue-700 dark:text-blue-400">
                                                         {eventData.externalPricingType === 'free' 
                                                             ? 'Gratis (Free)' 
                                                             : eventData.externalPricingType === 'voluntary' 
@@ -799,43 +800,17 @@ export default function EventDetail({ params }) {
                                         </div>
                                     )}
 
-                                    {/* Input Nominal Sukarela jika Sistem Ikhlas */}
-                                    {activePricing.isVoluntary && (
-                                        <div className="bg-emerald-50/70 p-6 rounded-2xl border border-emerald-200 space-y-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-lg">🤝</span>
-                                                <h4 className="text-sm font-black text-emerald-950">Event Ini Menggunakan Sistem Bayar Seikhlasnya</h4>
-                                            </div>
-                                            <p className="text-xs text-emerald-800 leading-relaxed">
-                                                Anda dapat menentukan nominal donasi / kontribusi pendaftaran secara sukarela tanpa batasan minimal tertentu.
-                                            </p>
-                                            <div className="pt-2">
-                                                <label className="text-xs font-bold text-slate-700 block mb-1">Nominal Kontribusi Anda (Rp)</label>
-                                                <div className="relative max-w-sm">
-                                                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-xs font-bold text-slate-400">Rp</span>
-                                                    <input 
-                                                        type="number" 
-                                                        value={voluntaryAmount} 
-                                                        onChange={e => setVoluntaryAmount(e.target.value)} 
-                                                        placeholder="Contoh: 25000 (Bebas / Seikhlasnya)" 
-                                                        className="w-full bg-white border border-slate-300 pl-10 pr-3 py-2.5 rounded-xl font-bold text-sm outline-none focus:border-emerald-500" 
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {/* Panel Pembayaran & Upload Bukti jika Berbayar / Sukarela */}
                                     {!activePricing.isFree && (
-                                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
-                                            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+                                            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                                 <div>
-                                                    <h3 className="text-sm font-black text-slate-900 uppercase">Metode Pembayaran</h3>
-                                                    <p className="text-xs text-slate-500">Pilih salah satu metode pembayaran yang tersedia.</p>
+                                                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase">Metode Pembayaran</h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">Pilih salah satu metode pembayaran yang tersedia.</p>
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="sm:text-right flex sm:block items-center justify-between bg-slate-50 dark:bg-slate-950 sm:bg-transparent p-2.5 sm:p-0 rounded-xl">
                                                     <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Tagihan</span>
-                                                    <span className="text-base font-black text-emerald-600 bg-emerald-50 px-3 py-0.5 rounded-lg border border-emerald-200">
+                                                    <span className="text-sm sm:text-base font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
                                                         {activePricing.isVoluntary 
                                                             ? (activePricing.amount > 0 ? `Rp ${activePricing.amount.toLocaleString('id-ID')}` : 'Seikhlasnya') 
                                                             : `Rp ${activePricing.amount.toLocaleString('id-ID')}`}
@@ -848,7 +823,7 @@ export default function EventDetail({ params }) {
                                                 required 
                                                 value={paymentMethod} 
                                                 onChange={(e) => setPaymentMethod(e.target.value)} 
-                                                className="w-full border border-slate-300 p-3 rounded-xl text-sm outline-none focus:border-emerald-500 bg-slate-50 cursor-pointer font-bold text-slate-800"
+                                                className="w-full border border-slate-300 dark:border-slate-700 p-3 rounded-xl text-base sm:text-sm outline-none focus:border-emerald-500 bg-slate-50 dark:bg-slate-950 cursor-pointer font-bold text-slate-800 dark:text-slate-100"
                                             >
                                                 <option value="">-- Silakan Pilih Metode Bayar --</option>
                                                 {eventData.paymentMethods?.cash && <option value="cash">💵 Bayar di Tempat (Cash on Location)</option>}
@@ -864,26 +839,26 @@ export default function EventDetail({ params }) {
 
                                             {/* Tampilan Detail Transfer Bank */}
                                             {paymentMethod === 'transfer' && (
-                                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3">
-                                                    <p className="font-bold text-xs uppercase tracking-wider text-slate-700 border-b border-slate-200 pb-2">Instruksi Transfer Bank:</p>
-                                                    <div className="space-y-2 text-xs">
-                                                        <div className="flex justify-between items-center"><span className="text-slate-500">Bank:</span> <span className="font-bold text-slate-800">{eventData.bankName || '-'}</span></div>
-                                                        <div className="flex justify-between items-center">
+                                                <div className="bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                                                    <p className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 pb-2">Instruksi Transfer Bank:</p>
+                                                    <div className="space-y-2.5 text-xs">
+                                                        <div className="flex flex-wrap justify-between items-center gap-1"><span className="text-slate-500">Bank:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{eventData.bankName || '-'}</span></div>
+                                                        <div className="flex flex-wrap justify-between items-center gap-2">
                                                             <span className="text-slate-500">No. Rekening:</span> 
                                                             <div className="flex items-center gap-2">
-                                                                <span className="font-mono font-black text-emerald-700 text-sm md:text-base">{eventData.bankAccount || '-'}</span>
+                                                                <span className="font-mono font-black text-emerald-700 dark:text-emerald-400 text-sm md:text-base break-all">{eventData.bankAccount || '-'}</span>
                                                                 {eventData.bankAccount && (
                                                                     <button 
                                                                         type="button" 
                                                                         onClick={() => copyToClipboard(eventData.bankAccount, 'account')}
-                                                                        className="px-2 py-1 bg-white hover:bg-slate-200 border rounded text-[10px] font-bold text-slate-600 transition"
+                                                                        className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-200 border border-slate-200 dark:border-slate-700 rounded text-[10px] font-bold text-slate-600 dark:text-slate-200 transition shrink-0"
                                                                     >
                                                                         {copiedAccount ? '✓ Tersalin' : 'Salin'}
                                                                     </button>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className="flex justify-between items-center"><span className="text-slate-500">Atas Nama:</span> <span className="font-bold text-slate-800">{eventData.bankAccountName || '-'}</span></div>
+                                                        <div className="flex flex-wrap justify-between items-center gap-1"><span className="text-slate-500">Atas Nama:</span> <span className="font-bold text-slate-800 dark:text-slate-100">{eventData.bankAccountName || '-'}</span></div>
                                                     </div>
                                                 </div>
                                             )}
@@ -892,7 +867,7 @@ export default function EventDetail({ params }) {
                                             {/* TAMPILAN QRIS: STATIS UTUH (SISTEM IKHLAS) VS DINAMIS */}
                                             {/* ======================================================== */}
                                             {paymentMethod === 'qris' && (
-                                                <div className="bg-slate-50 p-5 md:p-6 rounded-2xl border-2 border-emerald-300 text-center space-y-4">
+                                                <div className="bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 md:p-6 rounded-2xl border-2 border-emerald-300 dark:border-emerald-800 text-center space-y-4">
                                                     {activePricing.isVoluntary ? (
                                                         /* SISTEM IKHLAS: HANYA TAMPILKAN GAMBAR QRIS STATIS UTUH TANPA BACKGROUND & TANPA NMID */
                                                         <>
@@ -900,17 +875,17 @@ export default function EventDetail({ params }) {
                                                                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
                                                                     QRIS Sistem Ikhlas
                                                                 </span>
-                                                                <h5 className="font-black text-base text-slate-900 mt-2">Scan QRIS Pembayaran</h5>
-                                                                <p className="text-xs text-slate-500 mt-1">
+                                                                <h5 className="font-black text-base text-slate-900 dark:text-white mt-2">Scan QRIS Pembayaran</h5>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                                     Silakan scan gambar QRIS di bawah ini dan masukkan nominal pembayaran sesuai keikhlasan Anda.
                                                                 </p>
                                                             </div>
 
                                                             {staticFallbackImage && (
-                                                                <div className="inline-block p-3 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl">
+                                                                <div className="inline-block p-2.5 sm:p-3 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl max-w-full">
                                                                     <img 
                                                                         src={staticFallbackImage} 
-                                                                        className="w-64 md:w-72 h-auto mx-auto object-contain rounded-xl block" 
+                                                                        className="w-full max-w-[230px] sm:max-w-[280px] h-auto mx-auto object-contain rounded-xl block" 
                                                                         alt="QRIS Pembayaran" 
                                                                     />
                                                                 </div>
@@ -923,7 +898,7 @@ export default function EventDetail({ params }) {
                                                                         target="_blank" 
                                                                         rel="noopener noreferrer" 
                                                                         download="QRIS-Pembayaran.png"
-                                                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
+                                                                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
                                                                     >
                                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                                         <span>Buka / Unduh Gambar QRIS</span>
@@ -938,10 +913,10 @@ export default function EventDetail({ params }) {
                                                                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
                                                                     {activePricing.amount > 0 ? 'QRIS Dinamis Otomatis' : 'QRIS Statis'}
                                                                 </span>
-                                                                <h5 className="font-black text-base text-slate-900 mt-2">Scan QRIS Pembayaran</h5>
+                                                                <h5 className="font-black text-base text-slate-900 dark:text-white mt-2">Scan QRIS Pembayaran</h5>
                                                                 
                                                                 {activePricing.amount > 0 ? (
-                                                                    <div className="mt-1.5 p-2 bg-emerald-50 rounded-xl border border-emerald-200 max-w-md mx-auto">
+                                                                    <div className="mt-1.5 p-2.5 bg-emerald-50 rounded-xl border border-emerald-200 max-w-md mx-auto">
                                                                         <p className="text-xs font-bold text-emerald-800">
                                                                             ✓ QR Code di bawah telah otomatis terisi nominal sebesar: <span className="text-emerald-950 font-black underline">Rp {activePricing.amount.toLocaleString('id-ID')}</span>
                                                                         </p>
@@ -950,34 +925,34 @@ export default function EventDetail({ params }) {
                                                                         </p>
                                                                     </div>
                                                                 ) : (
-                                                                    <p className="text-xs text-slate-500 mt-1">
+                                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                                         Scan QRIS di bawah ini, lalu masukkan nominal pembayaran sesuai keikhlasan Anda.
                                                                     </p>
                                                                 )}
                                                             </div>
 
                                                             {templateBgUrl ? (
-                                                                <div className="relative w-72 md:w-80 mx-auto rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-xl bg-white">
+                                                                <div className="relative w-full max-w-[250px] sm:max-w-[310px] mx-auto rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-xl bg-white">
                                                                     <img 
                                                                         src={templateBgUrl} 
                                                                         alt="Template QRIS Polosan" 
                                                                         className="w-full h-auto block select-none" 
                                                                     />
-                                                                    <div className="absolute inset-0 flex items-center justify-center p-6">
-                                                                        <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200">
+                                                                    <div className="absolute inset-0 flex items-center justify-center p-5 sm:p-6">
+                                                                        <div className="bg-white p-1.5 sm:p-2 rounded-xl shadow-lg border border-slate-200">
                                                                             <img 
                                                                                 src={dynamicQrCodeUrl || staticFallbackImage} 
                                                                                 alt="QR Code Dinamis" 
-                                                                                className="w-36 h-36 md:w-44 md:h-44 object-contain block" 
+                                                                                className="w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 object-contain block" 
                                                                             />
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             ) : (
-                                                                <div className="inline-block p-4 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl">
+                                                                <div className="inline-block p-3 sm:p-4 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl max-w-full">
                                                                     <img 
                                                                         src={dynamicQrCodeUrl || staticFallbackImage} 
-                                                                        className="w-52 h-52 md:w-60 md:h-60 mx-auto object-contain rounded-xl block" 
+                                                                        className="w-44 h-44 sm:w-52 sm:h-52 md:w-60 md:h-60 mx-auto object-contain rounded-xl block" 
                                                                         alt="QR Code Pembayaran" 
                                                                     />
                                                                 </div>
@@ -989,7 +964,7 @@ export default function EventDetail({ params }) {
                                                                     target="_blank" 
                                                                     rel="noopener noreferrer" 
                                                                     download="QRIS-Pembayaran.png"
-                                                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
+                                                                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
                                                                 >
                                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                                                     <span>Buka / Unduh QR Code</span>
@@ -997,10 +972,10 @@ export default function EventDetail({ params }) {
                                                             </div>
 
                                                             {eventData.qrisNmid && (
-                                                                <div className="max-w-sm mx-auto bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-3">
-                                                                    <div className="text-left min-w-0">
+                                                                <div className="max-w-sm mx-auto bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5">
+                                                                    <div className="text-left min-w-0 flex-1">
                                                                         <span className="text-[9px] font-black uppercase text-slate-400 block leading-none">NMID Merchant</span>
-                                                                        <span className="font-mono font-bold text-xs text-slate-800 tracking-wider truncate block mt-0.5">{eventData.qrisNmid}</span>
+                                                                        <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-100 tracking-wider truncate block mt-0.5">{eventData.qrisNmid}</span>
                                                                     </div>
                                                                     <button 
                                                                         type="button" 
@@ -1025,8 +1000,8 @@ export default function EventDetail({ params }) {
 
                                             {/* Upload Bukti Pembayaran */}
                                             {(paymentMethod === 'transfer' || paymentMethod === 'qris') && (
-                                                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                                                    <label className="text-xs font-bold text-slate-800 block">
+                                                <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+                                                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                                                         Upload Bukti Transfer / Scan QRIS <span className="text-red-500">*</span>
                                                     </label>
                                                     <input 
@@ -1034,10 +1009,10 @@ export default function EventDetail({ params }) {
                                                         required 
                                                         accept="image/*" 
                                                         onChange={(e) => setPaymentProof(e.target.files[0])} 
-                                                        className="w-full border border-slate-300 p-2.5 rounded-xl text-xs bg-white cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
+                                                        className="w-full border border-slate-300 dark:border-slate-700 p-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" 
                                                     />
                                                     {paymentProof && (
-                                                        <p className="text-[11px] text-emerald-600 font-bold mt-1">✓ File dipilih: {paymentProof.name}</p>
+                                                        <p className="text-[11px] text-emerald-600 font-bold mt-1 break-all">✓ File dipilih: {paymentProof.name}</p>
                                                     )}
                                                 </div>
                                             )}
@@ -1050,26 +1025,26 @@ export default function EventDetail({ params }) {
                             {/* ======================================================== */}
                             {/* BOTTOM NAVIGATION (KEMBALI, BERIKUTNYA, SUBMIT) */}
                             {/* ======================================================== */}
-                            <div className="pt-4 flex items-center justify-between gap-4 border-t border-slate-200">
+                            <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 border-t border-slate-200 dark:border-slate-800">
                                 
                                 {currentStep > 0 ? (
                                     <button 
                                         type="button" 
                                         onClick={handlePrevStep}
-                                        className="px-6 py-3.5 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 transition cursor-pointer flex items-center gap-2 shadow-xs"
+                                        className="w-full sm:w-auto justify-center px-6 py-3.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-300 dark:border-slate-700 transition cursor-pointer flex items-center gap-2 shadow-xs"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
                                         <span>Kembali</span>
                                     </button>
                                 ) : (
-                                    <div></div>
+                                    <div className="hidden sm:block"></div>
                                 )}
 
                                 {!isLastStep ? (
                                     <button 
                                         type="button" 
                                         onClick={handleNextStep}
-                                        className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer flex items-center gap-2 shadow-md shadow-emerald-900/20"
+                                        className="w-full sm:w-auto justify-center px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer flex items-center gap-2 shadow-md shadow-emerald-900/20"
                                     >
                                         <span>Berikutnya</span>
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
@@ -1078,7 +1053,7 @@ export default function EventDetail({ params }) {
                                     <button 
                                         type="submit" 
                                         disabled={isSubmitting} 
-                                        className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition shadow-lg shadow-emerald-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                                        className="w-full sm:w-auto justify-center px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition shadow-lg shadow-emerald-900/30 cursor-pointer disabled:opacity-50 flex items-center gap-2"
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -1100,19 +1075,19 @@ export default function EventDetail({ params }) {
 
                 {/* Status Pendaftaran Sukses */}
                 {isSuccess && (
-                    <div className="bg-white border border-emerald-200 p-8 md:p-12 rounded-3xl text-center shadow-lg">
-                        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 shadow-inner">
+                    <div className="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 p-6 sm:p-8 md:p-12 rounded-3xl text-center shadow-lg">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl sm:text-4xl mx-auto mb-5 shadow-inner">
                             ✓
                         </div>
-                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-2">Pendaftaran Anda Berhasil!</h2>
-                        <p className="text-slate-600 text-xs md:text-sm leading-relaxed max-w-lg mx-auto mb-6">
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-2">Pendaftaran Anda Berhasil!</h2>
+                        <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm leading-relaxed max-w-lg mx-auto mb-6">
                             Terima kasih telah mendaftar di event <b>{eventData.name}</b>. Kami telah mengirimkan detail pendaftaran ke email Anda. Silakan periksa inbox atau folder spam Anda.
                         </p>
-                        <div className="flex flex-wrap items-center justify-center gap-3">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
                             <Link href="/events" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs uppercase tracking-wider">
                                 Lihat Event Lainnya
                             </Link>
-                            <Link href="/" className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                            <Link href="/" className="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                 Ke Beranda
                             </Link>
                         </div>
