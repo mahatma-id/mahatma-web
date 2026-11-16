@@ -202,9 +202,12 @@ export default function TabEvents() {
             let finalImg = eventsImgUrl; 
             if (eventsImgFile) finalImg = await uploadToCloudinary(eventsImgFile);
 
-            // Upload Template Background Polosan QRIS
-            let finalQrisTemplate = qrisTemplateBgUrl;
-            if (qrisTemplateBgFile) finalQrisTemplate = await uploadToCloudinary(qrisTemplateBgFile);
+            const isNeedPayment = isRegistration && pricingType !== 'free';
+            const isVoluntaryOnly = pricingType === 'voluntary' || (pricingType === 'tiered' && internalPricingType !== 'fixed' && externalPricingType !== 'fixed');
+
+            // Upload Template Background Polosan QRIS (hanya jika bukan Sistem Ikhlas murni)
+            let finalQrisTemplate = isVoluntaryOnly ? '' : qrisTemplateBgUrl;
+            if (!isVoluntaryOnly && qrisTemplateBgFile) finalQrisTemplate = await uploadToCloudinary(qrisTemplateBgFile);
 
             // Upload QRIS Statis
             let finalQrisStatic = qrisStaticImgUrl;
@@ -212,8 +215,6 @@ export default function TabEvents() {
             
             // Flatten formFields for backwards compatibility
             const flattenedFields = formSections.flatMap(sec => sec.fields || []);
-
-            const isNeedPayment = isRegistration && pricingType !== 'free';
 
             const data = { 
                 name: eventsName, 
@@ -246,12 +247,12 @@ export default function TabEvents() {
                 bankName: isNeedPayment && paymentMethods.transfer ? bankName : '',
                 bankAccount: isNeedPayment && paymentMethods.transfer ? bankAccount : '',
                 bankAccountName: isNeedPayment && paymentMethods.transfer ? bankAccountName : '',
-                // QRIS Dinamis & Background Polosan
-                qrisTemplateBgUrl: isNeedPayment && paymentMethods.qris ? finalQrisTemplate : '',
-                qrisDynamicImgUrl: isNeedPayment && paymentMethods.qris ? finalQrisTemplate : '',
+                // QRIS Statis (Sistem Ikhlas) vs QRIS Dinamis
+                qrisTemplateBgUrl: isNeedPayment && paymentMethods.qris && !isVoluntaryOnly ? finalQrisTemplate : '',
+                qrisDynamicImgUrl: isNeedPayment && paymentMethods.qris && !isVoluntaryOnly ? finalQrisTemplate : '',
                 qrisStaticImgUrl: isNeedPayment && paymentMethods.qris ? finalQrisStatic : '',
-                qrisNmid: isNeedPayment && paymentMethods.qris ? qrisNmid : '',
-                qrisId: isNeedPayment && paymentMethods.qris ? (finalQrisTemplate || finalQrisStatic || '') : '',
+                qrisNmid: isNeedPayment && paymentMethods.qris && !isVoluntaryOnly ? qrisNmid : '',
+                qrisId: isNeedPayment && paymentMethods.qris ? (isVoluntaryOnly ? (finalQrisStatic || '') : (finalQrisTemplate || finalQrisStatic || '')) : '',
                 emailTemplate: isRegistration ? emailTemplate : ''
             }; 
             
@@ -462,10 +463,12 @@ export default function TabEvents() {
         document.body.removeChild(link);
     };
 
-    // Pratinjau live generator QRIS dinamis
+    // Pratinjau live generator QRIS dinamis vs statis (Sistem Ikhlas)
+    const isVoluntaryQrisMode = pricingType === 'voluntary' || (pricingType === 'tiered' && internalPricingType !== 'fixed' && externalPricingType !== 'fixed');
     const liveDynamicPayload = qrisNmid ? generateDynamicQRIS(qrisNmid, previewAmount) : '';
     const liveQrCodeUrl = liveDynamicPayload ? getQRCodeImageUrl(liveDynamicPayload, 260) : '';
     const activeTemplateBgSrc = qrisTemplateBgFile ? URL.createObjectURL(qrisTemplateBgFile) : qrisTemplateBgUrl;
+    const activeStaticQrisSrc = qrisStaticImgFile ? URL.createObjectURL(qrisStaticImgFile) : qrisStaticImgUrl;
 
     return (
         <div className="max-w-5xl relative">
@@ -1006,7 +1009,7 @@ export default function TabEvents() {
                                             </label>
                                             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 bg-slate-50 px-3.5 py-2.5 rounded-xl border border-slate-200 cursor-pointer">
                                                 <input type="checkbox" className="w-4 h-4 text-emerald-600 rounded" checked={paymentMethods.qris} onChange={e => setPaymentMethods({...paymentMethods, qris: e.target.checked})} /> 
-                                                QRIS Dinamis Otomatis (Scan E-Wallet / M-Banking)
+                                                {isVoluntaryQrisMode ? 'QRIS (Scan E-Wallet / M-Banking)' : 'QRIS Dinamis Otomatis (Scan E-Wallet / M-Banking)'}
                                             </label>
                                         </div>
 
@@ -1031,180 +1034,216 @@ export default function TabEvents() {
                                             </div>
                                         )}
 
-                                        {/* Form QRIS: NMID Generator & Background Polosan */}
+                                        {/* Form QRIS: Menyesuaikan Sistem Ikhlas (Hanya Upload QRIS Statis Utuh) vs Harga Tetap (QRIS Dinamis) */}
                                         {paymentMethods.qris && (
-                                            <div className="p-5 bg-emerald-50/50 border border-emerald-300 rounded-2xl space-y-6">
-                                                <div>
-                                                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider mb-2">
-                                                        <span>⚡</span>
-                                                        <span>QRIS Dinamis Generator & Template Polosan</span>
-                                                    </div>
-                                                    <h6 className="text-sm font-black text-emerald-950">Pengaturan QR Code Otomatis Sesuai Harga</h6>
-                                                    <p className="text-xs text-emerald-800 leading-relaxed mt-1">
-                                                        Cukup salin <b>NMID Anda</b> (atau string QRIS statis). Sistem akan secara otomatis meng-generate QR Code dengan nominal pembayaran yang tepat (misal Rp 50.000). Anda dapat mengunggah <b>gambar background polosan</b> (template kotak kosong), dan posisi QR Code otomatis diletakkan tepat di tengah-tengahnya!
-                                                    </p>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                                    
-                                                    {/* Input NMID / Payload QRIS */}
-                                                    <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                                        <label className="text-xs font-bold text-slate-800 block">
-                                                            1. Salin / Masukkan NMID Anda <span className="text-red-500">*</span>
-                                                        </label>
-                                                        <p className="text-[10px] text-slate-500 leading-tight">
-                                                            Ketik kode NMID Anda (contoh: <code className="bg-slate-100 px-1 py-0.5 rounded font-bold text-emerald-700">ID1020304050607</code>) atau paste seluruh string QRIS statis toko Anda (<code className="bg-slate-100 px-1 py-0.5 rounded">000201...</code>).
-                                                        </p>
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="Contoh: ID1020304050607 atau 000201010211..." 
-                                                            value={qrisNmid} 
-                                                            onChange={e => setQrisNmid(e.target.value)} 
-                                                            className="w-full border border-slate-300 p-2.5 text-xs rounded-lg font-mono font-bold outline-none focus:border-emerald-500 bg-slate-50/50" 
-                                                            required={paymentMethods.qris}
-                                                        />
-                                                    </div>
-
-                                                    {/* Upload Background Polosan */}
-                                                    <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="text-xs font-bold text-slate-800">
-                                                                2. Upload Background Polosan
-                                                            </label>
-                                                            <span className="text-[9px] font-black uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                                                                Kotak Kosong
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-[10px] text-slate-500 leading-tight">
-                                                            Unggah gambar template QRIS polosan (poster dengan kotak kosong di tengah).
-                                                        </p>
-                                                        <input 
-                                                            type="file" 
-                                                            accept="image/*" 
-                                                            onChange={e => setQrisTemplateBgFile(e.target.files[0])} 
-                                                            className="w-full border border-slate-300 p-2 rounded-lg bg-slate-50 text-xs cursor-pointer file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-blue-100 file:text-blue-800" 
-                                                        />
-                                                        {qrisTemplateBgUrl && !qrisTemplateBgFile && (
-                                                            <span className="text-[10px] text-emerald-600 font-bold block">✓ Background polosan tersimpan di Cloudinary</span>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Upload QRIS Statis Utuh (Opsional untuk sistem ikhlas murni) */}
-                                                    <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 md:col-span-2">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="text-xs font-bold text-slate-800">
-                                                                3. Upload Gambar QRIS Statis Utuh (Opsional / Fallback)
-                                                            </label>
-                                                            <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                                            <div className="p-5 bg-emerald-50/50 border border-emerald-300 rounded-2xl space-y-5">
+                                                {isVoluntaryQrisMode ? (
+                                                    /* MODE SISTEM IKHLAS: HANYA UPLOAD GAMBAR QRIS STATIS UTUH (TANPA NMID & TANPA BACKGROUND) */
+                                                    <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-3">
+                                                        <div className="flex items-center justify-between flex-wrap gap-2">
+                                                            <div>
+                                                                <label className="text-xs font-black text-slate-900 uppercase tracking-wide block">
+                                                                    Upload Gambar QRIS Statis Utuh <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <p className="text-[11px] text-slate-500 mt-0.5">
+                                                                    Unggah gambar QRIS statis utuh untuk pembayaran Sistem Ikhlas (tanpa perlu NMID dan tanpa template background polosan).
+                                                                </p>
+                                                            </div>
+                                                            <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-200">
                                                                 Sistem Ikhlas
                                                             </span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-500 leading-tight">
-                                                            Gambar QRIS statis biasa untuk opsi pembayaran seikhlasnya tanpa kotak kosong.
-                                                        </p>
+
                                                         <input 
                                                             type="file" 
                                                             accept="image/*" 
+                                                            required={paymentMethods.qris && !qrisStaticImgUrl && !qrisStaticImgFile}
                                                             onChange={e => setQrisStaticImgFile(e.target.files[0])} 
-                                                            className="w-full border border-slate-300 p-2 rounded-lg bg-slate-50 text-xs cursor-pointer file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-emerald-100 file:text-emerald-800" 
+                                                            className="w-full border border-slate-300 p-2.5 rounded-xl bg-slate-50 text-xs cursor-pointer file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" 
                                                         />
-                                                    </div>
-                                                </div>
 
-                                                {/* ======================================================== */}
-                                                {/* PRATINJAU INTERAKTIF POSISI QR CODE DI TENGAH TEMPLATE */}
-                                                {/* ======================================================== */}
-                                                <div className="bg-white p-5 rounded-2xl border-2 border-emerald-400 shadow-sm space-y-4">
-                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                                                        {activeStaticQrisSrc && (
+                                                            <div className="pt-2 flex flex-col items-center sm:items-start gap-2">
+                                                                <span className="text-[10px] text-emerald-700 font-bold">✓ Pratinjau Gambar QRIS Statis Utuh:</span>
+                                                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 inline-block">
+                                                                    <img 
+                                                                        src={activeStaticQrisSrc} 
+                                                                        alt="QRIS Statis Utuh" 
+                                                                        className="w-48 h-auto max-h-64 object-contain rounded-lg block" 
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    /* MODE HARGA TETAP / TIERED FIXED: QRIS DINAMIS GENERATOR & TEMPLATE POLOSAN */
+                                                    <>
                                                         <div>
-                                                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                                                Live Preview Admin
-                                                            </span>
-                                                            <h6 className="font-black text-xs md:text-sm text-slate-900 mt-1">Pratinjau Hasil QRIS Dinamis & Posisi di Tengah Template</h6>
+                                                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider mb-2">
+                                                                <span>⚡</span>
+                                                                <span>QRIS Dinamis Generator & Template Polosan</span>
+                                                            </div>
+                                                            <h6 className="text-sm font-black text-emerald-950">Pengaturan QR Code Otomatis Sesuai Harga</h6>
+                                                            <p className="text-xs text-emerald-800 leading-relaxed mt-1">
+                                                                Cukup salin <b>NMID Anda</b> (atau string QRIS statis). Sistem akan secara otomatis meng-generate QR Code dengan nominal pembayaran yang tepat (misal Rp 50.000). Anda dapat mengunggah <b>gambar background polosan</b> (template kotak kosong), dan posisi QR Code otomatis diletakkan tepat di tengah-tengahnya!
+                                                            </p>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-slate-500 font-bold">Coba Nominal:</span>
-                                                            <div className="relative w-32">
-                                                                <span className="absolute inset-y-0 left-0 pl-2 flex items-center text-[10px] font-bold text-slate-400">Rp</span>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                                            
+                                                            {/* Input NMID / Payload QRIS */}
+                                                            <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                                                <label className="text-xs font-bold text-slate-800 block">
+                                                                    1. Salin / Masukkan NMID Anda <span className="text-red-500">*</span>
+                                                                </label>
+                                                                <p className="text-[10px] text-slate-500 leading-tight">
+                                                                    Ketik kode NMID Anda (contoh: <code className="bg-slate-100 px-1 py-0.5 rounded font-bold text-emerald-700">ID1020304050607</code>) atau paste seluruh string QRIS statis toko Anda (<code className="bg-slate-100 px-1 py-0.5 rounded">000201...</code>).
+                                                                </p>
                                                                 <input 
-                                                                    type="number" 
-                                                                    value={previewAmount} 
-                                                                    onChange={e => setPreviewAmount(Number(e.target.value))} 
-                                                                    className="w-full border border-slate-300 pl-7 pr-2 py-1 rounded-lg text-xs font-bold outline-none focus:border-emerald-500" 
+                                                                    type="text" 
+                                                                    placeholder="Contoh: ID1020304050607 atau 000201010211..." 
+                                                                    value={qrisNmid} 
+                                                                    onChange={e => setQrisNmid(e.target.value)} 
+                                                                    className="w-full border border-slate-300 p-2.5 text-xs rounded-lg font-mono font-bold outline-none focus:border-emerald-500 bg-slate-50/50" 
+                                                                    required={paymentMethods.qris && !isVoluntaryQrisMode}
                                                                 />
                                                             </div>
-                                                        </div>
-                                                    </div>
 
-                                                    <div className="flex flex-col md:flex-row items-center justify-center gap-6 p-2">
-                                                        
-                                                        {/* Container Visual Template Polosan + QR Code Overlay */}
-                                                        {activeTemplateBgSrc ? (
-                                                            <div className="relative w-72 md:w-80 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-md bg-white">
-                                                                {/* Background Polosan */}
-                                                                <img 
-                                                                    src={activeTemplateBgSrc} 
-                                                                    alt="Template Background Polosan" 
-                                                                    className="w-full h-auto block" 
+                                                            {/* Upload Background Polosan */}
+                                                            <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                                                <div className="flex items-center justify-between">
+                                                                    <label className="text-xs font-bold text-slate-800">
+                                                                        2. Upload Background Polosan
+                                                                    </label>
+                                                                    <span className="text-[9px] font-black uppercase bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                                                        Kotak Kosong
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-[10px] text-slate-500 leading-tight">
+                                                                    Unggah gambar template QRIS polosan (poster dengan kotak kosong di tengah).
+                                                                </p>
+                                                                <input 
+                                                                    type="file" 
+                                                                    accept="image/*" 
+                                                                    onChange={e => setQrisTemplateBgFile(e.target.files[0])} 
+                                                                    className="w-full border border-slate-300 p-2 rounded-lg bg-slate-50 text-xs cursor-pointer file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-blue-100 file:text-blue-800" 
                                                                 />
-                                                                
-                                                                {/* QR Code Dinamis Otomatis Tepat di Posisi Tengah (Center) */}
-                                                                <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
-                                                                    {liveQrCodeUrl ? (
-                                                                        <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200">
-                                                                            <img 
-                                                                                src={liveQrCodeUrl} 
-                                                                                alt="QR Code Dinamis" 
-                                                                                className="w-36 h-36 md:w-40 md:h-40 object-contain block" 
-                                                                            />
+                                                                {qrisTemplateBgUrl && !qrisTemplateBgFile && (
+                                                                    <span className="text-[10px] text-emerald-600 font-bold block">✓ Background polosan tersimpan di Cloudinary</span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Upload QRIS Statis Utuh hanya jika Tiered memiliki salah satu kategori Sistem Ikhlas */}
+                                                            {pricingType === 'tiered' && (internalPricingType === 'voluntary' || externalPricingType === 'voluntary') && (
+                                                                <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2 md:col-span-2">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <label className="text-xs font-bold text-slate-800">
+                                                                            3. Upload Gambar QRIS Statis Utuh (Untuk Kategori Sistem Ikhlas)
+                                                                        </label>
+                                                                        <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                                                                            Sistem Ikhlas
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-[10px] text-slate-500 leading-tight">
+                                                                        Gambar QRIS statis biasa untuk kategori peserta yang menggunakan pembayaran seikhlasnya.
+                                                                    </p>
+                                                                    <input 
+                                                                        type="file" 
+                                                                        accept="image/*" 
+                                                                        onChange={e => setQrisStaticImgFile(e.target.files[0])} 
+                                                                        className="w-full border border-slate-300 p-2 rounded-lg bg-slate-50 text-xs cursor-pointer file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-emerald-100 file:text-emerald-800" 
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* PRATINJAU INTERAKTIF POSISI QR CODE DI TENGAH TEMPLATE */}
+                                                        <div className="bg-white p-5 rounded-2xl border-2 border-emerald-400 shadow-sm space-y-4">
+                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                                                                <div>
+                                                                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                                                        Live Preview Admin
+                                                                    </span>
+                                                                    <h6 className="font-black text-xs md:text-sm text-slate-900 mt-1">Pratinjau Hasil QRIS Dinamis & Posisi di Tengah Template</h6>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs text-slate-500 font-bold">Coba Nominal:</span>
+                                                                    <div className="relative w-32">
+                                                                        <span className="absolute inset-y-0 left-0 pl-2 flex items-center text-[10px] font-bold text-slate-400">Rp</span>
+                                                                        <input 
+                                                                            type="number" 
+                                                                            value={previewAmount} 
+                                                                            onChange={e => setPreviewAmount(Number(e.target.value))} 
+                                                                            className="w-full border border-slate-300 pl-7 pr-2 py-1 rounded-lg text-xs font-bold outline-none focus:border-emerald-500" 
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex flex-col md:flex-row items-center justify-center gap-6 p-2">
+                                                                {activeTemplateBgSrc ? (
+                                                                    <div className="relative w-72 md:w-80 rounded-2xl overflow-hidden border-2 border-slate-300 shadow-md bg-white">
+                                                                        <img 
+                                                                            src={activeTemplateBgSrc} 
+                                                                            alt="Template Background Polosan" 
+                                                                            className="w-full h-auto block" 
+                                                                        />
+                                                                        <div className="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
+                                                                            {liveQrCodeUrl ? (
+                                                                                <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200">
+                                                                                    <img 
+                                                                                        src={liveQrCodeUrl} 
+                                                                                        alt="QR Code Dinamis" 
+                                                                                        className="w-36 h-36 md:w-40 md:h-40 object-contain block" 
+                                                                                    />
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="bg-white/95 p-4 rounded-xl border border-dashed border-emerald-500 text-center text-xs font-bold text-emerald-800">
+                                                                                    Isi NMID untuk memunculkan QR Code di tengah
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                    ) : (
-                                                                        <div className="bg-white/95 p-4 rounded-xl border border-dashed border-emerald-500 text-center text-xs font-bold text-emerald-800">
-                                                                            Isi NMID untuk memunculkan QR Code di tengah
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="text-center p-6 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl max-w-sm">
+                                                                        {liveQrCodeUrl ? (
+                                                                            <div className="space-y-3">
+                                                                                <div className="bg-white p-3 rounded-2xl shadow-sm border inline-block">
+                                                                                    <img src={liveQrCodeUrl} alt="QR Code Dinamis" className="w-40 h-40 object-contain mx-auto" />
+                                                                                </div>
+                                                                                <p className="text-xs font-bold text-slate-700">QR Code seharga Rp {previewAmount.toLocaleString('id-ID')} siap!</p>
+                                                                                <p className="text-[10px] text-slate-400">Unggah template background polosan di atas jika ingin QR code berada di tengah template poster.</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="text-slate-400 text-xs py-6">
+                                                                                Unggah background polosan dan isi NMID untuk melihat pratinjau.
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="text-left text-xs space-y-2 max-w-sm">
+                                                                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 space-y-1">
+                                                                        <p className="font-bold flex items-center gap-1.5">
+                                                                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                                            Status Generator Dinamis Aktif
+                                                                        </p>
+                                                                        <p className="text-[11px] text-emerald-800 leading-snug">
+                                                                            Ketika peserta mendaftar seharga <b>Rp {previewAmount.toLocaleString('id-ID')}</b>, QR code di atas otomatis berisi data nominal tersebut dan ketika di-scan langsung terisi nominalnya di m-banking/e-wallet peserta.
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {qrisNmid && (
+                                                                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[10px] break-all">
+                                                                            <span className="text-slate-400 font-bold block mb-0.5">Payload QRIS Dinamis:</span>
+                                                                            <span className="text-slate-700 font-bold">{liveDynamicPayload || '-'}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                        ) : (
-                                                            <div className="text-center p-6 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl max-w-sm">
-                                                                {liveQrCodeUrl ? (
-                                                                    <div className="space-y-3">
-                                                                        <div className="bg-white p-3 rounded-2xl shadow-sm border inline-block">
-                                                                            <img src={liveQrCodeUrl} alt="QR Code Dinamis" className="w-40 h-40 object-contain mx-auto" />
-                                                                        </div>
-                                                                        <p className="text-xs font-bold text-slate-700">QR Code seharga Rp {previewAmount.toLocaleString('id-ID')} siap!</p>
-                                                                        <p className="text-[10px] text-slate-400">Unggah template background polosan di atas jika ingin QR code berada di tengah template poster.</p>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="text-slate-400 text-xs py-6">
-                                                                        Unggah background polosan dan isi NMID untuk melihat pratinjau.
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        {/* Detail Keterangan Hasil Generator */}
-                                                        <div className="text-left text-xs space-y-2 max-w-sm">
-                                                            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 space-y-1">
-                                                                <p className="font-bold flex items-center gap-1.5">
-                                                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                                                    Status Generator Dinamis Aktif
-                                                                </p>
-                                                                <p className="text-[11px] text-emerald-800 leading-snug">
-                                                                    Ketika peserta mendaftar seharga <b>Rp {previewAmount.toLocaleString('id-ID')}</b>, QR code di atas otomatis berisi data nominal tersebut dan ketika di-scan langsung terisi nominalnya di m-banking/e-wallet peserta.
-                                                                </p>
-                                                            </div>
-
-                                                            {qrisNmid && (
-                                                                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[10px] break-all">
-                                                                    <span className="text-slate-400 font-bold block mb-0.5">Payload QRIS Dinamis:</span>
-                                                                    <span className="text-slate-700 font-bold">{liveDynamicPayload || '-'}</span>
-                                                                </div>
-                                                            )}
                                                         </div>
-                                                    </div>
-                                                </div>
-
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>

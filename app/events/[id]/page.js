@@ -853,7 +853,13 @@ export default function EventDetail({ params }) {
                                                 <option value="">-- Silakan Pilih Metode Bayar --</option>
                                                 {eventData.paymentMethods?.cash && <option value="cash">💵 Bayar di Tempat (Cash on Location)</option>}
                                                 {eventData.paymentMethods?.transfer && <option value="transfer">🏦 Transfer Bank</option>}
-                                                {eventData.paymentMethods?.qris && <option value="qris">📱 QRIS Dinamis (E-Wallet: GoPay, OVO, Dana, ShopeePay & M-Banking)</option>}
+                                                {eventData.paymentMethods?.qris && (
+                                                    <option value="qris">
+                                                        {activePricing.isVoluntary
+                                                            ? '📱 QRIS (E-Wallet: GoPay, OVO, Dana, ShopeePay & M-Banking)'
+                                                            : '📱 QRIS Dinamis (E-Wallet: GoPay, OVO, Dana, ShopeePay & M-Banking)'}
+                                                    </option>
+                                                )}
                                             </select>
 
                                             {/* Tampilan Detail Transfer Bank */}
@@ -883,99 +889,136 @@ export default function EventDetail({ params }) {
                                             )}
 
                                             {/* ======================================================== */}
-                                            {/* TAMPILAN QRIS DINAMIS & BACKGROUND POLOSAN DENGAN QR DI TENGAH */}
+                                            {/* TAMPILAN QRIS: STATIS UTUH (SISTEM IKHLAS) VS DINAMIS */}
                                             {/* ======================================================== */}
                                             {paymentMethod === 'qris' && (
                                                 <div className="bg-slate-50 p-5 md:p-6 rounded-2xl border-2 border-emerald-300 text-center space-y-4">
-                                                    <div>
-                                                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
-                                                            {activePricing.amount > 0 ? 'QRIS Dinamis Otomatis' : 'QRIS Statis'}
-                                                        </span>
-                                                        <h5 className="font-black text-base text-slate-900 mt-2">Scan QRIS Pembayaran</h5>
-                                                        
-                                                        {activePricing.amount > 0 ? (
-                                                            <div className="mt-1.5 p-2 bg-emerald-50 rounded-xl border border-emerald-200 max-w-md mx-auto">
-                                                                <p className="text-xs font-bold text-emerald-800">
-                                                                    ✓ QR Code di bawah telah otomatis terisi nominal sebesar: <span className="text-emerald-950 font-black underline">Rp {activePricing.amount.toLocaleString('id-ID')}</span>
-                                                                </p>
-                                                                <p className="text-[11px] text-emerald-700 mt-0.5">
-                                                                    Buka M-Banking atau E-Wallet (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana), scan kode di bawah, dan nominal otomatis muncul!
+                                                    {activePricing.isVoluntary ? (
+                                                        /* SISTEM IKHLAS: HANYA TAMPILKAN GAMBAR QRIS STATIS UTUH TANPA BACKGROUND & TANPA NMID */
+                                                        <>
+                                                            <div>
+                                                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                                                                    QRIS Sistem Ikhlas
+                                                                </span>
+                                                                <h5 className="font-black text-base text-slate-900 mt-2">Scan QRIS Pembayaran</h5>
+                                                                <p className="text-xs text-slate-500 mt-1">
+                                                                    Silakan scan gambar QRIS di bawah ini dan masukkan nominal pembayaran sesuai keikhlasan Anda.
                                                                 </p>
                                                             </div>
-                                                        ) : (
-                                                            <p className="text-xs text-slate-500 mt-1">
-                                                                Scan QRIS di bawah ini, lalu masukkan nominal pembayaran sesuai keikhlasan Anda.
-                                                            </p>
-                                                        )}
-                                                    </div>
 
-                                                    {/* KONTEN GAMBAR: BACKGROUND POLOSAN DENGAN QR CODE BERADA DI TENGAH */}
-                                                    {templateBgUrl ? (
-                                                        <div className="relative w-72 md:w-80 mx-auto rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-xl bg-white">
-                                                            {/* Background Polosan Template */}
-                                                            <img 
-                                                                src={templateBgUrl} 
-                                                                alt="Template QRIS Polosan" 
-                                                                className="w-full h-auto block select-none" 
-                                                            />
-                                                            
-                                                            {/* QR Code Dinamis Otomatis Tepat di Posisi Tengah (Center Overlay) */}
-                                                            <div className="absolute inset-0 flex items-center justify-center p-6">
-                                                                <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200">
+                                                            {staticFallbackImage && (
+                                                                <div className="inline-block p-3 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl">
                                                                     <img 
-                                                                        src={dynamicQrCodeUrl || staticFallbackImage} 
-                                                                        alt="QR Code Dinamis" 
-                                                                        className="w-36 h-36 md:w-44 md:h-44 object-contain block" 
+                                                                        src={staticFallbackImage} 
+                                                                        className="w-64 md:w-72 h-auto mx-auto object-contain rounded-xl block" 
+                                                                        alt="QRIS Pembayaran" 
                                                                     />
                                                                 </div>
-                                                            </div>
-                                                        </div>
+                                                            )}
+
+                                                            {staticFallbackImage && (
+                                                                <div className="flex items-center justify-center gap-2 pt-1">
+                                                                    <a 
+                                                                        href={staticFallbackImage} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer" 
+                                                                        download="QRIS-Pembayaran.png"
+                                                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
+                                                                    >
+                                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                        <span>Buka / Unduh Gambar QRIS</span>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     ) : (
-                                                        <div className="inline-block p-4 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl">
-                                                            <img 
-                                                                src={dynamicQrCodeUrl || staticFallbackImage} 
-                                                                className="w-52 h-52 md:w-60 md:h-60 mx-auto object-contain rounded-xl block" 
-                                                                alt="QR Code Pembayaran" 
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Tombol Unduh / Buka QR Code untuk Kemudahan Scan dari Galeri HP */}
-                                                    <div className="flex items-center justify-center gap-2 pt-1">
-                                                        <a 
-                                                            href={dynamicQrCodeUrl || staticFallbackImage} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer" 
-                                                            download="QRIS-Pembayaran.png"
-                                                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
-                                                        >
-                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                                            <span>Buka / Unduh QR Code</span>
-                                                        </a>
-                                                    </div>
-
-                                                    {/* Kotak NMID dan Tombol Salin */}
-                                                    {eventData.qrisNmid && (
-                                                        <div className="max-w-sm mx-auto bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-3">
-                                                            <div className="text-left min-w-0">
-                                                                <span className="text-[9px] font-black uppercase text-slate-400 block leading-none">NMID Merchant</span>
-                                                                <span className="font-mono font-bold text-xs text-slate-800 tracking-wider truncate block mt-0.5">{eventData.qrisNmid}</span>
-                                                            </div>
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => copyToClipboard(eventData.qrisNmid, 'nmid')}
-                                                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
-                                                            >
-                                                                {copiedNmid ? (
-                                                                    <span>✓ Tersalin</span>
+                                                        /* HARGA TETAP: QRIS DINAMIS OTOMATIS + TEMPLATE BACKGROUND + NMID */
+                                                        <>
+                                                            <div>
+                                                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                                                                    {activePricing.amount > 0 ? 'QRIS Dinamis Otomatis' : 'QRIS Statis'}
+                                                                </span>
+                                                                <h5 className="font-black text-base text-slate-900 mt-2">Scan QRIS Pembayaran</h5>
+                                                                
+                                                                {activePricing.amount > 0 ? (
+                                                                    <div className="mt-1.5 p-2 bg-emerald-50 rounded-xl border border-emerald-200 max-w-md mx-auto">
+                                                                        <p className="text-xs font-bold text-emerald-800">
+                                                                            ✓ QR Code di bawah telah otomatis terisi nominal sebesar: <span className="text-emerald-950 font-black underline">Rp {activePricing.amount.toLocaleString('id-ID')}</span>
+                                                                        </p>
+                                                                        <p className="text-[11px] text-emerald-700 mt-0.5">
+                                                                            Buka M-Banking atau E-Wallet (BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana), scan kode di bawah, dan nominal otomatis muncul!
+                                                                        </p>
+                                                                    </div>
                                                                 ) : (
-                                                                    <>
-                                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-                                                                        <span>Salin NMID</span>
-                                                                    </>
+                                                                    <p className="text-xs text-slate-500 mt-1">
+                                                                        Scan QRIS di bawah ini, lalu masukkan nominal pembayaran sesuai keikhlasan Anda.
+                                                                    </p>
                                                                 )}
-                                                            </button>
-                                                        </div>
+                                                            </div>
+
+                                                            {templateBgUrl ? (
+                                                                <div className="relative w-72 md:w-80 mx-auto rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-xl bg-white">
+                                                                    <img 
+                                                                        src={templateBgUrl} 
+                                                                        alt="Template QRIS Polosan" 
+                                                                        className="w-full h-auto block select-none" 
+                                                                    />
+                                                                    <div className="absolute inset-0 flex items-center justify-center p-6">
+                                                                        <div className="bg-white p-2 rounded-xl shadow-lg border border-slate-200">
+                                                                            <img 
+                                                                                src={dynamicQrCodeUrl || staticFallbackImage} 
+                                                                                alt="QR Code Dinamis" 
+                                                                                className="w-36 h-36 md:w-44 md:h-44 object-contain block" 
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="inline-block p-4 bg-white rounded-2xl border-2 border-emerald-400 shadow-xl">
+                                                                    <img 
+                                                                        src={dynamicQrCodeUrl || staticFallbackImage} 
+                                                                        className="w-52 h-52 md:w-60 md:h-60 mx-auto object-contain rounded-xl block" 
+                                                                        alt="QR Code Pembayaran" 
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            <div className="flex items-center justify-center gap-2 pt-1">
+                                                                <a 
+                                                                    href={dynamicQrCodeUrl || staticFallbackImage} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer" 
+                                                                    download="QRIS-Pembayaran.png"
+                                                                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-lg border border-slate-300 transition shadow-xs"
+                                                                >
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                                                    <span>Buka / Unduh QR Code</span>
+                                                                </a>
+                                                            </div>
+
+                                                            {eventData.qrisNmid && (
+                                                                <div className="max-w-sm mx-auto bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex items-center justify-between gap-3">
+                                                                    <div className="text-left min-w-0">
+                                                                        <span className="text-[9px] font-black uppercase text-slate-400 block leading-none">NMID Merchant</span>
+                                                                        <span className="font-mono font-bold text-xs text-slate-800 tracking-wider truncate block mt-0.5">{eventData.qrisNmid}</span>
+                                                                    </div>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        onClick={() => copyToClipboard(eventData.qrisNmid, 'nmid')}
+                                                                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
+                                                                    >
+                                                                        {copiedNmid ? (
+                                                                            <span>✓ Tersalin</span>
+                                                                        ) : (
+                                                                            <>
+                                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                                                                <span>Salin NMID</span>
+                                                                            </>
+                                                                        )}
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </div>
                                             )}
